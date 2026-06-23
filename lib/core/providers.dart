@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:educare/core/services/api_service.dart';
 import 'package:educare/features/academics/data/datasources/academic_remote_datasource.dart';
@@ -57,6 +58,18 @@ import 'package:educare/features/staff/domain/usecases/register_staff_usecase.da
 import 'package:educare/features/staff/presentation/viewmodels/staff_view_model.dart';
 
 final apiServiceProvider = Provider<ApiService>((ref) => ApiService());
+
+class ThemeModeNotifier extends StateNotifier<ThemeMode> {
+  ThemeModeNotifier() : super(ThemeMode.system);
+
+  void toggleTheme() {
+    state = state == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
+  }
+}
+
+final themeModeProvider = StateNotifierProvider<ThemeModeNotifier, ThemeMode>(
+  (ref) => ThemeModeNotifier(),
+);
 
 final authRemoteDatasourceProvider = Provider<AuthRemoteDatasource>(
   (ref) => AuthRemoteDatasource(ref.watch(apiServiceProvider)),

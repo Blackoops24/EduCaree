@@ -1,3 +1,4 @@
+import 'package:educare/core/widgets/delete_confirmation_dialog.dart';
 import 'package:flutter/material.dart';
 
 class AcademicManagementPage extends StatefulWidget {
@@ -101,7 +102,18 @@ class _AcademicManagementPageState extends State<AcademicManagementPage> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(icon: const Icon(Icons.edit), onPressed: () => _showClassDialog(context, classRecord: cls)),
-                            IconButton(icon: const Icon(Icons.delete), onPressed: () => setState(() => _classes.removeAt(index))),
+                            IconButton(
+                              icon: const Icon(Icons.delete),
+                              onPressed: () async {
+                                final confirmed = await showDeleteConfirmationDialog(
+                                  context,
+                                  title: 'Delete class?',
+                                  message: 'This will remove ${cls.name} - ${cls.section} from classes.',
+                                );
+                                if (!confirmed) return;
+                                setState(() => _classes.removeAt(index));
+                              },
+                            ),
                           ],
                         ),
                       ),
@@ -132,7 +144,18 @@ class _AcademicManagementPageState extends State<AcademicManagementPage> {
                       child: ListTile(
                         title: Text(section.name),
                         subtitle: Text('Class Teacher: ${section.classTeacher}'),
-                        trailing: IconButton(icon: const Icon(Icons.delete), onPressed: () => setState(() => _sections.removeAt(index))),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.delete),
+                          onPressed: () async {
+                            final confirmed = await showDeleteConfirmationDialog(
+                              context,
+                              title: 'Delete section?',
+                              message: 'This will remove section ${section.name}.',
+                            );
+                            if (!confirmed) return;
+                            setState(() => _sections.removeAt(index));
+                          },
+                        ),
                       ),
                     );
                   },
@@ -161,7 +184,18 @@ class _AcademicManagementPageState extends State<AcademicManagementPage> {
                       child: ListTile(
                         title: Text(subject.name),
                         subtitle: Text('Code: ${subject.code} • Allocated to: ${subject.allocatedClass}'),
-                        trailing: IconButton(icon: const Icon(Icons.delete), onPressed: () => setState(() => _subjects.removeAt(index))),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.delete),
+                          onPressed: () async {
+                            final confirmed = await showDeleteConfirmationDialog(
+                              context,
+                              title: 'Delete subject?',
+                              message: 'This will remove subject ${subject.name}.',
+                            );
+                            if (!confirmed) return;
+                            setState(() => _subjects.removeAt(index));
+                          },
+                        ),
                       ),
                     );
                   },

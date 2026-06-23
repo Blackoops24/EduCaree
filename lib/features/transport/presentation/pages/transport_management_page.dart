@@ -1,3 +1,4 @@
+import 'package:educare/core/widgets/delete_confirmation_dialog.dart';
 import 'package:flutter/material.dart';
 
 class TransportManagementPage extends StatefulWidget {
@@ -108,7 +109,18 @@ class _TransportManagementPageState extends State<TransportManagementPage> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(icon: const Icon(Icons.edit), onPressed: () => _showVehicleDialog(context, vehicle: vehicle)),
-                            IconButton(icon: const Icon(Icons.delete), onPressed: () => setState(() => _vehicles.removeAt(index))),
+                            IconButton(
+                              icon: const Icon(Icons.delete),
+                              onPressed: () async {
+                                final confirmed = await showDeleteConfirmationDialog(
+                                  context,
+                                  title: 'Delete vehicle?',
+                                  message: 'This will remove ${vehicle.name} from transport vehicles.',
+                                );
+                                if (!confirmed) return;
+                                setState(() => _vehicles.removeAt(index));
+                              },
+                            ),
                           ],
                         ),
                       ),
@@ -144,7 +156,18 @@ class _TransportManagementPageState extends State<TransportManagementPage> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(icon: const Icon(Icons.edit), onPressed: () => _showDriverDialog(context, driver: driver)),
-                            IconButton(icon: const Icon(Icons.delete), onPressed: () => setState(() => _drivers.removeAt(index))),
+                            IconButton(
+                              icon: const Icon(Icons.delete),
+                              onPressed: () async {
+                                final confirmed = await showDeleteConfirmationDialog(
+                                  context,
+                                  title: 'Delete driver?',
+                                  message: 'This will remove ${driver.name} from driver records.',
+                                );
+                                if (!confirmed) return;
+                                setState(() => _drivers.removeAt(index));
+                              },
+                            ),
                           ],
                         ),
                       ),
@@ -180,7 +203,18 @@ class _TransportManagementPageState extends State<TransportManagementPage> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(icon: const Icon(Icons.edit), onPressed: () => _showRouteDialog(context, route: route)),
-                            IconButton(icon: const Icon(Icons.delete), onPressed: () => setState(() => _routes.removeAt(index))),
+                            IconButton(
+                              icon: const Icon(Icons.delete),
+                              onPressed: () async {
+                                final confirmed = await showDeleteConfirmationDialog(
+                                  context,
+                                  title: 'Delete route?',
+                                  message: 'This will remove ${route.name} from transport routes.',
+                                );
+                                if (!confirmed) return;
+                                setState(() => _routes.removeAt(index));
+                              },
+                            ),
                           ],
                         ),
                       ),
@@ -212,7 +246,18 @@ class _TransportManagementPageState extends State<TransportManagementPage> {
                       child: ListTile(
                         title: Text(assignment.studentName),
                         subtitle: Text('${assignment.vehicle} • ${assignment.route}'),
-                        trailing: IconButton(icon: const Icon(Icons.delete), onPressed: () => setState(() => _assignments.removeAt(index))),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.delete),
+                          onPressed: () async {
+                            final confirmed = await showDeleteConfirmationDialog(
+                              context,
+                              title: 'Delete allocation?',
+                              message: 'This will remove the transport allocation for ${assignment.studentName}.',
+                            );
+                            if (!confirmed) return;
+                            setState(() => _assignments.removeAt(index));
+                          },
+                        ),
                       ),
                     );
                   },

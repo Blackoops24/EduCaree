@@ -1,3 +1,4 @@
+import 'package:educare/core/widgets/delete_confirmation_dialog.dart';
 import 'package:flutter/material.dart';
 
 class StudentManagementPage extends StatefulWidget {
@@ -8,10 +9,11 @@ class StudentManagementPage extends StatefulWidget {
 }
 
 class _StudentManagementPageState extends State<StudentManagementPage> {
+  static const String _admissionBrandPrefix = 'edu';
+
   final List<StudentRecord> _students = [
     StudentRecord(
-      id: 1,
-      admissionNo: 'ADM-2024-001',
+      admissionNo: 'edu20261',
       name: 'Aarav Sharma',
       gender: 'Male',
       dob: '2010-05-15',
@@ -27,8 +29,7 @@ class _StudentManagementPageState extends State<StudentManagementPage> {
       parentPhone: '9876543200',
     ),
     StudentRecord(
-      id: 2,
-      admissionNo: 'ADM-2024-002',
+      admissionNo: 'edu20262',
       name: 'Priya Patel',
       gender: 'Female',
       dob: '2010-08-22',
@@ -48,6 +49,12 @@ class _StudentManagementPageState extends State<StudentManagementPage> {
   final List<StudentDocument> _documents = [];
   final List<StudentPromotion> _promotions = [];
   final List<AlumniRecord> _alumni = [];
+
+  String _generateAdmissionNo() {
+    final currentYear = DateTime.now().year;
+    final sequence = _students.length + 1;
+    return '$_admissionBrandPrefix$currentYear$sequence';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -132,7 +139,18 @@ class _StudentManagementPageState extends State<StudentManagementPage> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(icon: const Icon(Icons.edit), onPressed: () => _showStudentDialog(context, student: student)),
-                            IconButton(icon: const Icon(Icons.delete), onPressed: () => setState(() => _students.removeAt(index))),
+                            IconButton(
+                              icon: const Icon(Icons.delete),
+                              onPressed: () async {
+                                final confirmed = await showDeleteConfirmationDialog(
+                                  context,
+                                  title: 'Delete student?',
+                                  message: 'This will remove ${student.name} from student registrations.',
+                                );
+                                if (!confirmed) return;
+                                setState(() => _students.removeAt(index));
+                              },
+                            ),
                           ],
                         ),
                       ),
@@ -211,7 +229,18 @@ class _StudentManagementPageState extends State<StudentManagementPage> {
                       child: ListTile(
                         title: Text(doc.fileName),
                         subtitle: Text('${doc.studentName} • ${doc.documentType}'),
-                        trailing: IconButton(icon: const Icon(Icons.delete), onPressed: () => setState(() => _documents.removeAt(index))),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.delete),
+                          onPressed: () async {
+                            final confirmed = await showDeleteConfirmationDialog(
+                              context,
+                              title: 'Delete document?',
+                              message: 'This will remove ${doc.fileName} from student documents.',
+                            );
+                            if (!confirmed) return;
+                            setState(() => _documents.removeAt(index));
+                          },
+                        ),
                       ),
                     );
                   },
@@ -305,7 +334,18 @@ class _StudentManagementPageState extends State<StudentManagementPage> {
                       child: ListTile(
                         title: Text(promotion.studentName),
                         subtitle: Text('${promotion.fromClass} → ${promotion.toClass} • ${promotion.promotionDate}'),
-                        trailing: IconButton(icon: const Icon(Icons.delete), onPressed: () => setState(() => _promotions.removeAt(index))),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.delete),
+                          onPressed: () async {
+                            final confirmed = await showDeleteConfirmationDialog(
+                              context,
+                              title: 'Delete promotion record?',
+                              message: 'This will remove the promotion record for ${promotion.studentName}.',
+                            );
+                            if (!confirmed) return;
+                            setState(() => _promotions.removeAt(index));
+                          },
+                        ),
                       ),
                     );
                   },
@@ -363,7 +403,18 @@ class _StudentManagementPageState extends State<StudentManagementPage> {
                       child: ListTile(
                         title: Text(alum.name),
                         subtitle: Text('Batch ${alum.graduationYear} • ${alum.profession}'),
-                        trailing: IconButton(icon: const Icon(Icons.delete), onPressed: () => setState(() => _alumni.removeAt(index))),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.delete),
+                          onPressed: () async {
+                            final confirmed = await showDeleteConfirmationDialog(
+                              context,
+                              title: 'Delete alumni record?',
+                              message: 'This will remove ${alum.name} from alumni records.',
+                            );
+                            if (!confirmed) return;
+                            setState(() => _alumni.removeAt(index));
+                          },
+                        ),
                       ),
                     );
                   },
@@ -388,7 +439,8 @@ class _StudentManagementPageState extends State<StudentManagementPage> {
 
   void _showStudentDialog(BuildContext context, {StudentRecord? student}) {
     final nameController = TextEditingController(text: student?.name ?? '');
-    final admissionNoController = TextEditingController(text: student?.admissionNo ?? '');
+    final generatedAdmissionNo = student?.admissionNo ?? _generateAdmissionNo();
+    final admissionNoController = TextEditingController(text: generatedAdmissionNo);
     final genderController = TextEditingController(text: student?.gender ?? '');
     final dobController = TextEditingController(text: student?.dob ?? '');
     final bloodGroupController = TextEditingController(text: student?.bloodGroup ?? '');
@@ -408,7 +460,11 @@ class _StudentManagementPageState extends State<StudentManagementPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(controller: admissionNoController, decoration: const InputDecoration(labelText: 'Admission Number')),
+              TextField(
+                controller: admissionNoController,
+                readOnly: true,
+                decoration: const InputDecoration(labelText: 'Admission Number'),
+              ),
               TextField(controller: nameController, decoration: const InputDecoration(labelText: 'Student Name')),
               TextField(controller: genderController, decoration: const InputDecoration(labelText: 'Gender')),
               TextField(controller: dobController, decoration: const InputDecoration(labelText: 'Date of Birth')),
@@ -435,7 +491,6 @@ class _StudentManagementPageState extends State<StudentManagementPage> {
               setState(() {
                 if (student != null) {
                   student.name = name;
-                  student.admissionNo = admissionNoController.text.trim();
                   student.gender = genderController.text.trim();
                   student.dob = dobController.text.trim();
                   student.bloodGroup = bloodGroupController.text.trim();
@@ -448,8 +503,7 @@ class _StudentManagementPageState extends State<StudentManagementPage> {
                   student.section = sectionController.text.trim();
                 } else {
                   _students.add(StudentRecord(
-                    id: _students.isEmpty ? 1 : _students.last.id + 1,
-                    admissionNo: admissionNoController.text.trim(),
+                    admissionNo: generatedAdmissionNo,
                     name: name,
                     gender: genderController.text.trim(),
                     dob: dobController.text.trim(),
@@ -478,7 +532,7 @@ class _StudentManagementPageState extends State<StudentManagementPage> {
   void _showDocumentDialog(BuildContext context) {
     final fileNameController = TextEditingController();
     final docTypeController = TextEditingController();
-    String selectedStudent = _students.isNotEmpty ? _students.first.name : '';
+    String selectedAdmissionNo = _students.isNotEmpty ? _students.first.admissionNo : '';
 
     showDialog(
       context: context,
@@ -489,10 +543,12 @@ class _StudentManagementPageState extends State<StudentManagementPage> {
             mainAxisSize: MainAxisSize.min,
             children: [
               DropdownButtonFormField<String>(
-                value: selectedStudent.isNotEmpty ? selectedStudent : null,
-                items: _students.map((s) => DropdownMenuItem(value: s.name, child: Text(s.name))).toList(),
+                value: selectedAdmissionNo.isNotEmpty ? selectedAdmissionNo : null,
+                items: _students
+                    .map((s) => DropdownMenuItem(value: s.admissionNo, child: Text('${s.name} (${s.admissionNo})')))
+                    .toList(),
                 decoration: const InputDecoration(labelText: 'Student'),
-                onChanged: (value) => selectedStudent = value ?? selectedStudent,
+                onChanged: (value) => selectedAdmissionNo = value ?? selectedAdmissionNo,
               ),
               TextField(controller: docTypeController, decoration: const InputDecoration(labelText: 'Document Type')),
               TextField(controller: fileNameController, decoration: const InputDecoration(labelText: 'File Name')),
@@ -509,9 +565,29 @@ class _StudentManagementPageState extends State<StudentManagementPage> {
                 return;
               }
               setState(() {
+                final selectedStudent = _students.firstWhere(
+                  (s) => s.admissionNo == selectedAdmissionNo,
+                  orElse: () => StudentRecord(
+                    admissionNo: '',
+                    name: '',
+                    gender: '',
+                    dob: '',
+                    bloodGroup: '',
+                    address: '',
+                    mobileNumber: '',
+                    aadhaarNumber: '',
+                    category: '',
+                    religion: '',
+                    currentClass: '',
+                    section: '',
+                    parentName: '',
+                    parentPhone: '',
+                  ),
+                );
                 _documents.add(StudentDocument(
                   id: _documents.isEmpty ? 1 : _documents.last.id + 1,
-                  studentName: selectedStudent,
+                  studentAdmissionNo: selectedAdmissionNo,
+                  studentName: selectedStudent.name,
                   documentType: docTypeController.text.trim(),
                   fileName: fileName,
                 ));
@@ -591,7 +667,7 @@ class _StudentManagementPageState extends State<StudentManagementPage> {
   }
 
   void _showPromotionDialog(BuildContext context) {
-    String selectedStudent = _students.isNotEmpty ? _students.first.name : '';
+    String selectedAdmissionNo = _students.isNotEmpty ? _students.first.admissionNo : '';
     final toClassController = TextEditingController();
 
     showDialog(
@@ -603,10 +679,12 @@ class _StudentManagementPageState extends State<StudentManagementPage> {
             mainAxisSize: MainAxisSize.min,
             children: [
               DropdownButtonFormField<String>(
-                value: selectedStudent.isNotEmpty ? selectedStudent : null,
-                items: _students.map((s) => DropdownMenuItem(value: s.name, child: Text(s.name))).toList(),
+                value: selectedAdmissionNo.isNotEmpty ? selectedAdmissionNo : null,
+                items: _students
+                    .map((s) => DropdownMenuItem(value: s.admissionNo, child: Text('${s.name} (${s.admissionNo})')))
+                    .toList(),
                 decoration: const InputDecoration(labelText: 'Student'),
-                onChanged: (value) => selectedStudent = value ?? selectedStudent,
+                onChanged: (value) => selectedAdmissionNo = value ?? selectedAdmissionNo,
               ),
               TextField(controller: toClassController, decoration: const InputDecoration(labelText: 'New Class')),
             ],
@@ -621,17 +699,19 @@ class _StudentManagementPageState extends State<StudentManagementPage> {
                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Enter new class.')));
                 return;
               }
-              final student = _students.firstWhere((s) => s.name == selectedStudent, orElse: () => StudentRecord(id: 0, admissionNo: '', name: '', gender: '', dob: '', bloodGroup: '', address: '', mobileNumber: '', aadhaarNumber: '', category: '', religion: '', currentClass: '', section: '', parentName: '', parentPhone: ''));
+              final studentIndex = _students.indexWhere((s) => s.admissionNo == selectedAdmissionNo);
+              final selectedStudent = studentIndex >= 0 ? _students[studentIndex] : null;
               setState(() {
                 _promotions.add(StudentPromotion(
                   id: _promotions.isEmpty ? 1 : _promotions.last.id + 1,
-                  studentName: selectedStudent,
-                  fromClass: student.currentClass,
+                  studentAdmissionNo: selectedAdmissionNo,
+                  studentName: selectedStudent?.name ?? '',
+                  fromClass: selectedStudent?.currentClass ?? '',
                   toClass: toClass,
                   promotionDate: DateTime.now().toString().split(' ').first,
                 ));
-                if (student.id != 0) {
-                  student.currentClass = toClass;
+                if (selectedStudent != null) {
+                  selectedStudent.currentClass = toClass;
                 }
               });
               Navigator.pop(context);
@@ -691,7 +771,6 @@ class _StudentManagementPageState extends State<StudentManagementPage> {
 
 class StudentRecord {
   StudentRecord({
-    required this.id,
     required this.admissionNo,
     required this.name,
     required this.gender,
@@ -708,8 +787,7 @@ class StudentRecord {
     required this.parentPhone,
   });
 
-  final int id;
-  String admissionNo;
+  final String admissionNo;
   String name;
   String gender;
   String dob;
@@ -726,18 +804,20 @@ class StudentRecord {
 }
 
 class StudentDocument {
-  StudentDocument({required this.id, required this.studentName, required this.documentType, required this.fileName});
+  StudentDocument({required this.id, required this.studentAdmissionNo, required this.studentName, required this.documentType, required this.fileName});
 
   final int id;
+  final String studentAdmissionNo;
   final String studentName;
   final String documentType;
   final String fileName;
 }
 
 class StudentPromotion {
-  StudentPromotion({required this.id, required this.studentName, required this.fromClass, required this.toClass, required this.promotionDate});
+  StudentPromotion({required this.id, required this.studentAdmissionNo, required this.studentName, required this.fromClass, required this.toClass, required this.promotionDate});
 
   final int id;
+  final String studentAdmissionNo;
   final String studentName;
   final String fromClass;
   final String toClass;

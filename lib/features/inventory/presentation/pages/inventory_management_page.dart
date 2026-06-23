@@ -1,3 +1,4 @@
+import 'package:educare/core/widgets/delete_confirmation_dialog.dart';
 import 'package:flutter/material.dart';
 
 class InventoryManagementPage extends StatefulWidget {
@@ -101,7 +102,18 @@ class _InventoryManagementPageState extends State<InventoryManagementPage> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(icon: const Icon(Icons.edit), onPressed: () => _showAssetDialog(context, asset: asset)),
-                            IconButton(icon: const Icon(Icons.delete), onPressed: () => setState(() => _deleteAsset(asset))),
+                            IconButton(
+                              icon: const Icon(Icons.delete),
+                              onPressed: () async {
+                                final confirmed = await showDeleteConfirmationDialog(
+                                  context,
+                                  title: 'Delete asset?',
+                                  message: 'This will remove ${asset.name} from inventory.',
+                                );
+                                if (!confirmed) return;
+                                setState(() => _deleteAsset(asset));
+                              },
+                            ),
                           ],
                         ),
                       ),
@@ -136,7 +148,18 @@ class _InventoryManagementPageState extends State<InventoryManagementPage> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(icon: const Icon(Icons.edit), onPressed: () => _showAssetDialog(context, asset: asset)),
-                            IconButton(icon: const Icon(Icons.delete), onPressed: () => setState(() => _deleteAsset(asset))),
+                            IconButton(
+                              icon: const Icon(Icons.delete),
+                              onPressed: () async {
+                                final confirmed = await showDeleteConfirmationDialog(
+                                  context,
+                                  title: 'Delete lab item?',
+                                  message: 'This will remove ${asset.name} from lab equipment.',
+                                );
+                                if (!confirmed) return;
+                                setState(() => _deleteAsset(asset));
+                              },
+                            ),
                           ],
                         ),
                       ),
@@ -171,7 +194,18 @@ class _InventoryManagementPageState extends State<InventoryManagementPage> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(icon: const Icon(Icons.edit), onPressed: () => _showAssetDialog(context, asset: asset)),
-                            IconButton(icon: const Icon(Icons.delete), onPressed: () => setState(() => _deleteAsset(asset))),
+                            IconButton(
+                              icon: const Icon(Icons.delete),
+                              onPressed: () async {
+                                final confirmed = await showDeleteConfirmationDialog(
+                                  context,
+                                  title: 'Delete sports item?',
+                                  message: 'This will remove ${asset.name} from sports inventory.',
+                                );
+                                if (!confirmed) return;
+                                setState(() => _deleteAsset(asset));
+                              },
+                            ),
                           ],
                         ),
                       ),

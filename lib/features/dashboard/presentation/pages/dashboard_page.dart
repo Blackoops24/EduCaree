@@ -35,139 +35,133 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
     const libraryBooks = 3280;
     const activeBuses = 8;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('EduCare Dashboard'),
-        centerTitle: true,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'School Overview',
-              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'A real-time overview of your school operations, attendance, fees and upcoming events.',
-              style: TextStyle(fontSize: 16, color: Colors.black54),
-            ),
-            const SizedBox(height: 24),
-            Wrap(
-              spacing: 16,
-              runSpacing: 16,
-              children: [
-                _MetricCard(title: 'Total Students', value: '$totalStudents', icon: Icons.school, iconColor: Colors.blue),
-                _MetricCard(title: 'Total Teachers', value: '$totalTeachers', icon: Icons.person, iconColor: Colors.indigo),
-                _MetricCard(title: 'Total Staff', value: '$totalStaff', icon: Icons.group, iconColor: Colors.teal),
-                _MetricCard(title: 'Total Classes', value: '$totalClasses', icon: Icons.class_, iconColor: Colors.deepPurple),
-                _MetricCard(title: 'Total Fee Collection', value: totalFeeCollection, icon: Icons.attach_money, iconColor: Colors.green),
-                _MetricCard(title: 'Pending Fees', value: pendingFees, icon: Icons.pending_actions, iconColor: Colors.orange),
-                _MetricCard(title: 'Library Books', value: '$libraryBooks', icon: Icons.library_books, iconColor: Colors.brown),
-                _MetricCard(title: 'Active Buses', value: '$activeBuses', icon: Icons.directions_bus, iconColor: Colors.cyan),
-              ],
-            ),
-            const SizedBox(height: 24),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(child: _buildChartCard('Attendance Statistics', _attendanceChart(), Colors.blue.shade50)),
-                const SizedBox(width: 16),
-                Expanded(child: _buildChartCard('Fee Collection Graph', _feeChart(), Colors.green.shade50)),
-              ],
-            ),
-            const SizedBox(height: 16),
-            _buildChartCard('Student Growth Graph', _growthChart(), Colors.purple.shade50, height: 260),
-            const SizedBox(height: 24),
-            Wrap(
-              spacing: 16,
-              runSpacing: 16,
-              children: [
-                _InfoCard(
-                  title: 'Today\'s Birthdays',
-                  items: const ['Aarav Sharma – Grade 8', 'Mia Patel – Grade 10', 'Noah Singh – Grade 6'],
-                ),
-                _InfoCard(
-                  title: 'Upcoming Events',
-                  items: const ['Science Exhibition – May 20', 'Sports Day – June 5', 'Parent Meeting – June 12'],
-                ),
-                _InfoCard(
-                  title: 'Recent Notifications',
-                  items: const ['Library books due tomorrow', 'New exam schedule published', 'Fee reminder sent to parents'],
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            Wrap(
-              spacing: 16,
-              runSpacing: 16,
-              children: [
-                _DashboardCard(
-                  title: 'Student Management',
-                  subtitle: 'Admission, profiles, documents, alumni',
-                  icon: Icons.school,
-                  onTap: () => context.go(AppRoutes.students),
-                ),
-                _DashboardCard(
-                  title: 'Staff Management',
-                  subtitle: 'Registration, attendance, leave, salary',
-                  icon: Icons.group,
-                  onTap: () => context.go(AppRoutes.staff),
-                ),
-                _DashboardCard(
-                  title: 'Academic Management',
-                  subtitle: 'Classes, timetable, exams, report cards',
-                  icon: Icons.book,
-                  onTap: () => context.go(AppRoutes.academics),
-                ),
-                _DashboardCard(
-                  title: 'Fee Management',
-                  subtitle: 'Structure, collections, payments, reports',
-                  icon: Icons.receipt_long,
-                  onTap: () => context.go(AppRoutes.fees),
-                ),
-                _DashboardCard(
-                  title: 'Transport Management',
-                  subtitle: 'Vehicles, drivers, routes, allocation, GPS tracking',
-                  icon: Icons.directions_bus,
-                  onTap: () => context.go(AppRoutes.transport),
-                ),
-                _DashboardCard(
-                  title: 'Inventory Management',
-                  subtitle: 'Assets, lab gear, sports stock, damaged items',
-                  icon: Icons.inventory_2,
-                  onTap: () => context.go(AppRoutes.inventory),
-                ),
-                _DashboardCard(
-                  title: 'Notifications',
-                  subtitle: 'Push, email, SMS alerts and report exports',
-                  icon: Icons.notifications_active,
-                  onTap: () => context.go(AppRoutes.notifications),
-                ),
-                _DashboardCard(
-                  title: 'Library Management',
-                  subtitle: 'Categories, inventory, issue, returns, fines',
-                  icon: Icons.library_books,
-                  onTap: () => context.go(AppRoutes.library),
-                ),
-                _DashboardCard(
-                  title: 'Attendance Management',
-                  subtitle: 'Student/staff attendance, biometric, face recognition',
-                  icon: Icons.person_add,
-                  onTap: () => context.go(AppRoutes.attendance),
-                ),
-                _DashboardCard(
-                  title: 'Profile Access Control',
-                  subtitle: 'Manage role-based screen permissions',
-                  icon: Icons.security,
-                  onTap: () => context.go(AppRoutes.profileAccessControl),
-                ),
-              ],
-            ),
-          ],
-        ),
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+                    const Text(
+                      'School Overview',
+                      style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'A real-time overview of your school operations, attendance, fees and upcoming events.',
+                      style: TextStyle(fontSize: 16, color: Colors.black54),
+                    ),
+                    const SizedBox(height: 24),
+                    Wrap(
+                      spacing: 16,
+                      runSpacing: 16,
+                      children: [
+                        _MetricCard(title: 'Total Students', value: '$totalStudents', icon: Icons.school, iconColor: Colors.blue),
+                        _MetricCard(title: 'Total Teachers', value: '$totalTeachers', icon: Icons.person, iconColor: Colors.indigo),
+                        _MetricCard(title: 'Total Staff', value: '$totalStaff', icon: Icons.group, iconColor: Colors.teal),
+                        _MetricCard(title: 'Total Classes', value: '$totalClasses', icon: Icons.class_, iconColor: Colors.deepPurple),
+                        _MetricCard(title: 'Total Fee Collection', value: totalFeeCollection, icon: Icons.attach_money, iconColor: Colors.green),
+                        _MetricCard(title: 'Pending Fees', value: pendingFees, icon: Icons.pending_actions, iconColor: Colors.orange),
+                        _MetricCard(title: 'Library Books', value: '$libraryBooks', icon: Icons.library_books, iconColor: Colors.brown),
+                        _MetricCard(title: 'Active Buses', value: '$activeBuses', icon: Icons.directions_bus, iconColor: Colors.cyan),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(child: _buildChartCard('Attendance Statistics', _attendanceChart(), Colors.blue.shade50)),
+                        const SizedBox(width: 16),
+                        Expanded(child: _buildChartCard('Fee Collection Graph', _feeChart(), Colors.green.shade50)),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    _buildChartCard('Student Growth Graph', _growthChart(), Colors.purple.shade50, height: 260),
+                    const SizedBox(height: 24),
+                    Wrap(
+                      spacing: 16,
+                      runSpacing: 16,
+                      children: [
+                        _InfoCard(
+                          title: 'Today\'s Birthdays',
+                          items: const ['Aarav Sharma – Grade 8', 'Mia Patel – Grade 10', 'Noah Singh – Grade 6'],
+                        ),
+                        _InfoCard(
+                          title: 'Upcoming Events',
+                          items: const ['Science Exhibition – May 20', 'Sports Day – June 5', 'Parent Meeting – June 12'],
+                        ),
+                        _InfoCard(
+                          title: 'Recent Notifications',
+                          items: const ['Library books due tomorrow', 'New exam schedule published', 'Fee reminder sent to parents'],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    Wrap(
+                      spacing: 16,
+                      runSpacing: 16,
+                      children: [
+                        _DashboardCard(
+                          title: 'Student Management',
+                          subtitle: 'Admission, profiles, documents, alumni',
+                          icon: Icons.school,
+                          onTap: () => context.go(AppRoutes.students),
+                        ),
+                        _DashboardCard(
+                          title: 'Staff Management',
+                          subtitle: 'Registration, attendance, leave, salary',
+                          icon: Icons.group,
+                          onTap: () => context.go(AppRoutes.staff),
+                        ),
+                        _DashboardCard(
+                          title: 'Academic Management',
+                          subtitle: 'Classes, timetable, exams, report cards',
+                          icon: Icons.book,
+                          onTap: () => context.go(AppRoutes.academics),
+                        ),
+                        _DashboardCard(
+                          title: 'Fee Management',
+                          subtitle: 'Structure, collections, payments, reports',
+                          icon: Icons.receipt_long,
+                          onTap: () => context.go(AppRoutes.fees),
+                        ),
+                        _DashboardCard(
+                          title: 'Transport Management',
+                          subtitle: 'Vehicles, drivers, routes, allocation, GPS tracking',
+                          icon: Icons.directions_bus,
+                          onTap: () => context.go(AppRoutes.transport),
+                        ),
+                        _DashboardCard(
+                          title: 'Inventory Management',
+                          subtitle: 'Assets, lab gear, sports stock, damaged items',
+                          icon: Icons.inventory_2,
+                          onTap: () => context.go(AppRoutes.inventory),
+                        ),
+                        _DashboardCard(
+                          title: 'Notifications',
+                          subtitle: 'Push, email, SMS alerts and report exports',
+                          icon: Icons.notifications_active,
+                          onTap: () => context.go(AppRoutes.notifications),
+                        ),
+                        _DashboardCard(
+                          title: 'Library Management',
+                          subtitle: 'Categories, inventory, issue, returns, fines',
+                          icon: Icons.library_books,
+                          onTap: () => context.go(AppRoutes.library),
+                        ),
+                        _DashboardCard(
+                          title: 'Attendance Management',
+                          subtitle: 'Student/staff attendance, biometric, face recognition',
+                          icon: Icons.person_add,
+                          onTap: () => context.go(AppRoutes.attendance),
+                        ),
+                        _DashboardCard(
+                          title: 'Profile Access Control',
+                          subtitle: 'Manage role-based screen permissions',
+                          icon: Icons.security,
+                          onTap: () => context.go(AppRoutes.profileAccessControl),
+                        ),
+                      ],
+                    ),
+        ],
       ),
     );
   }

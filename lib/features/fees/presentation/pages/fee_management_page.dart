@@ -1,3 +1,4 @@
+import 'package:educare/core/widgets/delete_confirmation_dialog.dart';
 import 'package:flutter/material.dart';
 
 class FeeManagementPage extends StatefulWidget {
@@ -129,7 +130,15 @@ class _FeeManagementPageState extends State<FeeManagementPage> {
                             ),
                             IconButton(
                               icon: const Icon(Icons.delete),
-                              onPressed: () => setState(() => _structures.removeAt(index)),
+                              onPressed: () async {
+                                final confirmed = await showDeleteConfirmationDialog(
+                                  context,
+                                  title: 'Delete fee structure?',
+                                  message: 'This will remove ${structure.name} from fee structures.',
+                                );
+                                if (!confirmed) return;
+                                setState(() => _structures.removeAt(index));
+                              },
                             ),
                           ],
                         ),
@@ -171,7 +180,15 @@ class _FeeManagementPageState extends State<FeeManagementPage> {
                             ),
                             IconButton(
                               icon: const Icon(Icons.delete),
-                              onPressed: () => setState(() => _categories.removeAt(index)),
+                              onPressed: () async {
+                                final confirmed = await showDeleteConfirmationDialog(
+                                  context,
+                                  title: 'Delete fee category?',
+                                  message: 'This will remove ${category.name} from fee categories.',
+                                );
+                                if (!confirmed) return;
+                                setState(() => _categories.removeAt(index));
+                              },
                             ),
                           ],
                         ),
@@ -217,7 +234,15 @@ class _FeeManagementPageState extends State<FeeManagementPage> {
                             ),
                             IconButton(
                               icon: const Icon(Icons.delete),
-                              onPressed: () => setState(() => _installments.removeAt(index)),
+                              onPressed: () async {
+                                final confirmed = await showDeleteConfirmationDialog(
+                                  context,
+                                  title: 'Delete installment?',
+                                  message: 'This will remove the installment ${installment.name}.',
+                                );
+                                if (!confirmed) return;
+                                setState(() => _installments.removeAt(index));
+                              },
                             ),
                           ],
                         ),
@@ -263,7 +288,15 @@ class _FeeManagementPageState extends State<FeeManagementPage> {
                             ),
                             IconButton(
                               icon: const Icon(Icons.delete),
-                              onPressed: () => setState(() => _collections.removeAt(index)),
+                              onPressed: () async {
+                                final confirmed = await showDeleteConfirmationDialog(
+                                  context,
+                                  title: 'Delete fee collection?',
+                                  message: 'This will remove the collection record for ${collection.studentName}.',
+                                );
+                                if (!confirmed) return;
+                                setState(() => _collections.removeAt(index));
+                              },
                             ),
                           ],
                         ),

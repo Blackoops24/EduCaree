@@ -1,3 +1,4 @@
+import 'package:educare/core/widgets/delete_confirmation_dialog.dart';
 import 'package:flutter/material.dart';
 
 class StaffManagementPage extends StatefulWidget {
@@ -97,7 +98,18 @@ class _StaffManagementPageState extends State<StaffManagementPage> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(icon: const Icon(Icons.edit), onPressed: () => _showStaffDialog(context, staff: employee)),
-                            IconButton(icon: const Icon(Icons.delete), onPressed: () => setState(() => _staff.removeAt(index))),
+                            IconButton(
+                              icon: const Icon(Icons.delete),
+                              onPressed: () async {
+                                final confirmed = await showDeleteConfirmationDialog(
+                                  context,
+                                  title: 'Delete employee?',
+                                  message: 'This will remove ${employee.name} from staff records.',
+                                );
+                                if (!confirmed) return;
+                                setState(() => _staff.removeAt(index));
+                              },
+                            ),
                           ],
                         ),
                       ),
@@ -172,7 +184,18 @@ class _StaffManagementPageState extends State<StaffManagementPage> {
                       child: ListTile(
                         title: Text(leave.employeeName),
                         subtitle: Text('${leave.leaveType} • ${leave.fromDate} to ${leave.toDate}'),
-                        trailing: IconButton(icon: const Icon(Icons.delete), onPressed: () => setState(() => _leaves.removeAt(index))),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.delete),
+                          onPressed: () async {
+                            final confirmed = await showDeleteConfirmationDialog(
+                              context,
+                              title: 'Delete leave record?',
+                              message: 'This will remove the leave record for ${leave.employeeName}.',
+                            );
+                            if (!confirmed) return;
+                            setState(() => _leaves.removeAt(index));
+                          },
+                        ),
                       ),
                     );
                   },
@@ -201,7 +224,18 @@ class _StaffManagementPageState extends State<StaffManagementPage> {
                       child: ListTile(
                         title: Text(attendance.employeeName),
                         subtitle: Text('${attendance.date} • ${attendance.status}'),
-                        trailing: IconButton(icon: const Icon(Icons.delete), onPressed: () => setState(() => _staffAttendance.removeAt(index))),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.delete),
+                          onPressed: () async {
+                            final confirmed = await showDeleteConfirmationDialog(
+                              context,
+                              title: 'Delete attendance record?',
+                              message: 'This will remove the attendance record for ${attendance.employeeName}.',
+                            );
+                            if (!confirmed) return;
+                            setState(() => _staffAttendance.removeAt(index));
+                          },
+                        ),
                       ),
                     );
                   },
@@ -230,7 +264,18 @@ class _StaffManagementPageState extends State<StaffManagementPage> {
                       child: ListTile(
                         title: Text(perf.employeeName),
                         subtitle: Text('Rating: ${perf.rating}/10 • ${perf.reviewDate}'),
-                        trailing: IconButton(icon: const Icon(Icons.delete), onPressed: () => setState(() => _performance.removeAt(index))),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.delete),
+                          onPressed: () async {
+                            final confirmed = await showDeleteConfirmationDialog(
+                              context,
+                              title: 'Delete performance record?',
+                              message: 'This will remove the performance review for ${perf.employeeName}.',
+                            );
+                            if (!confirmed) return;
+                            setState(() => _performance.removeAt(index));
+                          },
+                        ),
                       ),
                     );
                   },

@@ -1,3 +1,4 @@
+import 'package:educare/core/widgets/delete_confirmation_dialog.dart';
 import 'package:flutter/material.dart';
 
 class LibraryManagementPage extends StatefulWidget {
@@ -152,7 +153,15 @@ class _LibraryManagementPageState extends State<LibraryManagementPage> {
                             ),
                             IconButton(
                               icon: const Icon(Icons.delete),
-                              onPressed: () => setState(() => _categories.removeAt(index)),
+                              onPressed: () async {
+                                final confirmed = await showDeleteConfirmationDialog(
+                                  context,
+                                  title: 'Delete book category?',
+                                  message: 'This will remove ${category.name} from book categories.',
+                                );
+                                if (!confirmed) return;
+                                setState(() => _categories.removeAt(index));
+                              },
                             ),
                           ],
                         ),
@@ -194,7 +203,18 @@ class _LibraryManagementPageState extends State<LibraryManagementPage> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 IconButton(icon: const Icon(Icons.edit), onPressed: () => _showBookDialog(context, book: book)),
-                                IconButton(icon: const Icon(Icons.delete), onPressed: () => setState(() => _books.removeAt(index))),
+                                IconButton(
+                                  icon: const Icon(Icons.delete),
+                                  onPressed: () async {
+                                    final confirmed = await showDeleteConfirmationDialog(
+                                      context,
+                                      title: 'Delete book?',
+                                      message: 'This will remove ${book.title} from library inventory.',
+                                    );
+                                    if (!confirmed) return;
+                                    setState(() => _books.removeAt(index));
+                                  },
+                                ),
                               ],
                             ),
                           ],
@@ -257,7 +277,6 @@ class _LibraryManagementPageState extends State<LibraryManagementPage> {
                   itemBuilder: (context, index) {
                     final issue = issuedBooks[index];
                     final overdueDays = _calculateOverdueDays(issue.dueDate);
-                    final fineAmount = overdueDays > 0 ? overdueDays * finePerDay : 0;
                     return Card(
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       child: ListTile(

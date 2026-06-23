@@ -1,5 +1,6 @@
 class AppRoutes {
   static const String login = '/';
+  static const String registration = '/register';
   static const String dashboard = '/dashboard';
 
   static const String students = '/students';
@@ -33,10 +34,13 @@ class AppRoutes {
   static const String transport = '/transport';
   static const String inventory = '/inventory';
   static const String notifications = '/notifications';
+  static const String messages = '/messages';
+  static const String calendar = '/calendar';
   static const String library = '/library';
   static const String profileAccessControl = '/profile-access-control';
 
   static const String loginName = 'login';
+  static const String registrationName = 'registration';
   static const String dashboardName = 'dashboard';
   static const String studentsName = 'students';
   static const String studentsAdmissionName = 'students_admission';
@@ -64,6 +68,8 @@ class AppRoutes {
   static const String transportName = 'transport';
   static const String inventoryName = 'inventory';
   static const String notificationsName = 'notifications';
+  static const String messagesName = 'messages';
+  static const String calendarName = 'calendar';
   static const String libraryName = 'library';
   static const String faceRecognitionName = 'face_recognition';
   static const String profileAccessControlName = 'profile_access_control';

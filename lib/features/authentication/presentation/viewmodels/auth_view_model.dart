@@ -40,4 +40,14 @@ class AuthViewModel extends StateNotifier<AuthState> {
       );
     }
   }
+
+  void logout() {
+    state = const AuthState();
+  }
+
+  Future<void> changePassword() async {
+    state = state.copyWith(loading: true, error: null);
+    await Future<void>.delayed(const Duration(milliseconds: 500));
+    state = state.copyWith(loading: false);
+  }
 }

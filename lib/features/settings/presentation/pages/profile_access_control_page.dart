@@ -1,3 +1,4 @@
+import 'package:educare/core/widgets/delete_confirmation_dialog.dart';
 import 'package:flutter/material.dart';
 
 class ProfileAccessControlPage extends StatefulWidget {
@@ -160,7 +161,15 @@ class _ProfileAccessControlPageState extends State<ProfileAccessControlPage> {
                                     ),
                                     const SizedBox(width: 8),
                                     OutlinedButton(
-                                      onPressed: () => setState(() => _accessConfigs.removeAt(index)),
+                                      onPressed: () async {
+                                        final confirmed = await showDeleteConfirmationDialog(
+                                          context,
+                                          title: 'Delete access profile?',
+                                          message: 'This will remove the ${config.role} access profile for ${config.category}.',
+                                        );
+                                        if (!confirmed) return;
+                                        setState(() => _accessConfigs.removeAt(index));
+                                      },
                                       child: const Text('Delete'),
                                     ),
                                   ],

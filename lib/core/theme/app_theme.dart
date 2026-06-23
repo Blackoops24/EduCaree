@@ -23,6 +23,13 @@ class AppTheme {
           foregroundColor: lightScheme.onPrimary,
           elevation: 0,
         ),
+        tabBarTheme: const TabBarThemeData(
+          labelColor: Colors.white,
+          unselectedLabelColor: Colors.white70,
+          indicator: UnderlineTabIndicator(
+            borderSide: BorderSide(color: Colors.white, width: 2),
+          ),
+        ),
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
           fillColor: lightScheme.surfaceContainerHighest,
@@ -48,6 +55,13 @@ class AppTheme {
           backgroundColor: darkScheme.primary,
           foregroundColor: darkScheme.onPrimary,
           elevation: 0,
+        ),
+        tabBarTheme: const TabBarThemeData(
+          labelColor: Colors.white,
+          unselectedLabelColor: Colors.white70,
+          indicator: UnderlineTabIndicator(
+            borderSide: BorderSide(color: Colors.white, width: 2),
+          ),
         ),
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
