@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:educare/features/authentication/domain/entities/user.dart';
 import 'package:educare/features/authentication/domain/repositories/auth_repository.dart';
@@ -37,10 +38,19 @@ class AuthViewModel extends StateNotifier<AuthState> {
       final user = await _loginUseCase.execute(email, password);
       _activePassword = password;
       state = state.copyWith(user: user, loading: false);
+    } on DioException catch (error) {
+      final statusCode = error.response?.statusCode;
+      final message = statusCode == 401
+          ? 'Unable to sign in. Please check your credentials and try again.'
+          : 'Unable to reach the EduCare API. Start the backend server and install backend dependencies if needed.';
+      state = state.copyWith(
+        loading: false,
+        error: message,
+      );
     } catch (error) {
       state = state.copyWith(
         loading: false,
-        error: 'Unable to sign in. Please check your credentials and try again.',
+        error: 'Unable to complete sign in. Please verify the backend is running and try again.',
       );
     }
   }

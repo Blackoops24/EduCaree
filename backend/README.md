@@ -2,18 +2,40 @@
 
 Node 18+, Express, and SQLite (through `sql.js`).
 
-## Run
+## First-time setup
 
 ```powershell
 cd backend
 npm install
+```
+
+`npm install` is required before `npm start` or `npm test`; the API uses the `sql.js` package for SQLite-backed persistence.
+
+## Run
+
+```powershell
+cd backend
 npm start
 ```
 
 The API listens on `http://127.0.0.1:3000` and creates
 `backend/data/educare.sqlite`.
 
-The seeded development login is the same one shown in the Flutter login form.
+## Seeded login
+
+The first server start seeds the same development login shown in the Flutter login form:
+
+- Email: `testing@educaree.com`
+- Password: `testing@2026`
+
+If you delete `backend/data/educare.sqlite`, the next start recreates the database and reseeds that account.
+
+## Test
+
+```powershell
+cd backend
+npm test
+```
 
 ## Endpoints
 

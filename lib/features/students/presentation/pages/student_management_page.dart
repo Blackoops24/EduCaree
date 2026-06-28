@@ -62,6 +62,7 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
   final List<AlumniRecord> _alumni = [];
   final Map<String, String> _studentPhotos = {};
   final Set<String> _generatedCertificates = {};
+  final GlobalKey _registrationContentKey = GlobalKey();
 
   @override
   String get moduleKey => 'students';
@@ -179,49 +180,52 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
   }
 
   Widget _buildRegistrationTab(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSectionHeader('Student Registration', 'Add new students or edit existing registrations.', action: () => _showStudentDialog(context), actionLabel: 'New Admission'),
-        Expanded(
-          child: _students.isEmpty
-              ? const Center(child: Text('No students registered yet.'))
-              : ListView.separated(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: _students.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
-                  itemBuilder: (context, index) {
-                    final student = _students[index];
-                    return Card(
-                      elevation: 1,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      child: ListTile(
-                        title: Text('${student.name} (${student.admissionNo})'),
-                        subtitle: Text('${student.currentClass}-${student.section} • ${student.gender} • DOB: ${student.dob}'),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(icon: const Icon(Icons.edit), onPressed: () => _showStudentDialog(context, student: student)),
-                            IconButton(
-                              icon: const Icon(Icons.delete),
-                              onPressed: () async {
-                                final confirmed = await showDeleteConfirmationDialog(
-                                  context,
-                                  title: 'Delete student?',
-                                  message: 'This will remove ${student.name} from student registrations.',
-                                );
-                                if (!confirmed) return;
-                                _removeStudent(student);
-                              },
-                            ),
-                          ],
+    return Container(
+      key: _registrationContentKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionHeader('Student Registration', 'Add new students or edit existing registrations.', action: () => _showStudentDialog(context), actionLabel: 'New Admission'),
+          Expanded(
+            child: _students.isEmpty
+                ? const Center(child: Text('No students registered yet.'))
+                : ListView.separated(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: _students.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      final student = _students[index];
+                      return Card(
+                        elevation: 1,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        child: ListTile(
+                          title: Text('${student.name} (${student.admissionNo})'),
+                          subtitle: Text('${student.currentClass}-${student.section} • ${student.gender} • DOB: ${student.dob}'),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(icon: const Icon(Icons.edit), onPressed: () => _showStudentDialog(context, student: student)),
+                              IconButton(
+                                icon: const Icon(Icons.delete),
+                                onPressed: () async {
+                                  final confirmed = await showDeleteConfirmationDialog(
+                                    context,
+                                    title: 'Delete student?',
+                                    message: 'This will remove ${student.name} from student registrations.',
+                                  );
+                                  if (!confirmed) return;
+                                  _removeStudent(student);
+                                },
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    );
-                  },
-                ),
-        ),
-      ],
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -602,6 +606,10 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
   }
 
   void _showStudentDialog(BuildContext context, {StudentRecord? student}) {
+    final renderObject = _registrationContentKey.currentContext?.findRenderObject() ?? context.findRenderObject();
+    final contentRect = renderObject is RenderBox
+        ? renderObject.localToGlobal(Offset.zero) & renderObject.size
+      : Offset.zero & MediaQuery.sizeOf(context);
     final formKey = GlobalKey<FormState>();
     final nameController = TextEditingController(text: student?.name ?? '');
     final generatedAdmissionNo = student?.admissionNo ?? _generateAdmissionNo();
@@ -660,35 +668,39 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
       barrierLabel: 'Close admission form',
       barrierColor: Colors.black54,
       transitionDuration: const Duration(milliseconds: 280),
-      transitionBuilder: (context, animation, secondaryAnimation, child) {
-        return SlideTransition(
-          position: Tween<Offset>(begin: const Offset(-1, 0), end: Offset.zero).animate(
-            CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
-          ),
-          child: child,
-        );
-      },
+      transitionBuilder: (context, animation, secondaryAnimation, child) => child,
       pageBuilder: (dialogContext, animation, secondaryAnimation) => StatefulBuilder(
         builder: (context, setDialogState) {
-          final screenWidth = MediaQuery.sizeOf(context).width;
-          final drawerWidth = screenWidth < 900 ? screenWidth : screenWidth * 0.52;
-          return Align(
-            alignment: Alignment.centerLeft,
-            child: SizedBox(
-              key: const Key('admission_side_drawer'),
-              width: drawerWidth,
-              height: double.infinity,
-              child: Material(
-                elevation: 24,
-                color: Theme.of(context).scaffoldBackgroundColor,
-                child: Scaffold(
+          final availableWidth = contentRect.width;
+          final drawerWidth = availableWidth < 900 ? availableWidth : availableWidth * 0.52;
+          final panelAnimation = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic);
+          return Stack(
+            children: [
+              Positioned(
+                left: contentRect.left,
+                top: contentRect.top,
+                width: drawerWidth,
+                height: contentRect.height,
+                child: ClipRect(
+                  child: SizeTransition(
+                    axis: Axis.horizontal,
+                    axisAlignment: -1,
+                    sizeFactor: panelAnimation,
+                    child: Material(
+                      key: const Key('admission_side_drawer'),
+                      elevation: 24,
+                      color: Theme.of(context).scaffoldBackgroundColor,
+                      child: Scaffold(
             appBar: AppBar(
-              leading: IconButton(
-                tooltip: 'Cancel',
-                icon: const Icon(Icons.close),
-                onPressed: () => Navigator.pop(dialogContext),
-              ),
+              automaticallyImplyLeading: false,
               title: Text(student == null ? 'New Admission' : 'Edit Student'),
+              actions: [
+                IconButton(
+                  tooltip: 'Close',
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.pop(dialogContext),
+                ),
+              ],
             ),
             body: Form(
               key: formKey,
@@ -818,10 +830,13 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
                 ),
               ),
             ),
+                      ),
+                    ),
                   ),
                 ),
               ),
-            );
+            ],
+          );
         },
       ),
     );
