@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:educare/core/constants/app_constants.dart';
+import 'package:educare/core/services/api_service.dart';
 
 class RegistrationPage extends StatefulWidget {
   const RegistrationPage({super.key});
@@ -17,8 +18,28 @@ class _RegistrationPageState extends State<RegistrationPage> {
   String _selectedCategory = 'Staff';
   String _selectedRole = 'Admin';
   final List<RegisteredUser> _createdUsers = [];
+  RegisteredUser? _editingUser;
+  final ApiService _api = ApiService();
 
   final List<String> _categories = ['Staff', 'Student', 'Parent', 'Admin'];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUsers();
+  }
+
+  Future<void> _loadUsers() async {
+    try {
+      final response = await _api.get('/auth/users');
+      if (!mounted) return;
+      setState(() {
+        _createdUsers
+          ..clear()
+          ..addAll((response.data as List).map((item) => RegisteredUser.fromJson(Map<String, dynamic>.from(item as Map))));
+      });
+    } catch (_) {}
+  }
 
   @override
   void dispose() {
@@ -43,19 +64,35 @@ class _RegistrationPageState extends State<RegistrationPage> {
     }
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
-    final newUser = RegisteredUser(
-      id: _createdUsers.isEmpty ? 1 : _createdUsers.last.id + 1,
-      name: _nameController.text.trim(),
-      email: _emailController.text.trim(),
-      category: _selectedCategory,
-      role: _selectedRole,
-    );
-
+    try {
+      final payload = {
+        'name': _nameController.text.trim(),
+        'email': _emailController.text.trim(),
+        'category': _selectedCategory,
+        'role': _selectedRole,
+      };
+      if (_editingUser == null) {
+        final response = await _api.post('/auth/register', data: {
+          ...payload,
+          'password': _passwordController.text,
+        });
+        _createdUsers.add(RegisteredUser.fromJson(Map<String, dynamic>.from(response.data as Map)));
+      } else {
+        final response = await _api.put('/auth/users/${_editingUser!.id}', data: payload);
+        final saved = RegisteredUser.fromJson(Map<String, dynamic>.from(response.data as Map));
+        final index = _createdUsers.indexWhere((item) => item.id == saved.id);
+        _createdUsers[index] = saved;
+      }
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Unable to save user to the backend.')));
+      return;
+    }
     setState(() {
-      _createdUsers.add(newUser);
+      _editingUser = null;
       _nameController.clear();
       _emailController.clear();
       _passwordController.clear();
@@ -64,8 +101,41 @@ class _RegistrationPageState extends State<RegistrationPage> {
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('User created successfully with assigned role.')),
+      const SnackBar(content: Text('User saved successfully with assigned role.')),
     );
+  }
+
+  Future<void> _deleteUser(RegisteredUser user) async {
+    try {
+      await _api.delete('/auth/users/${user.id}');
+      if (mounted) setState(() => _createdUsers.remove(user));
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Unable to delete user from the backend.')));
+      }
+    }
+  }
+
+  void _editUser(RegisteredUser user) {
+    setState(() {
+      _editingUser = user;
+      _nameController.text = user.name;
+      _emailController.text = user.email;
+      _passwordController.text = 'unchanged';
+      _selectedCategory = user.category;
+      _selectedRole = user.role;
+    });
+  }
+
+  void _cancelEdit() {
+    setState(() {
+      _editingUser = null;
+      _nameController.clear();
+      _emailController.clear();
+      _passwordController.clear();
+      _selectedCategory = 'Staff';
+      _selectedRole = _getRolesForCategory('Staff').first;
+    });
   }
 
   @override
@@ -131,7 +201,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
-                    value: _selectedCategory,
+                    initialValue: _selectedCategory,
                     decoration: const InputDecoration(labelText: 'Category'),
                     items: _categories.map((category) => DropdownMenuItem(value: category, child: Text(category))).toList(),
                     onChanged: (value) {
@@ -144,7 +214,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
-                    value: _selectedRole,
+                    initialValue: _selectedRole,
                     decoration: const InputDecoration(labelText: 'Role'),
                     items: roles.map((role) => DropdownMenuItem(value: role, child: Text(role))).toList(),
                     onChanged: (value) {
@@ -153,7 +223,18 @@ class _RegistrationPageState extends State<RegistrationPage> {
                     },
                   ),
                   const SizedBox(height: 24),
-                  ElevatedButton(onPressed: _submit, child: const Text('Create User')),
+                  Wrap(
+                    alignment: WrapAlignment.end,
+                    spacing: 8,
+                    children: [
+                      if (_editingUser != null)
+                        TextButton(onPressed: _cancelEdit, child: const Text('Cancel Edit')),
+                      ElevatedButton(
+                        onPressed: _submit,
+                        child: Text(_editingUser == null ? 'Create User' : 'Save User'),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -182,6 +263,22 @@ class _RegistrationPageState extends State<RegistrationPage> {
                           const SizedBox(height: 8),
                           Text('Category: ${user.category}'),
                           Text('Role: ${user.role}'),
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              IconButton(
+                                tooltip: 'Edit user',
+                                icon: const Icon(Icons.edit_outlined),
+                                onPressed: () => _editUser(user),
+                              ),
+                              IconButton(
+                                tooltip: 'Delete user',
+                                icon: const Icon(Icons.delete_outline),
+                                onPressed: () => _deleteUser(user),
+                              ),
+                            ],
+                          ),
                         ],
                       ),
                     ),
@@ -211,8 +308,16 @@ class RegisteredUser {
   });
 
   final int id;
-  final String name;
-  final String email;
-  final String category;
-  final String role;
+  String name;
+  String email;
+  String category;
+  String role;
+
+  factory RegisteredUser.fromJson(Map<String, dynamic> json) => RegisteredUser(
+        id: json['id'] as int,
+        name: json['name'] as String,
+        email: json['email'] as String,
+        category: json['category'] as String,
+        role: json['role'] as String,
+      );
 }

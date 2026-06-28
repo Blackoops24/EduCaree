@@ -15,9 +15,12 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
   @override
   void initState() {
     super.initState();
-    ref.read(studentViewModelProvider.notifier).loadStudents();
-    ref.read(staffViewModelProvider.notifier).loadStaff();
-    ref.read(academicViewModelProvider.notifier).fetchClasses();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref.read(studentViewModelProvider.notifier).loadStudents();
+      ref.read(staffViewModelProvider.notifier).loadStaff();
+      ref.read(academicViewModelProvider.notifier).fetchClasses();
+    });
   }
 
   @override

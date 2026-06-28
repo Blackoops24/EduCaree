@@ -1,4 +1,5 @@
 import 'package:educare/core/widgets/delete_confirmation_dialog.dart';
+import 'package:educare/core/widgets/persistent_module_state.dart';
 import 'package:flutter/material.dart';
 
 class LibraryManagementPage extends StatefulWidget {
@@ -8,7 +9,7 @@ class LibraryManagementPage extends StatefulWidget {
   State<LibraryManagementPage> createState() => _LibraryManagementPageState();
 }
 
-class _LibraryManagementPageState extends State<LibraryManagementPage> {
+class _LibraryManagementPageState extends PersistentModuleState<LibraryManagementPage> {
   final List<BookCategory> _categories = [
     BookCategory(id: 1, name: 'Fiction', description: 'Novels, stories and literature'),
     BookCategory(id: 2, name: 'Science', description: 'Science, technology, and reference books'),
@@ -67,6 +68,32 @@ class _LibraryManagementPageState extends State<LibraryManagementPage> {
   ];
 
   final List<FineRecord> _fines = [];
+
+  @override
+  String get moduleKey => 'library';
+
+  @override
+  Map<String, dynamic> exportState() => {
+    'categories': _categories.map((e) => e.toJson()).toList(),
+    'books': _books.map((e) => e.toJson()).toList(),
+    'issues': _issues.map((e) => e.toJson()).toList(),
+    'fines': _fines.map((e) => e.toJson()).toList(),
+  };
+
+  @override
+  void importState(Map<String, dynamic> data) {
+    _categories..clear()..addAll((data['categories'] as List? ?? []).map((e) => BookCategory.fromJson(Map<String, dynamic>.from(e as Map))));
+    _books..clear()..addAll((data['books'] as List? ?? []).map((e) => LibraryBook.fromJson(Map<String, dynamic>.from(e as Map))));
+    _issues..clear()..addAll((data['issues'] as List? ?? []).map((e) => BookIssue.fromJson(Map<String, dynamic>.from(e as Map))));
+    _fines
+      ..clear()
+      ..addAll((data['fines'] as List? ?? []).map((e) {
+        final map = Map<String, dynamic>.from(e as Map);
+        final issueId = map['issueId'] as int;
+        final issue = _issues.firstWhere((item) => item.id == issueId);
+        return FineRecord(issue: issue, amount: (map['amount'] as num).toDouble(), paid: map['paid'] as bool);
+      }));
+  }
 
   static const finePerDay = 10.0;
 
@@ -282,9 +309,13 @@ class _LibraryManagementPageState extends State<LibraryManagementPage> {
                       child: ListTile(
                         title: Text(issue.bookTitle),
                         subtitle: Text('${issue.studentName} • Due ${issue.dueDate} • ${overdueDays > 0 ? '$overdueDays days overdue' : 'On schedule'}'),
-                        trailing: ElevatedButton(
-                          onPressed: () => _returnBook(issue),
-                          child: const Text('Return'),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(icon: const Icon(Icons.edit), onPressed: () => _showIssueDialog(context, issue: issue)),
+                            ElevatedButton(onPressed: () => _returnBook(issue), child: const Text('Return')),
+                            IconButton(icon: const Icon(Icons.delete), onPressed: () => _deleteIssue(issue)),
+                          ],
                         ),
                       ),
                     );
@@ -315,9 +346,13 @@ class _LibraryManagementPageState extends State<LibraryManagementPage> {
                       child: ListTile(
                         title: Text('Fine for ${fine.issue.bookTitle}'),
                         subtitle: Text('${fine.issue.studentName} • ₹${fine.amount.toStringAsFixed(0)}'),
-                        trailing: ElevatedButton(
-                          onPressed: () => setState(() => fine.paid = true),
-                          child: const Text('Settle'),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(icon: const Icon(Icons.edit), onPressed: () => _showFineDialog(context, fine)),
+                            ElevatedButton(onPressed: () => setState(() => fine.paid = true), child: const Text('Settle')),
+                            IconButton(icon: const Icon(Icons.delete), onPressed: () => setState(() => _fines.remove(fine))),
+                          ],
                         ),
                       ),
                     );
@@ -447,7 +482,7 @@ class _LibraryManagementPageState extends State<LibraryManagementPage> {
               TextField(controller: titleController, decoration: const InputDecoration(labelText: 'Title')),
               TextField(controller: authorController, decoration: const InputDecoration(labelText: 'Author')),
               DropdownButtonFormField<String>(
-                value: selectedCategory,
+                initialValue: selectedCategory,
                 items: _categories.map((category) => DropdownMenuItem(value: category.name, child: Text(category.name))).toList(),
                 decoration: const InputDecoration(labelText: 'Category'),
                 onChanged: (value) => selectedCategory = value ?? selectedCategory,
@@ -498,23 +533,24 @@ class _LibraryManagementPageState extends State<LibraryManagementPage> {
     );
   }
 
-  void _showIssueDialog(BuildContext context, {LibraryBook? book}) {
-    final studentController = TextEditingController();
-    final issueDateController = TextEditingController(text: DateTime.now().toString().split(' ').first);
-    final dueDateController = TextEditingController(text: DateTime.now().add(const Duration(days: 14)).toString().split(' ').first);
-    String selectedBook = book?.title ?? (_books.isNotEmpty ? _books.first.title : '');
+  void _showIssueDialog(BuildContext context, {LibraryBook? book, BookIssue? issue}) {
+    final studentController = TextEditingController(text: issue?.studentName ?? '');
+    final issueDateController = TextEditingController(text: issue?.issueDate ?? DateTime.now().toString().split(' ').first);
+    final dueDateController = TextEditingController(text: issue?.dueDate ?? DateTime.now().add(const Duration(days: 14)).toString().split(' ').first);
+    String selectedBook = issue?.bookTitle ?? book?.title ?? (_books.isNotEmpty ? _books.first.title : '');
+    final selectableBooks = _books.where((item) => item.availableCopies > 0 || item.title == issue?.bookTitle).toList();
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Issue Book'),
+        title: Text(issue == null ? 'Issue Book' : 'Edit Book Issue'),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               DropdownButtonFormField<String>(
-                value: selectedBook.isNotEmpty ? selectedBook : null,
-                items: _books.where((item) => item.availableCopies > 0).map((item) => DropdownMenuItem(value: item.title, child: Text(item.title))).toList(),
+                initialValue: selectedBook.isNotEmpty ? selectedBook : null,
+                items: selectableBooks.map((item) => DropdownMenuItem(value: item.title, child: Text(item.title))).toList(),
                 decoration: const InputDecoration(labelText: 'Book'),
                 onChanged: (value) => selectedBook = value ?? selectedBook,
               ),
@@ -539,25 +575,38 @@ class _LibraryManagementPageState extends State<LibraryManagementPage> {
                 return;
               }
               final selected = _books.firstWhere((item) => item.title == selectedBook);
-              if (selected.availableCopies <= 0) {
+              if (selected.availableCopies <= 0 && selectedBook != issue?.bookTitle) {
                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Selected book is not available.')));
                 return;
               }
               setState(() {
-                selected.availableCopies -= 1;
-                _issues.add(BookIssue(
-                  id: _issues.isEmpty ? 1 : _issues.last.id + 1,
-                  bookTitle: selected.title,
-                  studentName: studentName,
-                  issueDate: issueDate,
-                  dueDate: dueDate,
-                  returned: false,
-                  returnDate: null,
-                ));
+                if (issue == null) {
+                  selected.availableCopies -= 1;
+                  _issues.add(BookIssue(
+                    id: _issues.isEmpty ? 1 : _issues.last.id + 1,
+                    bookTitle: selected.title,
+                    studentName: studentName,
+                    issueDate: issueDate,
+                    dueDate: dueDate,
+                    returned: false,
+                    returnDate: null,
+                  ));
+                } else {
+                  if (issue.bookTitle != selectedBook) {
+                    final previous = _books.where((item) => item.title == issue.bookTitle);
+                    if (previous.isNotEmpty) previous.first.availableCopies += 1;
+                    selected.availableCopies -= 1;
+                  }
+                  issue
+                    ..bookTitle = selectedBook
+                    ..studentName = studentName
+                    ..issueDate = issueDate
+                    ..dueDate = dueDate;
+                }
               });
               Navigator.pop(context);
             },
-            child: const Text('Issue'),
+            child: Text(issue == null ? 'Issue' : 'Save'),
           ),
         ],
       ),
@@ -582,6 +631,42 @@ class _LibraryManagementPageState extends State<LibraryManagementPage> {
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Book returned successfully.')));
   }
 
+  void _deleteIssue(BookIssue issue) {
+    final matchingBooks = _books.where((item) => item.title == issue.bookTitle);
+    setState(() {
+      if (!issue.returned && matchingBooks.isNotEmpty) matchingBooks.first.availableCopies += 1;
+      _fines.removeWhere((fine) => identical(fine.issue, issue));
+      _issues.remove(issue);
+    });
+  }
+
+  void _showFineDialog(BuildContext context, FineRecord fine) {
+    final amountController = TextEditingController(text: fine.amount.toStringAsFixed(0));
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Edit Fine'),
+        content: TextField(
+          controller: amountController,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(labelText: 'Fine Amount'),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () {
+              final amount = double.tryParse(amountController.text);
+              if (amount == null || amount < 0) return;
+              setState(() => fine.amount = amount);
+              Navigator.pop(context);
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
+
   int _calculateOverdueDays(String dueDate) {
     final due = DateTime.tryParse(dueDate);
     if (due == null) return 0;
@@ -598,6 +683,8 @@ class BookCategory {
   final int id;
   String name;
   String description;
+  Map<String, dynamic> toJson() => {'id': id, 'name': name, 'description': description};
+  factory BookCategory.fromJson(Map<String, dynamic> j) => BookCategory(id: j['id'] as int, name: j['name'] as String, description: j['description'] as String);
 }
 
 class LibraryBook {
@@ -610,26 +697,31 @@ class LibraryBook {
   String isbn;
   int totalCopies;
   int availableCopies;
+  Map<String, dynamic> toJson() => {'id': id, 'title': title, 'author': author, 'category': category, 'isbn': isbn, 'totalCopies': totalCopies, 'availableCopies': availableCopies};
+  factory LibraryBook.fromJson(Map<String, dynamic> j) => LibraryBook(id: j['id'] as int, title: j['title'] as String, author: j['author'] as String, category: j['category'] as String, isbn: j['isbn'] as String, totalCopies: j['totalCopies'] as int, availableCopies: j['availableCopies'] as int);
 }
 
 class BookIssue {
   BookIssue({required this.id, required this.bookTitle, required this.studentName, required this.issueDate, required this.dueDate, required this.returned, this.returnDate});
 
   final int id;
-  final String bookTitle;
-  final String studentName;
-  final String issueDate;
-  final String dueDate;
+  String bookTitle;
+  String studentName;
+  String issueDate;
+  String dueDate;
   bool returned;
   String? returnDate;
+  Map<String, dynamic> toJson() => {'id': id, 'bookTitle': bookTitle, 'studentName': studentName, 'issueDate': issueDate, 'dueDate': dueDate, 'returned': returned, 'returnDate': returnDate};
+  factory BookIssue.fromJson(Map<String, dynamic> j) => BookIssue(id: j['id'] as int, bookTitle: j['bookTitle'] as String, studentName: j['studentName'] as String, issueDate: j['issueDate'] as String, dueDate: j['dueDate'] as String, returned: j['returned'] as bool, returnDate: j['returnDate'] as String?);
 }
 
 class FineRecord {
   FineRecord({required this.issue, required this.amount, required this.paid});
 
   final BookIssue issue;
-  final double amount;
+  double amount;
   bool paid;
+  Map<String, dynamic> toJson() => {'issueId': issue.id, 'amount': amount, 'paid': paid};
 }
 
 class _ReportCard extends StatelessWidget {

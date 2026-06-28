@@ -84,7 +84,10 @@ final loginUseCaseProvider = Provider<LoginUseCase>(
 );
 
 final authViewModelProvider = StateNotifierProvider<AuthViewModel, AuthState>(
-  (ref) => AuthViewModel(ref.watch(loginUseCaseProvider)),
+  (ref) => AuthViewModel(
+    ref.watch(loginUseCaseProvider),
+    ref.watch(authRepositoryProvider),
+  ),
 );
 
 final studentServiceProvider = Provider<StudentService>(

@@ -35,6 +35,7 @@ import 'package:educare/features/staff/presentation/pages/staff_management_page.
 import 'package:educare/features/staff/presentation/pages/staff_profile_page.dart';
 import 'package:educare/features/staff/presentation/pages/staff_registration_page.dart';
 import 'package:educare/features/settings/presentation/pages/profile_access_control_page.dart';
+import 'package:educare/features/settings/presentation/pages/account_page.dart';
 
 final appRouter = GoRouter(
   routes: [
@@ -120,6 +121,11 @@ final appRouter = GoRouter(
           builder: (context, state) => const AdmissionPage(),
         ),
         GoRoute(
+          path: AppRoutes.studentsAlumni,
+          name: AppRoutes.studentsAlumniName,
+          builder: (context, state) => const AlumniPage(),
+        ),
+        GoRoute(
           path: AppRoutes.studentsProfile,
           name: AppRoutes.studentsProfileName,
           builder: (context, state) {
@@ -142,11 +148,6 @@ final appRouter = GoRouter(
             final id = int.parse(state.pathParameters['id']!);
             return TransferCertificatePage(studentId: id);
           },
-        ),
-        GoRoute(
-          path: AppRoutes.studentsAlumni,
-          name: AppRoutes.studentsAlumniName,
-          builder: (context, state) => const AlumniPage(),
         ),
         GoRoute(
           path: AppRoutes.academics,
@@ -248,6 +249,16 @@ final appRouter = GoRouter(
           path: AppRoutes.profileAccessControl,
           name: AppRoutes.profileAccessControlName,
           builder: (context, state) => const ProfileAccessControlPage(),
+        ),
+        GoRoute(
+          path: AppRoutes.myProfile,
+          name: AppRoutes.myProfileName,
+          builder: (context, state) => const AccountPage(showSettings: false),
+        ),
+        GoRoute(
+          path: AppRoutes.settings,
+          name: AppRoutes.settingsName,
+          builder: (context, state) => const AccountPage(showSettings: true),
         ),
       ],
     ),

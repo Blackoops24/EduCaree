@@ -1,4 +1,5 @@
 import 'package:educare/core/widgets/delete_confirmation_dialog.dart';
+import 'package:educare/core/widgets/persistent_module_state.dart';
 import 'package:flutter/material.dart';
 
 class InventoryManagementPage extends StatefulWidget {
@@ -8,7 +9,7 @@ class InventoryManagementPage extends StatefulWidget {
   State<InventoryManagementPage> createState() => _InventoryManagementPageState();
 }
 
-class _InventoryManagementPageState extends State<InventoryManagementPage> {
+class _InventoryManagementPageState extends PersistentModuleState<InventoryManagementPage> {
   final List<AssetItem> _assets = [
     AssetItem(id: 1, name: 'Projector', type: 'Lab Equipment', condition: 'Good', quantity: 3),
     AssetItem(id: 2, name: 'Football', type: 'Sports Equipment', condition: 'Good', quantity: 20),
@@ -18,6 +19,23 @@ class _InventoryManagementPageState extends State<InventoryManagementPage> {
   final List<AssetItem> _labEquipment = [];
   final List<AssetItem> _sportsEquipment = [];
   final List<AssetStock> _stockHistory = [];
+
+  @override
+  String get moduleKey => 'inventory';
+
+  @override
+  Map<String, dynamic> exportState() => {
+    'assets': _assets.map((e) => e.toJson()).toList(),
+    'stock': _stockHistory.map((e) => e.toJson()).toList(),
+  };
+
+  @override
+  void importState(Map<String, dynamic> data) {
+    _assets..clear()..addAll((data['assets'] as List? ?? []).map((e) => AssetItem.fromJson(Map<String, dynamic>.from(e as Map))));
+    _labEquipment..clear()..addAll(_assets.where((e) => e.type == 'Lab Equipment'));
+    _sportsEquipment..clear()..addAll(_assets.where((e) => e.type == 'Sports Equipment'));
+    _stockHistory..clear()..addAll((data['stock'] as List? ?? []).map((e) => AssetStock.fromJson(Map<String, dynamic>.from(e as Map))));
+  }
 
   @override
   void initState() {
@@ -236,7 +254,14 @@ class _InventoryManagementPageState extends State<InventoryManagementPage> {
                       child: ListTile(
                         title: Text(entry.assetName),
                         subtitle: Text('${entry.action} • Qty: ${entry.quantity} • ${entry.date}'),
-                        trailing: Text(entry.notes),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(entry.notes),
+                            IconButton(icon: const Icon(Icons.edit), onPressed: () => _showStockDialog(context, stock: entry)),
+                            IconButton(icon: const Icon(Icons.delete), onPressed: () => setState(() => _stockHistory.removeAt(index))),
+                          ],
+                        ),
                       ),
                     );
                   },
@@ -333,7 +358,7 @@ class _InventoryManagementPageState extends State<InventoryManagementPage> {
               TextField(controller: nameController, decoration: const InputDecoration(labelText: 'Asset Name')),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
-                value: selectedType,
+                initialValue: selectedType,
                 items: const [
                   DropdownMenuItem(value: 'Asset Management', child: Text('General Asset')),
                   DropdownMenuItem(value: 'Lab Equipment', child: Text('Lab Equipment')),
@@ -391,29 +416,29 @@ class _InventoryManagementPageState extends State<InventoryManagementPage> {
     );
   }
 
-  void _showStockDialog(BuildContext context) {
-    final quantityController = TextEditingController();
-    final notesController = TextEditingController();
-    String selectedAsset = _assets.isNotEmpty ? _assets.first.name : '';
-    String selectedAction = 'Added';
+  void _showStockDialog(BuildContext context, {AssetStock? stock}) {
+    final quantityController = TextEditingController(text: stock?.quantity.toString() ?? '');
+    final notesController = TextEditingController(text: stock?.notes ?? '');
+    String selectedAsset = stock?.assetName ?? (_assets.isNotEmpty ? _assets.first.name : '');
+    String selectedAction = stock?.action ?? 'Added';
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Record Stock Movement'),
+        title: Text(stock == null ? 'Record Stock Movement' : 'Edit Stock Movement'),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               DropdownButtonFormField<String>(
-                value: selectedAsset.isNotEmpty ? selectedAsset : null,
+                initialValue: selectedAsset.isNotEmpty ? selectedAsset : null,
                 items: _assets.map((asset) => DropdownMenuItem(value: asset.name, child: Text(asset.name))).toList(),
                 decoration: const InputDecoration(labelText: 'Asset'),
                 onChanged: (value) => selectedAsset = value ?? selectedAsset,
               ),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
-                value: selectedAction,
+                initialValue: selectedAction,
                 items: const [
                   DropdownMenuItem(value: 'Added', child: Text('Added')),
                   DropdownMenuItem(value: 'Removed', child: Text('Removed')),
@@ -440,18 +465,26 @@ class _InventoryManagementPageState extends State<InventoryManagementPage> {
                 return;
               }
               setState(() {
-                _stockHistory.add(AssetStock(
-                  id: _stockHistory.isEmpty ? 1 : _stockHistory.last.id + 1,
-                  assetName: selectedAsset,
-                  action: selectedAction,
-                  quantity: quantity,
-                  notes: notes.isEmpty ? 'No notes' : notes,
-                  date: DateTime.now().toString().split(' ').first,
-                ));
+                if (stock == null) {
+                  _stockHistory.add(AssetStock(
+                    id: _stockHistory.isEmpty ? 1 : _stockHistory.last.id + 1,
+                    assetName: selectedAsset,
+                    action: selectedAction,
+                    quantity: quantity,
+                    notes: notes.isEmpty ? 'No notes' : notes,
+                    date: DateTime.now().toString().split(' ').first,
+                  ));
+                } else {
+                  stock
+                    ..assetName = selectedAsset
+                    ..action = selectedAction
+                    ..quantity = quantity
+                    ..notes = notes.isEmpty ? 'No notes' : notes;
+                }
               });
               Navigator.pop(context);
             },
-            child: const Text('Record'),
+            child: Text(stock == null ? 'Record' : 'Save'),
           ),
         ],
       ),
@@ -473,17 +506,21 @@ class AssetItem {
   String type;
   String condition;
   int quantity;
+  Map<String, dynamic> toJson() => {'id': id, 'name': name, 'type': type, 'condition': condition, 'quantity': quantity};
+  factory AssetItem.fromJson(Map<String, dynamic> j) => AssetItem(id: j['id'] as int, name: j['name'] as String, type: j['type'] as String, condition: j['condition'] as String, quantity: j['quantity'] as int);
 }
 
 class AssetStock {
   AssetStock({required this.id, required this.assetName, required this.action, required this.quantity, required this.notes, required this.date});
 
   final int id;
-  final String assetName;
-  final String action;
-  final int quantity;
-  final String notes;
+  String assetName;
+  String action;
+  int quantity;
+  String notes;
   final String date;
+  Map<String, dynamic> toJson() => {'id': id, 'assetName': assetName, 'action': action, 'quantity': quantity, 'notes': notes, 'date': date};
+  factory AssetStock.fromJson(Map<String, dynamic> j) => AssetStock(id: j['id'] as int, assetName: j['assetName'] as String, action: j['action'] as String, quantity: j['quantity'] as int, notes: j['notes'] as String, date: j['date'] as String);
 }
 
 class _ReportCard extends StatelessWidget {

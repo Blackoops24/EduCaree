@@ -79,16 +79,16 @@ class DashboardFooter extends StatelessWidget {
       children: [
         TextButton(
           key: const Key('footer_help_link'),
-          onPressed: () {},
+          onPressed: () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Help Center is available from school administration.'))),
           child: const Text('Help Center'),
         ),
         TextButton(
           key: const Key('footer_support_link'),
-          onPressed: () {},
+          onPressed: () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Contact support@educaree.com for assistance.'))),
           child: const Text('Support'),
         ),
         TextButton(
-          onPressed: () {},
+          onPressed: () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Documentation is included in the project README.'))),
           child: const Text('Documentation'),
         ),
       ],

@@ -1,4 +1,5 @@
 import 'package:educare/core/widgets/delete_confirmation_dialog.dart';
+import 'package:educare/core/widgets/persistent_module_state.dart';
 import 'package:flutter/material.dart';
 
 class AcademicManagementPage extends StatefulWidget {
@@ -8,7 +9,7 @@ class AcademicManagementPage extends StatefulWidget {
   State<AcademicManagementPage> createState() => _AcademicManagementPageState();
 }
 
-class _AcademicManagementPageState extends State<AcademicManagementPage> {
+class _AcademicManagementPageState extends PersistentModuleState<AcademicManagementPage> {
   final List<ClassRecord> _classes = [
     ClassRecord(id: 1, name: 'Class 8', section: 'A', classTeacher: 'Priya Singh', capacity: 40),
     ClassRecord(id: 2, name: 'Class 9', section: 'B', classTeacher: 'Ramesh Kumar', capacity: 42),
@@ -20,6 +21,31 @@ class _AcademicManagementPageState extends State<AcademicManagementPage> {
   final List<ExamRecord> _exams = [];
   final List<MarksRecord> _marks = [];
   final List<ReportCard> _reportCards = [];
+
+  @override
+  String get moduleKey => 'academics';
+
+  @override
+  Map<String, dynamic> exportState() => {
+    'classes': _classes.map((item) => item.toJson()).toList(),
+    'sections': _sections.map((item) => item.toJson()).toList(),
+    'subjects': _subjects.map((item) => item.toJson()).toList(),
+    'timetables': _timetables.map((item) => item.toJson()).toList(),
+    'exams': _exams.map((item) => item.toJson()).toList(),
+    'marks': _marks.map((item) => item.toJson()).toList(),
+    'reportCards': _reportCards.map((item) => item.toJson()).toList(),
+  };
+
+  @override
+  void importState(Map<String, dynamic> data) {
+    _classes..clear()..addAll((data['classes'] as List? ?? []).map((e) => ClassRecord.fromJson(Map<String, dynamic>.from(e as Map))));
+    _sections..clear()..addAll((data['sections'] as List? ?? []).map((e) => SectionRecord.fromJson(Map<String, dynamic>.from(e as Map))));
+    _subjects..clear()..addAll((data['subjects'] as List? ?? []).map((e) => SubjectRecord.fromJson(Map<String, dynamic>.from(e as Map))));
+    _timetables..clear()..addAll((data['timetables'] as List? ?? []).map((e) => TimetableRecord.fromJson(Map<String, dynamic>.from(e as Map))));
+    _exams..clear()..addAll((data['exams'] as List? ?? []).map((e) => ExamRecord.fromJson(Map<String, dynamic>.from(e as Map))));
+    _marks..clear()..addAll((data['marks'] as List? ?? []).map((e) => MarksRecord.fromJson(Map<String, dynamic>.from(e as Map))));
+    _reportCards..clear()..addAll((data['reportCards'] as List? ?? []).map((e) => ReportCard.fromJson(Map<String, dynamic>.from(e as Map))));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -144,9 +170,13 @@ class _AcademicManagementPageState extends State<AcademicManagementPage> {
                       child: ListTile(
                         title: Text(section.name),
                         subtitle: Text('Class Teacher: ${section.classTeacher}'),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.delete),
-                          onPressed: () async {
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(icon: const Icon(Icons.edit), onPressed: () => _showSectionDialog(context, section: section)),
+                            IconButton(
+                              icon: const Icon(Icons.delete),
+                              onPressed: () async {
                             final confirmed = await showDeleteConfirmationDialog(
                               context,
                               title: 'Delete section?',
@@ -154,7 +184,9 @@ class _AcademicManagementPageState extends State<AcademicManagementPage> {
                             );
                             if (!confirmed) return;
                             setState(() => _sections.removeAt(index));
-                          },
+                              },
+                            ),
+                          ],
                         ),
                       ),
                     );
@@ -184,9 +216,13 @@ class _AcademicManagementPageState extends State<AcademicManagementPage> {
                       child: ListTile(
                         title: Text(subject.name),
                         subtitle: Text('Code: ${subject.code} • Allocated to: ${subject.allocatedClass}'),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.delete),
-                          onPressed: () async {
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(icon: const Icon(Icons.edit), onPressed: () => _showSubjectDialog(context, subject: subject)),
+                            IconButton(
+                              icon: const Icon(Icons.delete),
+                              onPressed: () async {
                             final confirmed = await showDeleteConfirmationDialog(
                               context,
                               title: 'Delete subject?',
@@ -194,7 +230,9 @@ class _AcademicManagementPageState extends State<AcademicManagementPage> {
                             );
                             if (!confirmed) return;
                             setState(() => _subjects.removeAt(index));
-                          },
+                              },
+                            ),
+                          ],
                         ),
                       ),
                     );
@@ -224,7 +262,24 @@ class _AcademicManagementPageState extends State<AcademicManagementPage> {
                       child: ListTile(
                         title: Text('${tt.className} - ${tt.day}'),
                         subtitle: Text('${tt.subject} • ${tt.teacher}'),
-                        trailing: IconButton(icon: const Icon(Icons.download), onPressed: () => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Timetable for ${tt.className} exported.')))),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(icon: const Icon(Icons.edit), onPressed: () => _showTimetableDialog(context, timetable: tt)),
+                            IconButton(icon: const Icon(Icons.download), onPressed: () => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Timetable for ${tt.className} exported.')))),
+                            IconButton(
+                              icon: const Icon(Icons.delete),
+                              onPressed: () async {
+                                final confirmed = await showDeleteConfirmationDialog(
+                                  context,
+                                  title: 'Delete timetable?',
+                                  message: 'This will remove the ${tt.day} timetable for ${tt.className}.',
+                                );
+                                if (confirmed) setState(() => _timetables.removeAt(index));
+                              },
+                            ),
+                          ],
+                        ),
                       ),
                     );
                   },
@@ -253,7 +308,24 @@ class _AcademicManagementPageState extends State<AcademicManagementPage> {
                       child: ListTile(
                         title: Text(exam.name),
                         subtitle: Text('${exam.startDate} • ${exam.totalMarks} marks'),
-                        trailing: ElevatedButton(onPressed: () => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Hall tickets for ${exam.name} generated.'))), child: const Text('Hall Ticket')),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(icon: const Icon(Icons.edit), onPressed: () => _showExamDialog(context, exam: exam)),
+                            TextButton(onPressed: () => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Hall tickets for ${exam.name} generated.'))), child: const Text('Hall Ticket')),
+                            IconButton(
+                              icon: const Icon(Icons.delete),
+                              onPressed: () async {
+                                final confirmed = await showDeleteConfirmationDialog(
+                                  context,
+                                  title: 'Delete exam?',
+                                  message: 'This will remove ${exam.name}.',
+                                );
+                                if (confirmed) setState(() => _exams.removeAt(index));
+                              },
+                            ),
+                          ],
+                        ),
                       ),
                     );
                   },
@@ -282,7 +354,23 @@ class _AcademicManagementPageState extends State<AcademicManagementPage> {
                       child: ListTile(
                         title: Text(mark.studentName),
                         subtitle: Text('${mark.subject} • Marks: ${mark.marks}/${mark.totalMarks} • Grade: ${mark.grade}'),
-                        trailing: IconButton(icon: const Icon(Icons.edit), onPressed: () => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Edit marks for ${mark.studentName}.')))),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(icon: const Icon(Icons.edit), onPressed: () => _showMarksDialog(context, mark: mark)),
+                            IconButton(
+                              icon: const Icon(Icons.delete),
+                              onPressed: () async {
+                                final confirmed = await showDeleteConfirmationDialog(
+                                  context,
+                                  title: 'Delete marks?',
+                                  message: 'This will remove ${mark.subject} marks for ${mark.studentName}.',
+                                );
+                                if (confirmed) setState(() => _marks.removeAt(index));
+                              },
+                            ),
+                          ],
+                        ),
                       ),
                     );
                   },
@@ -296,7 +384,7 @@ class _AcademicManagementPageState extends State<AcademicManagementPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionHeader('Report Cards', 'Generate and download report cards.'),
+        _buildSectionHeader('Report Cards', 'Generate and manage report cards.', action: () => _showReportCardDialog(context), actionLabel: 'Generate Report Card'),
         Expanded(
           child: _reportCards.isEmpty
               ? const Center(child: Text('No report cards available.'))
@@ -316,6 +404,18 @@ class _AcademicManagementPageState extends State<AcademicManagementPage> {
                           children: [
                             IconButton(icon: const Icon(Icons.download), onPressed: () => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Report card for ${rc.studentName} downloaded.')))),
                             IconButton(icon: const Icon(Icons.print), onPressed: () => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Report card for ${rc.studentName} sent to printer.')))),
+                            IconButton(icon: const Icon(Icons.edit), onPressed: () => _showReportCardDialog(context, reportCard: rc)),
+                            IconButton(
+                              icon: const Icon(Icons.delete),
+                              onPressed: () async {
+                                final confirmed = await showDeleteConfirmationDialog(
+                                  context,
+                                  title: 'Delete report card?',
+                                  message: 'This will remove the report card for ${rc.studentName}.',
+                                );
+                                if (confirmed) setState(() => _reportCards.removeAt(index));
+                              },
+                            ),
                           ],
                         ),
                       ),
@@ -382,14 +482,14 @@ class _AcademicManagementPageState extends State<AcademicManagementPage> {
     );
   }
 
-  void _showSectionDialog(BuildContext context) {
-    final nameController = TextEditingController();
-    final teacherController = TextEditingController();
+  void _showSectionDialog(BuildContext context, {SectionRecord? section}) {
+    final nameController = TextEditingController(text: section?.name ?? '');
+    final teacherController = TextEditingController(text: section?.classTeacher ?? '');
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('New Section'),
+        title: Text(section == null ? 'New Section' : 'Edit Section'),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -409,30 +509,36 @@ class _AcademicManagementPageState extends State<AcademicManagementPage> {
                 return;
               }
               setState(() {
-                _sections.add(SectionRecord(
-                  id: _sections.isEmpty ? 1 : _sections.last.id + 1,
-                  name: name,
-                  classTeacher: teacherController.text.trim(),
-                ));
+                if (section == null) {
+                  _sections.add(SectionRecord(
+                    id: _sections.isEmpty ? 1 : _sections.last.id + 1,
+                    name: name,
+                    classTeacher: teacherController.text.trim(),
+                  ));
+                } else {
+                  section
+                    ..name = name
+                    ..classTeacher = teacherController.text.trim();
+                }
               });
               Navigator.pop(context);
             },
-            child: const Text('Create'),
+            child: Text(section == null ? 'Create' : 'Save'),
           ),
         ],
       ),
     );
   }
 
-  void _showSubjectDialog(BuildContext context) {
-    final nameController = TextEditingController();
-    final codeController = TextEditingController();
-    String allocatedClass = _classes.isNotEmpty ? _classes.first.name : '';
+  void _showSubjectDialog(BuildContext context, {SubjectRecord? subject}) {
+    final nameController = TextEditingController(text: subject?.name ?? '');
+    final codeController = TextEditingController(text: subject?.code ?? '');
+    String allocatedClass = subject?.allocatedClass ?? (_classes.isNotEmpty ? _classes.first.name : '');
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('New Subject'),
+        title: Text(subject == null ? 'New Subject' : 'Edit Subject'),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -440,7 +546,7 @@ class _AcademicManagementPageState extends State<AcademicManagementPage> {
               TextField(controller: nameController, decoration: const InputDecoration(labelText: 'Subject Name')),
               TextField(controller: codeController, decoration: const InputDecoration(labelText: 'Subject Code')),
               DropdownButtonFormField<String>(
-                value: allocatedClass.isNotEmpty ? allocatedClass : null,
+                initialValue: allocatedClass.isNotEmpty && _classes.any((item) => item.name == allocatedClass) ? allocatedClass : null,
                 items: _classes.map((c) => DropdownMenuItem(value: c.name, child: Text(c.name))).toList(),
                 decoration: const InputDecoration(labelText: 'Allocate to Class'),
                 onChanged: (value) => allocatedClass = value ?? allocatedClass,
@@ -458,44 +564,51 @@ class _AcademicManagementPageState extends State<AcademicManagementPage> {
                 return;
               }
               setState(() {
-                _subjects.add(SubjectRecord(
-                  id: _subjects.isEmpty ? 1 : _subjects.last.id + 1,
-                  name: name,
-                  code: codeController.text.trim(),
-                  allocatedClass: allocatedClass,
-                ));
+                if (subject == null) {
+                  _subjects.add(SubjectRecord(
+                    id: _subjects.isEmpty ? 1 : _subjects.last.id + 1,
+                    name: name,
+                    code: codeController.text.trim(),
+                    allocatedClass: allocatedClass,
+                  ));
+                } else {
+                  subject
+                    ..name = name
+                    ..code = codeController.text.trim()
+                    ..allocatedClass = allocatedClass;
+                }
               });
               Navigator.pop(context);
             },
-            child: const Text('Create'),
+            child: Text(subject == null ? 'Create' : 'Save'),
           ),
         ],
       ),
     );
   }
 
-  void _showTimetableDialog(BuildContext context) {
-    String selectedClass = _classes.isNotEmpty ? _classes.first.name : '';
-    String day = 'Monday';
-    final subjectController = TextEditingController();
-    final teacherController = TextEditingController();
+  void _showTimetableDialog(BuildContext context, {TimetableRecord? timetable}) {
+    String selectedClass = timetable?.className ?? (_classes.isNotEmpty ? _classes.first.name : '');
+    String day = timetable?.day ?? 'Monday';
+    final subjectController = TextEditingController(text: timetable?.subject ?? '');
+    final teacherController = TextEditingController(text: timetable?.teacher ?? '');
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Create Timetable'),
+        title: Text(timetable == null ? 'Create Timetable' : 'Edit Timetable'),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               DropdownButtonFormField<String>(
-                value: selectedClass.isNotEmpty ? selectedClass : null,
+                initialValue: selectedClass.isNotEmpty && _classes.any((item) => item.name == selectedClass) ? selectedClass : null,
                 items: _classes.map((c) => DropdownMenuItem(value: c.name, child: Text(c.name))).toList(),
                 decoration: const InputDecoration(labelText: 'Class'),
                 onChanged: (value) => selectedClass = value ?? selectedClass,
               ),
               DropdownButtonFormField<String>(
-                value: day,
+                initialValue: day,
                 items: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].map((d) => DropdownMenuItem(value: d, child: Text(d))).toList(),
                 onChanged: (value) => day = value ?? day,
                 decoration: const InputDecoration(labelText: 'Day'),
@@ -509,33 +622,45 @@ class _AcademicManagementPageState extends State<AcademicManagementPage> {
           TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () {
+              if (selectedClass.isEmpty || subjectController.text.trim().isEmpty || teacherController.text.trim().isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Complete all timetable fields.')));
+                return;
+              }
               setState(() {
-                _timetables.add(TimetableRecord(
-                  id: _timetables.isEmpty ? 1 : _timetables.last.id + 1,
-                  className: selectedClass,
-                  day: day,
-                  subject: subjectController.text.trim(),
-                  teacher: teacherController.text.trim(),
-                ));
+                if (timetable == null) {
+                  _timetables.add(TimetableRecord(
+                    id: _timetables.isEmpty ? 1 : _timetables.last.id + 1,
+                    className: selectedClass,
+                    day: day,
+                    subject: subjectController.text.trim(),
+                    teacher: teacherController.text.trim(),
+                  ));
+                } else {
+                  timetable
+                    ..className = selectedClass
+                    ..day = day
+                    ..subject = subjectController.text.trim()
+                    ..teacher = teacherController.text.trim();
+                }
               });
               Navigator.pop(context);
             },
-            child: const Text('Create'),
+            child: Text(timetable == null ? 'Create' : 'Save'),
           ),
         ],
       ),
     );
   }
 
-  void _showExamDialog(BuildContext context) {
-    final nameController = TextEditingController();
-    final startDateController = TextEditingController();
-    final marksController = TextEditingController();
+  void _showExamDialog(BuildContext context, {ExamRecord? exam}) {
+    final nameController = TextEditingController(text: exam?.name ?? '');
+    final startDateController = TextEditingController(text: exam?.startDate ?? '');
+    final marksController = TextEditingController(text: exam?.totalMarks ?? '');
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('New Exam'),
+        title: Text(exam == null ? 'New Exam' : 'Edit Exam'),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -556,39 +681,47 @@ class _AcademicManagementPageState extends State<AcademicManagementPage> {
                 return;
               }
               setState(() {
-                _exams.add(ExamRecord(
-                  id: _exams.isEmpty ? 1 : _exams.last.id + 1,
-                  name: name,
-                  startDate: startDateController.text.trim(),
-                  totalMarks: marksController.text.trim(),
-                ));
+                if (exam == null) {
+                  _exams.add(ExamRecord(
+                    id: _exams.isEmpty ? 1 : _exams.last.id + 1,
+                    name: name,
+                    startDate: startDateController.text.trim(),
+                    totalMarks: marksController.text.trim(),
+                  ));
+                } else {
+                  exam
+                    ..name = name
+                    ..startDate = startDateController.text.trim()
+                    ..totalMarks = marksController.text.trim();
+                }
               });
               Navigator.pop(context);
             },
-            child: const Text('Create'),
+            child: Text(exam == null ? 'Create' : 'Save'),
           ),
         ],
       ),
     );
   }
 
-  void _showMarksDialog(BuildContext context) {
-    final studentNameController = TextEditingController();
-    final marksController = TextEditingController();
-    String subject = _subjects.isNotEmpty ? _subjects.first.name : 'N/A';
+  void _showMarksDialog(BuildContext context, {MarksRecord? mark}) {
+    final studentNameController = TextEditingController(text: mark?.studentName ?? '');
+    final marksController = TextEditingController(text: mark?.marks ?? '');
+    final subjectOptions = _subjects.isEmpty ? const ['N/A'] : _subjects.map((item) => item.name).toList();
+    String subject = mark?.subject ?? subjectOptions.first;
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Enter Marks'),
+        title: Text(mark == null ? 'Enter Marks' : 'Edit Marks'),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(controller: studentNameController, decoration: const InputDecoration(labelText: 'Student Name')),
               DropdownButtonFormField<String>(
-                value: subject.isNotEmpty ? subject : null,
-                items: _subjects.map((s) => DropdownMenuItem(value: s.name, child: Text(s.name))).toList(),
+                initialValue: subjectOptions.contains(subject) ? subject : subjectOptions.first,
+                items: subjectOptions.map((value) => DropdownMenuItem(value: value, child: Text(value))).toList(),
                 decoration: const InputDecoration(labelText: 'Subject'),
                 onChanged: (value) => subject = value ?? subject,
               ),
@@ -606,20 +739,80 @@ class _AcademicManagementPageState extends State<AcademicManagementPage> {
                 return;
               }
               final marks = int.tryParse(marksController.text) ?? 0;
+              if (marks < 0 || marks > 100) {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Marks must be between 0 and 100.')));
+                return;
+              }
               final grade = marks >= 80 ? 'A' : marks >= 70 ? 'B' : marks >= 60 ? 'C' : 'D';
               setState(() {
-                _marks.add(MarksRecord(
-                  id: _marks.isEmpty ? 1 : _marks.last.id + 1,
-                  studentName: name,
-                  subject: subject,
-                  marks: marks.toString(),
-                  totalMarks: '100',
-                  grade: grade,
-                ));
+                if (mark == null) {
+                  _marks.add(MarksRecord(
+                    id: _marks.isEmpty ? 1 : _marks.last.id + 1,
+                    studentName: name,
+                    subject: subject,
+                    marks: marks.toString(),
+                    totalMarks: '100',
+                    grade: grade,
+                  ));
+                } else {
+                  mark
+                    ..studentName = name
+                    ..subject = subject
+                    ..marks = marks.toString()
+                    ..grade = grade;
+                }
               });
               Navigator.pop(context);
             },
-            child: const Text('Submit'),
+            child: Text(mark == null ? 'Submit' : 'Save'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showReportCardDialog(BuildContext context, {ReportCard? reportCard}) {
+    final studentController = TextEditingController(text: reportCard?.studentName ?? '');
+    final classController = TextEditingController(text: reportCard?.className ?? '');
+    final semesterController = TextEditingController(text: reportCard?.semester ?? '');
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(reportCard == null ? 'Generate Report Card' : 'Edit Report Card'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(controller: studentController, decoration: const InputDecoration(labelText: 'Student Name')),
+            TextField(controller: classController, decoration: const InputDecoration(labelText: 'Class')),
+            TextField(controller: semesterController, decoration: const InputDecoration(labelText: 'Semester')),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () {
+              if (studentController.text.trim().isEmpty || classController.text.trim().isEmpty || semesterController.text.trim().isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Complete all report card fields.')));
+                return;
+              }
+              setState(() {
+                if (reportCard == null) {
+                  _reportCards.add(ReportCard(
+                    id: _reportCards.isEmpty ? 1 : _reportCards.last.id + 1,
+                    studentName: studentController.text.trim(),
+                    className: classController.text.trim(),
+                    semester: semesterController.text.trim(),
+                  ));
+                } else {
+                  reportCard
+                    ..studentName = studentController.text.trim()
+                    ..className = classController.text.trim()
+                    ..semester = semesterController.text.trim();
+                }
+              });
+              Navigator.pop(context);
+            },
+            child: Text(reportCard == null ? 'Generate' : 'Save'),
           ),
         ],
       ),
@@ -634,54 +827,68 @@ class ClassRecord {
   String section;
   String classTeacher;
   int capacity;
+  Map<String, dynamic> toJson() => {'id': id, 'name': name, 'section': section, 'classTeacher': classTeacher, 'capacity': capacity};
+  factory ClassRecord.fromJson(Map<String, dynamic> j) => ClassRecord(id: j['id'] as int, name: j['name'] as String, section: j['section'] as String, classTeacher: j['classTeacher'] as String, capacity: j['capacity'] as int);
 }
 
 class SectionRecord {
   SectionRecord({required this.id, required this.name, required this.classTeacher});
   final int id;
-  final String name;
-  final String classTeacher;
+  String name;
+  String classTeacher;
+  Map<String, dynamic> toJson() => {'id': id, 'name': name, 'classTeacher': classTeacher};
+  factory SectionRecord.fromJson(Map<String, dynamic> j) => SectionRecord(id: j['id'] as int, name: j['name'] as String, classTeacher: j['classTeacher'] as String);
 }
 
 class SubjectRecord {
   SubjectRecord({required this.id, required this.name, required this.code, required this.allocatedClass});
   final int id;
-  final String name;
-  final String code;
-  final String allocatedClass;
+  String name;
+  String code;
+  String allocatedClass;
+  Map<String, dynamic> toJson() => {'id': id, 'name': name, 'code': code, 'allocatedClass': allocatedClass};
+  factory SubjectRecord.fromJson(Map<String, dynamic> j) => SubjectRecord(id: j['id'] as int, name: j['name'] as String, code: j['code'] as String, allocatedClass: j['allocatedClass'] as String);
 }
 
 class TimetableRecord {
   TimetableRecord({required this.id, required this.className, required this.day, required this.subject, required this.teacher});
   final int id;
-  final String className;
-  final String day;
-  final String subject;
-  final String teacher;
+  String className;
+  String day;
+  String subject;
+  String teacher;
+  Map<String, dynamic> toJson() => {'id': id, 'className': className, 'day': day, 'subject': subject, 'teacher': teacher};
+  factory TimetableRecord.fromJson(Map<String, dynamic> j) => TimetableRecord(id: j['id'] as int, className: j['className'] as String, day: j['day'] as String, subject: j['subject'] as String, teacher: j['teacher'] as String);
 }
 
 class ExamRecord {
   ExamRecord({required this.id, required this.name, required this.startDate, required this.totalMarks});
   final int id;
-  final String name;
-  final String startDate;
-  final String totalMarks;
+  String name;
+  String startDate;
+  String totalMarks;
+  Map<String, dynamic> toJson() => {'id': id, 'name': name, 'startDate': startDate, 'totalMarks': totalMarks};
+  factory ExamRecord.fromJson(Map<String, dynamic> j) => ExamRecord(id: j['id'] as int, name: j['name'] as String, startDate: j['startDate'] as String, totalMarks: j['totalMarks'] as String);
 }
 
 class MarksRecord {
   MarksRecord({required this.id, required this.studentName, required this.subject, required this.marks, required this.totalMarks, required this.grade});
   final int id;
-  final String studentName;
-  final String subject;
-  final String marks;
+  String studentName;
+  String subject;
+  String marks;
   final String totalMarks;
-  final String grade;
+  String grade;
+  Map<String, dynamic> toJson() => {'id': id, 'studentName': studentName, 'subject': subject, 'marks': marks, 'totalMarks': totalMarks, 'grade': grade};
+  factory MarksRecord.fromJson(Map<String, dynamic> j) => MarksRecord(id: j['id'] as int, studentName: j['studentName'] as String, subject: j['subject'] as String, marks: j['marks'] as String, totalMarks: j['totalMarks'] as String, grade: j['grade'] as String);
 }
 
 class ReportCard {
   ReportCard({required this.id, required this.studentName, required this.className, required this.semester});
   final int id;
-  final String studentName;
-  final String className;
-  final String semester;
+  String studentName;
+  String className;
+  String semester;
+  Map<String, dynamic> toJson() => {'id': id, 'studentName': studentName, 'className': className, 'semester': semester};
+  factory ReportCard.fromJson(Map<String, dynamic> j) => ReportCard(id: j['id'] as int, studentName: j['studentName'] as String, className: j['className'] as String, semester: j['semester'] as String);
 }

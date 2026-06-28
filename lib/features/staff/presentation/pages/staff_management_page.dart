@@ -1,4 +1,5 @@
 import 'package:educare/core/widgets/delete_confirmation_dialog.dart';
+import 'package:educare/core/widgets/persistent_module_state.dart';
 import 'package:flutter/material.dart';
 
 class StaffManagementPage extends StatefulWidget {
@@ -8,7 +9,7 @@ class StaffManagementPage extends StatefulWidget {
   State<StaffManagementPage> createState() => _StaffManagementPageState();
 }
 
-class _StaffManagementPageState extends State<StaffManagementPage> {
+class _StaffManagementPageState extends PersistentModuleState<StaffManagementPage> {
   final List<StaffRecord> _staff = [
     StaffRecord(id: 1, employeeId: 'EMP-001', name: 'Rajesh Kumar', designation: 'Principal', department: 'Administration', qualification: 'M.A., B.Ed', joiningDate: '2015-08-01', salary: '150000'),
     StaffRecord(id: 2, employeeId: 'EMP-002', name: 'Priya Singh', designation: 'Mathematics Teacher', department: 'Academics', qualification: 'M.Sc, B.Ed', joiningDate: '2018-06-15', salary: '45000'),
@@ -18,6 +19,27 @@ class _StaffManagementPageState extends State<StaffManagementPage> {
   final List<AttendanceRecord> _staffAttendance = [];
   final List<PerformanceRecord> _performance = [];
   final List<SalaryRecord> _salaryRecords = [];
+
+  @override
+  String get moduleKey => 'staff';
+
+  @override
+  Map<String, dynamic> exportState() => {
+        'staff': _staff.map((item) => item.toJson()).toList(),
+        'leaves': _leaves.map((item) => item.toJson()).toList(),
+        'attendance': _staffAttendance.map((item) => item.toJson()).toList(),
+        'performance': _performance.map((item) => item.toJson()).toList(),
+        'salaries': _salaryRecords.map((item) => item.toJson()).toList(),
+      };
+
+  @override
+  void importState(Map<String, dynamic> data) {
+    _staff..clear()..addAll((data['staff'] as List? ?? []).map((item) => StaffRecord.fromJson(Map<String, dynamic>.from(item as Map))));
+    _leaves..clear()..addAll((data['leaves'] as List? ?? []).map((item) => LeaveRecord.fromJson(Map<String, dynamic>.from(item as Map))));
+    _staffAttendance..clear()..addAll((data['attendance'] as List? ?? []).map((item) => AttendanceRecord.fromJson(Map<String, dynamic>.from(item as Map))));
+    _performance..clear()..addAll((data['performance'] as List? ?? []).map((item) => PerformanceRecord.fromJson(Map<String, dynamic>.from(item as Map))));
+    _salaryRecords..clear()..addAll((data['salaries'] as List? ?? []).map((item) => SalaryRecord.fromJson(Map<String, dynamic>.from(item as Map))));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -184,9 +206,13 @@ class _StaffManagementPageState extends State<StaffManagementPage> {
                       child: ListTile(
                         title: Text(leave.employeeName),
                         subtitle: Text('${leave.leaveType} • ${leave.fromDate} to ${leave.toDate}'),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.delete),
-                          onPressed: () async {
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(icon: const Icon(Icons.edit), onPressed: () => _showLeaveDialog(context, leave: leave)),
+                            IconButton(
+                              icon: const Icon(Icons.delete),
+                              onPressed: () async {
                             final confirmed = await showDeleteConfirmationDialog(
                               context,
                               title: 'Delete leave record?',
@@ -194,7 +220,9 @@ class _StaffManagementPageState extends State<StaffManagementPage> {
                             );
                             if (!confirmed) return;
                             setState(() => _leaves.removeAt(index));
-                          },
+                              },
+                            ),
+                          ],
                         ),
                       ),
                     );
@@ -224,9 +252,13 @@ class _StaffManagementPageState extends State<StaffManagementPage> {
                       child: ListTile(
                         title: Text(attendance.employeeName),
                         subtitle: Text('${attendance.date} • ${attendance.status}'),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.delete),
-                          onPressed: () async {
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(icon: const Icon(Icons.edit), onPressed: () => _showAttendanceDialog(context, attendance: attendance)),
+                            IconButton(
+                              icon: const Icon(Icons.delete),
+                              onPressed: () async {
                             final confirmed = await showDeleteConfirmationDialog(
                               context,
                               title: 'Delete attendance record?',
@@ -234,7 +266,9 @@ class _StaffManagementPageState extends State<StaffManagementPage> {
                             );
                             if (!confirmed) return;
                             setState(() => _staffAttendance.removeAt(index));
-                          },
+                              },
+                            ),
+                          ],
                         ),
                       ),
                     );
@@ -264,9 +298,13 @@ class _StaffManagementPageState extends State<StaffManagementPage> {
                       child: ListTile(
                         title: Text(perf.employeeName),
                         subtitle: Text('Rating: ${perf.rating}/10 • ${perf.reviewDate}'),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.delete),
-                          onPressed: () async {
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(icon: const Icon(Icons.edit), onPressed: () => _showPerformanceDialog(context, performance: perf)),
+                            IconButton(
+                              icon: const Icon(Icons.delete),
+                              onPressed: () async {
                             final confirmed = await showDeleteConfirmationDialog(
                               context,
                               title: 'Delete performance record?',
@@ -274,7 +312,9 @@ class _StaffManagementPageState extends State<StaffManagementPage> {
                             );
                             if (!confirmed) return;
                             setState(() => _performance.removeAt(index));
-                          },
+                              },
+                            ),
+                          ],
                         ),
                       ),
                     );
@@ -289,7 +329,7 @@ class _StaffManagementPageState extends State<StaffManagementPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionHeader('Salary Details', 'View and manage salary information.'),
+        _buildSectionHeader('Salary Details', 'View and manage salary information.', action: () => _showSalaryDialog(context), actionLabel: 'Add Salary'),
         Expanded(
           child: _salaryRecords.isEmpty
               ? const Center(child: Text('No salary records.'))
@@ -304,7 +344,24 @@ class _StaffManagementPageState extends State<StaffManagementPage> {
                       child: ListTile(
                         title: Text(salary.employeeName),
                         subtitle: Text('₹${salary.baseSalary} • ${salary.month}'),
-                        trailing: IconButton(icon: const Icon(Icons.download), onPressed: () => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Salary slip for ${salary.employeeName} downloaded.')))),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(icon: const Icon(Icons.download), onPressed: () => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Salary slip for ${salary.employeeName} downloaded.')))),
+                            IconButton(icon: const Icon(Icons.edit), onPressed: () => _showSalaryDialog(context, salary: salary)),
+                            IconButton(
+                              icon: const Icon(Icons.delete),
+                              onPressed: () async {
+                                final confirmed = await showDeleteConfirmationDialog(
+                                  context,
+                                  title: 'Delete salary record?',
+                                  message: 'This will remove the ${salary.month} salary record for ${salary.employeeName}.',
+                                );
+                                if (confirmed) setState(() => _salaryRecords.removeAt(index));
+                              },
+                            ),
+                          ],
+                        ),
                       ),
                     );
                   },
@@ -394,29 +451,29 @@ class _StaffManagementPageState extends State<StaffManagementPage> {
     );
   }
 
-  void _showLeaveDialog(BuildContext context) {
-    String selectedEmployee = _staff.isNotEmpty ? _staff.first.name : '';
-    final fromDateController = TextEditingController();
-    final toDateController = TextEditingController();
-    final reasonController = TextEditingController();
-    String leaveType = 'Casual Leave';
+  void _showLeaveDialog(BuildContext context, {LeaveRecord? leave}) {
+    String selectedEmployee = leave?.employeeName ?? (_staff.isNotEmpty ? _staff.first.name : '');
+    final fromDateController = TextEditingController(text: leave?.fromDate ?? '');
+    final toDateController = TextEditingController(text: leave?.toDate ?? '');
+    final reasonController = TextEditingController(text: leave?.reason ?? '');
+    String leaveType = leave?.leaveType ?? 'Casual Leave';
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('New Leave Request'),
+        title: Text(leave == null ? 'New Leave Request' : 'Edit Leave Request'),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               DropdownButtonFormField<String>(
-                value: selectedEmployee.isNotEmpty ? selectedEmployee : null,
+                initialValue: selectedEmployee.isNotEmpty ? selectedEmployee : null,
                 items: _staff.map((s) => DropdownMenuItem(value: s.name, child: Text(s.name))).toList(),
                 decoration: const InputDecoration(labelText: 'Employee'),
                 onChanged: (value) => selectedEmployee = value ?? selectedEmployee,
               ),
               DropdownButtonFormField<String>(
-                value: leaveType,
+                initialValue: leaveType,
                 items: ['Casual Leave', 'Sick Leave', 'Earned Leave'].map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
                 onChanged: (value) => leaveType = value ?? leaveType,
                 decoration: const InputDecoration(labelText: 'Leave Type'),
@@ -436,44 +493,53 @@ class _StaffManagementPageState extends State<StaffManagementPage> {
                 return;
               }
               setState(() {
-                _leaves.add(LeaveRecord(
-                  id: _leaves.isEmpty ? 1 : _leaves.last.id + 1,
-                  employeeName: selectedEmployee,
-                  leaveType: leaveType,
-                  fromDate: fromDateController.text.trim(),
-                  toDate: toDateController.text.trim(),
-                  reason: reasonController.text.trim(),
-                ));
+                if (leave == null) {
+                  _leaves.add(LeaveRecord(
+                    id: _leaves.isEmpty ? 1 : _leaves.last.id + 1,
+                    employeeName: selectedEmployee,
+                    leaveType: leaveType,
+                    fromDate: fromDateController.text.trim(),
+                    toDate: toDateController.text.trim(),
+                    reason: reasonController.text.trim(),
+                  ));
+                } else {
+                  leave
+                    ..employeeName = selectedEmployee
+                    ..leaveType = leaveType
+                    ..fromDate = fromDateController.text.trim()
+                    ..toDate = toDateController.text.trim()
+                    ..reason = reasonController.text.trim();
+                }
               });
               Navigator.pop(context);
             },
-            child: const Text('Submit'),
+            child: Text(leave == null ? 'Submit' : 'Save'),
           ),
         ],
       ),
     );
   }
 
-  void _showAttendanceDialog(BuildContext context) {
-    String selectedEmployee = _staff.isNotEmpty ? _staff.first.name : '';
-    String status = 'Present';
+  void _showAttendanceDialog(BuildContext context, {AttendanceRecord? attendance}) {
+    String selectedEmployee = attendance?.employeeName ?? (_staff.isNotEmpty ? _staff.first.name : '');
+    String status = attendance?.status ?? 'Present';
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Mark Attendance'),
+        title: Text(attendance == null ? 'Mark Attendance' : 'Edit Attendance'),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               DropdownButtonFormField<String>(
-                value: selectedEmployee.isNotEmpty ? selectedEmployee : null,
+                initialValue: selectedEmployee.isNotEmpty ? selectedEmployee : null,
                 items: _staff.map((s) => DropdownMenuItem(value: s.name, child: Text(s.name))).toList(),
                 decoration: const InputDecoration(labelText: 'Employee'),
                 onChanged: (value) => selectedEmployee = value ?? selectedEmployee,
               ),
               DropdownButtonFormField<String>(
-                value: status,
+                initialValue: status,
                 items: ['Present', 'Absent', 'Leave', 'Half Day'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
                 onChanged: (value) => status = value ?? status,
                 decoration: const InputDecoration(labelText: 'Status'),
@@ -486,37 +552,43 @@ class _StaffManagementPageState extends State<StaffManagementPage> {
           ElevatedButton(
             onPressed: () {
               setState(() {
-                _staffAttendance.add(AttendanceRecord(
-                  id: _staffAttendance.isEmpty ? 1 : _staffAttendance.last.id + 1,
-                  employeeName: selectedEmployee,
-                  date: DateTime.now().toString().split(' ').first,
-                  status: status,
-                ));
+                if (attendance == null) {
+                  _staffAttendance.add(AttendanceRecord(
+                    id: _staffAttendance.isEmpty ? 1 : _staffAttendance.last.id + 1,
+                    employeeName: selectedEmployee,
+                    date: DateTime.now().toString().split(' ').first,
+                    status: status,
+                  ));
+                } else {
+                  attendance
+                    ..employeeName = selectedEmployee
+                    ..status = status;
+                }
               });
               Navigator.pop(context);
             },
-            child: const Text('Mark'),
+            child: Text(attendance == null ? 'Mark' : 'Save'),
           ),
         ],
       ),
     );
   }
 
-  void _showPerformanceDialog(BuildContext context) {
-    String selectedEmployee = _staff.isNotEmpty ? _staff.first.name : '';
-    final commentsController = TextEditingController();
-    final ratingController = TextEditingController(text: '8');
+  void _showPerformanceDialog(BuildContext context, {PerformanceRecord? performance}) {
+    String selectedEmployee = performance?.employeeName ?? (_staff.isNotEmpty ? _staff.first.name : '');
+    final commentsController = TextEditingController(text: performance?.comments ?? '');
+    final ratingController = TextEditingController(text: performance?.rating ?? '8');
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Performance Review'),
+        title: Text(performance == null ? 'Performance Review' : 'Edit Performance Review'),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               DropdownButtonFormField<String>(
-                value: selectedEmployee.isNotEmpty ? selectedEmployee : null,
+                initialValue: selectedEmployee.isNotEmpty ? selectedEmployee : null,
                 items: _staff.map((s) => DropdownMenuItem(value: s.name, child: Text(s.name))).toList(),
                 decoration: const InputDecoration(labelText: 'Employee'),
                 onChanged: (value) => selectedEmployee = value ?? selectedEmployee,
@@ -534,18 +606,83 @@ class _StaffManagementPageState extends State<StaffManagementPage> {
           TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () {
+              final rating = int.tryParse(ratingController.text);
+              if (rating == null || rating < 1 || rating > 10) {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Rating must be between 1 and 10.')));
+                return;
+              }
               setState(() {
-                _performance.add(PerformanceRecord(
-                  id: _performance.isEmpty ? 1 : _performance.last.id + 1,
-                  employeeName: selectedEmployee,
-                  rating: ratingController.text.trim(),
-                  comments: commentsController.text.trim(),
-                  reviewDate: DateTime.now().toString().split(' ').first,
-                ));
+                if (performance == null) {
+                  _performance.add(PerformanceRecord(
+                    id: _performance.isEmpty ? 1 : _performance.last.id + 1,
+                    employeeName: selectedEmployee,
+                    rating: rating.toString(),
+                    comments: commentsController.text.trim(),
+                    reviewDate: DateTime.now().toString().split(' ').first,
+                  ));
+                } else {
+                  performance
+                    ..employeeName = selectedEmployee
+                    ..rating = rating.toString()
+                    ..comments = commentsController.text.trim();
+                }
               });
               Navigator.pop(context);
             },
-            child: const Text('Submit Review'),
+            child: Text(performance == null ? 'Submit Review' : 'Save'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showSalaryDialog(BuildContext context, {SalaryRecord? salary}) {
+    String selectedEmployee = salary?.employeeName ?? (_staff.isNotEmpty ? _staff.first.name : '');
+    final amountController = TextEditingController(text: salary?.baseSalary ?? '');
+    final monthController = TextEditingController(text: salary?.month ?? '');
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(salary == null ? 'Add Salary Record' : 'Edit Salary Record'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            DropdownButtonFormField<String>(
+              initialValue: selectedEmployee.isNotEmpty ? selectedEmployee : null,
+              items: _staff.map((item) => DropdownMenuItem(value: item.name, child: Text(item.name))).toList(),
+              decoration: const InputDecoration(labelText: 'Employee'),
+              onChanged: (value) => selectedEmployee = value ?? selectedEmployee,
+            ),
+            TextField(controller: amountController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Base Salary')),
+            TextField(controller: monthController, decoration: const InputDecoration(labelText: 'Month')),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () {
+              if (selectedEmployee.isEmpty || double.tryParse(amountController.text) == null || monthController.text.trim().isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Complete all salary fields.')));
+                return;
+              }
+              setState(() {
+                if (salary == null) {
+                  _salaryRecords.add(SalaryRecord(
+                    id: _salaryRecords.isEmpty ? 1 : _salaryRecords.last.id + 1,
+                    employeeName: selectedEmployee,
+                    baseSalary: amountController.text.trim(),
+                    month: monthController.text.trim(),
+                  ));
+                } else {
+                  salary
+                    ..employeeName = selectedEmployee
+                    ..baseSalary = amountController.text.trim()
+                    ..month = monthController.text.trim();
+                }
+              });
+              Navigator.pop(context);
+            },
+            child: Text(salary == null ? 'Add' : 'Save'),
           ),
         ],
       ),
@@ -573,39 +710,68 @@ class StaffRecord {
   String qualification;
   String joiningDate;
   String salary;
+
+  Map<String, dynamic> toJson() => {'id': id, 'employeeId': employeeId, 'name': name, 'designation': designation, 'department': department, 'qualification': qualification, 'joiningDate': joiningDate, 'salary': salary};
+  factory StaffRecord.fromJson(Map<String, dynamic> json) => StaffRecord(
+    id: json['id'] as int, employeeId: json['employeeId'] as String, name: json['name'] as String,
+    designation: json['designation'] as String, department: json['department'] as String,
+    qualification: json['qualification'] as String, joiningDate: json['joiningDate'] as String, salary: json['salary'] as String,
+  );
 }
 
 class LeaveRecord {
   LeaveRecord({required this.id, required this.employeeName, required this.leaveType, required this.fromDate, required this.toDate, required this.reason});
   final int id;
-  final String employeeName;
-  final String leaveType;
-  final String fromDate;
-  final String toDate;
-  final String reason;
+  String employeeName;
+  String leaveType;
+  String fromDate;
+  String toDate;
+  String reason;
+
+  Map<String, dynamic> toJson() => {'id': id, 'employeeName': employeeName, 'leaveType': leaveType, 'fromDate': fromDate, 'toDate': toDate, 'reason': reason};
+  factory LeaveRecord.fromJson(Map<String, dynamic> json) => LeaveRecord(
+    id: json['id'] as int, employeeName: json['employeeName'] as String, leaveType: json['leaveType'] as String,
+    fromDate: json['fromDate'] as String, toDate: json['toDate'] as String, reason: json['reason'] as String,
+  );
 }
 
 class AttendanceRecord {
   AttendanceRecord({required this.id, required this.employeeName, required this.date, required this.status});
   final int id;
-  final String employeeName;
+  String employeeName;
   final String date;
-  final String status;
+  String status;
+
+  Map<String, dynamic> toJson() => {'id': id, 'employeeName': employeeName, 'date': date, 'status': status};
+  factory AttendanceRecord.fromJson(Map<String, dynamic> json) => AttendanceRecord(
+    id: json['id'] as int, employeeName: json['employeeName'] as String, date: json['date'] as String, status: json['status'] as String,
+  );
 }
 
 class PerformanceRecord {
   PerformanceRecord({required this.id, required this.employeeName, required this.rating, required this.comments, required this.reviewDate});
   final int id;
-  final String employeeName;
-  final String rating;
-  final String comments;
+  String employeeName;
+  String rating;
+  String comments;
   final String reviewDate;
+
+  Map<String, dynamic> toJson() => {'id': id, 'employeeName': employeeName, 'rating': rating, 'comments': comments, 'reviewDate': reviewDate};
+  factory PerformanceRecord.fromJson(Map<String, dynamic> json) => PerformanceRecord(
+    id: json['id'] as int, employeeName: json['employeeName'] as String, rating: json['rating'] as String,
+    comments: json['comments'] as String, reviewDate: json['reviewDate'] as String,
+  );
 }
 
 class SalaryRecord {
   SalaryRecord({required this.id, required this.employeeName, required this.baseSalary, required this.month});
   final int id;
-  final String employeeName;
-  final String baseSalary;
-  final String month;
+  String employeeName;
+  String baseSalary;
+  String month;
+
+  Map<String, dynamic> toJson() => {'id': id, 'employeeName': employeeName, 'baseSalary': baseSalary, 'month': month};
+  factory SalaryRecord.fromJson(Map<String, dynamic> json) => SalaryRecord(
+    id: json['id'] as int, employeeName: json['employeeName'] as String, baseSalary: json['baseSalary'] as String, month: json['month'] as String,
+  );
 }
