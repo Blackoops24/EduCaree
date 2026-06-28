@@ -24,15 +24,42 @@ class _DashboardHeaderState extends ConsumerState<DashboardHeader> {
     ref.read(themeModeProvider.notifier).toggleTheme();
   }
 
+  void _performSearch() {
+    final query = _searchController.text.trim().toLowerCase();
+    if (query.isEmpty) return;
+    final destinations = <String, List<String>>{
+      AppRoutes.students: ['student', 'admission', 'parent', 'promotion', 'alumni', 'document', 'transfer'],
+      AppRoutes.staff: ['staff', 'teacher', 'employee', 'salary', 'leave'],
+      AppRoutes.academics: ['academic', 'class', 'subject', 'exam', 'marks', 'timetable'],
+      AppRoutes.attendance: ['attendance', 'biometric', 'face'],
+      AppRoutes.fees: ['fee', 'payment'],
+      AppRoutes.library: ['library', 'book'],
+      AppRoutes.transport: ['transport', 'vehicle', 'route', 'driver'],
+      AppRoutes.inventory: ['inventory', 'asset', 'stock'],
+      AppRoutes.notifications: ['notification'],
+      AppRoutes.messages: ['message'],
+      AppRoutes.calendar: ['calendar', 'event'],
+    };
+    for (final entry in destinations.entries) {
+      if (entry.value.any((keyword) => keyword.contains(query) || query.contains(keyword))) {
+        context.go(entry.key);
+        return;
+      }
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('No module found for "${_searchController.text.trim()}".')),
+    );
+  }
+
   Future<void> _handleProfileAction(String value) async {
     switch (value) {
       case 'My Profile':
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('My Profile selected')));
+        context.go(AppRoutes.myProfile);
         break;
       case 'Settings':
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Settings selected')));
+        context.go(AppRoutes.settings);
         break;
       case 'Change Password':
         await _showChangePasswordDialog();
@@ -55,7 +82,9 @@ class _DashboardHeaderState extends ConsumerState<DashboardHeader> {
     final submitted = await showDialog<bool>(
       context: context,
       builder: (dialogContext) {
-        return AlertDialog(
+        String? currentPasswordError;
+        bool submitting = false;
+        return StatefulBuilder(builder: (context, setDialogState) => AlertDialog(
           title: const Text('Change Password'),
           content: Form(
             key: formKey,
@@ -70,7 +99,7 @@ class _DashboardHeaderState extends ConsumerState<DashboardHeader> {
                     if (value == null || value.isEmpty) {
                       return 'Current password is required';
                     }
-                    return null;
+                    return currentPasswordError;
                   },
                 ),
                 const SizedBox(height: 12),
@@ -106,15 +135,29 @@ class _DashboardHeaderState extends ConsumerState<DashboardHeader> {
               child: const Text('Cancel'),
             ),
             ElevatedButton(
-              onPressed: () {
-                if (formKey.currentState?.validate() ?? false) {
-                  Navigator.of(dialogContext).pop(true);
+              onPressed: submitting ? null : () async {
+                currentPasswordError = null;
+                if (!(formKey.currentState?.validate() ?? false)) return;
+                setDialogState(() => submitting = true);
+                final error = await ref.read(authViewModelProvider.notifier).changePassword(
+                      currentPassword: currentPasswordController.text,
+                      newPassword: newPasswordController.text,
+                    );
+                if (!dialogContext.mounted) return;
+                if (error != null) {
+                  setDialogState(() {
+                    submitting = false;
+                    currentPasswordError = error;
+                  });
+                  formKey.currentState?.validate();
+                  return;
                 }
+                Navigator.of(dialogContext).pop(true);
               },
-              child: const Text('Update'),
+              child: Text(submitting ? 'Updating…' : 'Update'),
             ),
           ],
-        );
+        ));
       },
     );
 
@@ -123,7 +166,6 @@ class _DashboardHeaderState extends ConsumerState<DashboardHeader> {
     confirmPasswordController.dispose();
 
     if (submitted == true) {
-      await ref.read(authViewModelProvider.notifier).changePassword();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Password changed successfully')),
@@ -152,6 +194,8 @@ class _DashboardHeaderState extends ConsumerState<DashboardHeader> {
                   _buildTopRow(context, isDark),
                   const SizedBox(height: 12),
                   _buildSearchBar(context),
+                  const SizedBox(height: 8),
+                  _buildActionRow(context, isDark),
                 ] else ...[
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -223,17 +267,21 @@ class _DashboardHeaderState extends ConsumerState<DashboardHeader> {
         hintText: 'Search students, teachers, staff, fees, books, vehicles',
         hintStyle: TextStyle(color: Colors.grey[600]),
         prefixIcon: const Icon(Icons.search, color: Colors.black54),
+        suffixIcon: _searchController.text.isEmpty
+            ? null
+            : IconButton(
+                tooltip: 'Clear search',
+                icon: const Icon(Icons.clear, color: Colors.black54),
+                onPressed: () => setState(_searchController.clear),
+              ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide.none,
         ),
       ),
       textInputAction: TextInputAction.search,
-      onSubmitted: (_) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Search for "${_searchController.text.trim()}"')),
-        );
-      },
+      onChanged: (_) => setState(() {}),
+      onSubmitted: (_) => _performSearch(),
     );
   }
 

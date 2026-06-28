@@ -1,11 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:educare/core/services/module_persistence_service.dart';
 
-class FaceRecognitionPage extends ConsumerWidget {
+class FaceRecognitionPage extends ConsumerStatefulWidget {
   const FaceRecognitionPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<FaceRecognitionPage> createState() => _FaceRecognitionPageState();
+}
+
+class _FaceRecognitionPageState extends ConsumerState<FaceRecognitionPage> {
+  bool _initialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    ModulePersistenceService.instance.load('face-recognition-device').then((data) {
+      if (mounted && data != null) setState(() => _initialized = data['initialized'] as bool? ?? false);
+    }).catchError((_) {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Face Recognition Attendance'),
@@ -44,9 +60,12 @@ class FaceRecognitionPage extends ConsumerWidget {
                     ),
                     const SizedBox(height: 16),
                     ElevatedButton.icon(
-                      onPressed: () {},
+                      onPressed: () {
+                        setState(() => _initialized = true);
+                        ModulePersistenceService.instance.save('face-recognition-device', {'initialized': true}).catchError((_) {});
+                      },
                       icon: const Icon(Icons.camera_alt),
-                      label: const Text('Initialize Camera'),
+                      label: Text(_initialized ? 'Camera Initialized' : 'Initialize Camera'),
                     ),
                   ],
                 ),
@@ -73,9 +92,9 @@ class FaceRecognitionPage extends ConsumerWidget {
                       trailing: Text('0%'),
                     ),
                     const Divider(),
-                    const ListTile(
+                    ListTile(
                       title: Text('Status'),
-                      trailing: Chip(label: Text('Idle')),
+                      trailing: Chip(label: Text(_initialized ? 'Ready' : 'Idle')),
                     ),
                   ],
                 ),

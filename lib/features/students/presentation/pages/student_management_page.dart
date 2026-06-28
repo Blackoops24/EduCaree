@@ -1,5 +1,9 @@
 import 'package:educare/core/widgets/delete_confirmation_dialog.dart';
+import 'package:educare/core/widgets/persistent_module_state.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 
 class StudentManagementPage extends StatefulWidget {
   const StudentManagementPage({super.key});
@@ -8,8 +12,15 @@ class StudentManagementPage extends StatefulWidget {
   State<StudentManagementPage> createState() => _StudentManagementPageState();
 }
 
-class _StudentManagementPageState extends State<StudentManagementPage> {
+class _StudentManagementPageState extends PersistentModuleState<StudentManagementPage> {
   static const String _admissionBrandPrefix = 'edu';
+  static const _genders = ['Male', 'Female', 'Other'];
+  static const _bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+  static const _sections = ['A', 'B', 'C', 'D'];
+  static const _classes = [
+    'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6',
+    'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12',
+  ];
 
   final List<StudentRecord> _students = [
     StudentRecord(
@@ -20,7 +31,7 @@ class _StudentManagementPageState extends State<StudentManagementPage> {
       bloodGroup: 'O+',
       address: 'Bangalore, Karnataka',
       mobileNumber: '9876543210',
-      aadhaarNumber: '1234567890123456',
+      aadhaarNumber: '123456789012',
       category: 'General',
       religion: 'Hindu',
       currentClass: 'Grade 8',
@@ -36,7 +47,7 @@ class _StudentManagementPageState extends State<StudentManagementPage> {
       bloodGroup: 'A+',
       address: 'Pune, Maharashtra',
       mobileNumber: '9123456789',
-      aadhaarNumber: '1234567890123457',
+      aadhaarNumber: '123456789013',
       category: 'OBC',
       religion: 'Hindu',
       currentClass: 'Grade 9',
@@ -49,11 +60,64 @@ class _StudentManagementPageState extends State<StudentManagementPage> {
   final List<StudentDocument> _documents = [];
   final List<StudentPromotion> _promotions = [];
   final List<AlumniRecord> _alumni = [];
+  final Map<String, String> _studentPhotos = {};
+  final Set<String> _generatedCertificates = {};
+  final GlobalKey _registrationContentKey = GlobalKey();
+
+  @override
+  String get moduleKey => 'students';
+
+  @override
+  Map<String, dynamic> exportState() => {
+        'students': _students.map((item) => item.toJson()).toList(),
+        'documents': _documents.map((item) => item.toJson()).toList(),
+        'promotions': _promotions.map((item) => item.toJson()).toList(),
+        'alumni': _alumni.map((item) => item.toJson()).toList(),
+        'photos': _studentPhotos,
+        'certificates': _generatedCertificates.toList(),
+      };
+
+  @override
+  void importState(Map<String, dynamic> data) {
+    _students
+      ..clear()
+      ..addAll((data['students'] as List? ?? []).map((item) => StudentRecord.fromJson(Map<String, dynamic>.from(item as Map))));
+    _documents
+      ..clear()
+      ..addAll((data['documents'] as List? ?? []).map((item) => StudentDocument.fromJson(Map<String, dynamic>.from(item as Map))));
+    _promotions
+      ..clear()
+      ..addAll((data['promotions'] as List? ?? []).map((item) => StudentPromotion.fromJson(Map<String, dynamic>.from(item as Map))));
+    _alumni
+      ..clear()
+      ..addAll((data['alumni'] as List? ?? []).map((item) => AlumniRecord.fromJson(Map<String, dynamic>.from(item as Map))));
+    _studentPhotos
+      ..clear()
+      ..addAll(Map<String, String>.from(data['photos'] as Map? ?? {}));
+    _generatedCertificates
+      ..clear()
+      ..addAll(List<String>.from(data['certificates'] as List? ?? []));
+  }
 
   String _generateAdmissionNo() {
     final currentYear = DateTime.now().year;
-    final sequence = _students.length + 1;
-    return '$_admissionBrandPrefix$currentYear$sequence';
+    var sequence = _students.length + 1;
+    var candidate = '$_admissionBrandPrefix$currentYear$sequence';
+    while (_students.any((student) => student.admissionNo == candidate)) {
+      sequence++;
+      candidate = '$_admissionBrandPrefix$currentYear$sequence';
+    }
+    return candidate;
+  }
+
+  void _removeStudent(StudentRecord student) {
+    setState(() {
+      _students.remove(student);
+      _documents.removeWhere((item) => item.studentAdmissionNo == student.admissionNo);
+      _promotions.removeWhere((item) => item.studentAdmissionNo == student.admissionNo);
+      _studentPhotos.remove(student.admissionNo);
+      _generatedCertificates.remove(student.admissionNo);
+    });
   }
 
   @override
@@ -116,49 +180,52 @@ class _StudentManagementPageState extends State<StudentManagementPage> {
   }
 
   Widget _buildRegistrationTab(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSectionHeader('Student Registration', 'Add new students or edit existing registrations.', action: () => _showStudentDialog(context), actionLabel: 'New Admission'),
-        Expanded(
-          child: _students.isEmpty
-              ? const Center(child: Text('No students registered yet.'))
-              : ListView.separated(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: _students.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
-                  itemBuilder: (context, index) {
-                    final student = _students[index];
-                    return Card(
-                      elevation: 1,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      child: ListTile(
-                        title: Text('${student.name} (${student.admissionNo})'),
-                        subtitle: Text('${student.currentClass}-${student.section} • ${student.gender} • DOB: ${student.dob}'),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(icon: const Icon(Icons.edit), onPressed: () => _showStudentDialog(context, student: student)),
-                            IconButton(
-                              icon: const Icon(Icons.delete),
-                              onPressed: () async {
-                                final confirmed = await showDeleteConfirmationDialog(
-                                  context,
-                                  title: 'Delete student?',
-                                  message: 'This will remove ${student.name} from student registrations.',
-                                );
-                                if (!confirmed) return;
-                                setState(() => _students.removeAt(index));
-                              },
-                            ),
-                          ],
+    return Container(
+      key: _registrationContentKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionHeader('Student Registration', 'Add new students or edit existing registrations.', action: () => _showStudentDialog(context), actionLabel: 'New Admission'),
+          Expanded(
+            child: _students.isEmpty
+                ? const Center(child: Text('No students registered yet.'))
+                : ListView.separated(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: _students.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      final student = _students[index];
+                      return Card(
+                        elevation: 1,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        child: ListTile(
+                          title: Text('${student.name} (${student.admissionNo})'),
+                          subtitle: Text('${student.currentClass}-${student.section} • ${student.gender} • DOB: ${student.dob}'),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(icon: const Icon(Icons.edit), onPressed: () => _showStudentDialog(context, student: student)),
+                              IconButton(
+                                icon: const Icon(Icons.delete),
+                                onPressed: () async {
+                                  final confirmed = await showDeleteConfirmationDialog(
+                                    context,
+                                    title: 'Delete student?',
+                                    message: 'This will remove ${student.name} from student registrations.',
+                                  );
+                                  if (!confirmed) return;
+                                  _removeStudent(student);
+                                },
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    );
-                  },
-                ),
-        ),
-      ],
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -166,14 +233,14 @@ class _StudentManagementPageState extends State<StudentManagementPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionHeader('Student Profiles', 'View and manage individual student records.'),
+        _buildSectionHeader('Student Profiles', 'View, edit, or delete individual student records.'),
         Expanded(
           child: _students.isEmpty
               ? const Center(child: Text('No student profiles available.'))
               : ListView.separated(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                   itemCount: _students.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
+                  separatorBuilder: (_, __) => const SizedBox(height: 6),
                   itemBuilder: (context, index) {
                     final student = _students[index];
                     return Card(
@@ -184,10 +251,14 @@ class _StudentManagementPageState extends State<StudentManagementPage> {
                         subtitle: Text(student.admissionNo),
                         children: [
                           Padding(
-                            padding: const EdgeInsets.all(16),
+                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                             child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
+                                Wrap(
+                                  spacing: 20,
+                                  runSpacing: 4,
+                                  children: [
                                 _buildProfileField('Gender', student.gender),
                                 _buildProfileField('DOB', student.dob),
                                 _buildProfileField('Blood Group', student.bloodGroup),
@@ -197,6 +268,32 @@ class _StudentManagementPageState extends State<StudentManagementPage> {
                                 _buildProfileField('Category', student.category),
                                 _buildProfileField('Religion', student.religion),
                                 _buildProfileField('Class-Section', '${student.currentClass}-${student.section}'),
+                                  ],
+                                ),
+                                const Divider(),
+                                Wrap(
+                                  alignment: WrapAlignment.end,
+                                  spacing: 8,
+                                  children: [
+                                    OutlinedButton.icon(
+                                      onPressed: () => _showStudentDialog(context, student: student),
+                                      icon: const Icon(Icons.edit_outlined),
+                                      label: const Text('Edit'),
+                                    ),
+                                    TextButton.icon(
+                                      onPressed: () async {
+                                        final confirmed = await showDeleteConfirmationDialog(
+                                          context,
+                                          title: 'Delete student?',
+                                          message: 'This will remove ${student.name} and their profile.',
+                                        );
+                                        if (confirmed) _removeStudent(student);
+                                      },
+                                      icon: const Icon(Icons.delete_outline),
+                                      label: const Text('Delete'),
+                                    ),
+                                  ],
+                                ),
                               ],
                             ),
                           ),
@@ -229,9 +326,13 @@ class _StudentManagementPageState extends State<StudentManagementPage> {
                       child: ListTile(
                         title: Text(doc.fileName),
                         subtitle: Text('${doc.studentName} • ${doc.documentType}'),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.delete),
-                          onPressed: () async {
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(icon: const Icon(Icons.edit), onPressed: () => _showDocumentDialog(context, document: doc)),
+                            IconButton(
+                              icon: const Icon(Icons.delete),
+                              onPressed: () async {
                             final confirmed = await showDeleteConfirmationDialog(
                               context,
                               title: 'Delete document?',
@@ -239,7 +340,9 @@ class _StudentManagementPageState extends State<StudentManagementPage> {
                             );
                             if (!confirmed) return;
                             setState(() => _documents.removeAt(index));
-                          },
+                              },
+                            ),
+                          ],
                         ),
                       ),
                     );
@@ -269,11 +372,28 @@ class _StudentManagementPageState extends State<StudentManagementPage> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.person, size: 48),
+                      Icon(
+                        _studentPhotos.containsKey(student.admissionNo) ? Icons.account_circle : Icons.person_outline,
+                        size: 48,
+                        color: _studentPhotos.containsKey(student.admissionNo) ? Theme.of(context).colorScheme.primary : null,
+                      ),
                       const SizedBox(height: 8),
                       Text(student.name, textAlign: TextAlign.center, overflow: TextOverflow.ellipsis),
+                      if (_studentPhotos.containsKey(student.admissionNo))
+                        Text(
+                          _studentPhotos[student.admissionNo]!,
+                          style: Theme.of(context).textTheme.bodySmall,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       const SizedBox(height: 8),
-                      IconButton(icon: const Icon(Icons.edit), onPressed: () => _showPhotoDialog(context, student: student)),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          IconButton(icon: const Icon(Icons.edit), onPressed: () => _showPhotoDialog(context, student: student)),
+                          if (_studentPhotos.containsKey(student.admissionNo))
+                            IconButton(icon: const Icon(Icons.delete_outline), onPressed: () => setState(() => _studentPhotos.remove(student.admissionNo))),
+                        ],
+                      ),
                     ],
                   ),
                 ),
@@ -334,9 +454,13 @@ class _StudentManagementPageState extends State<StudentManagementPage> {
                       child: ListTile(
                         title: Text(promotion.studentName),
                         subtitle: Text('${promotion.fromClass} → ${promotion.toClass} • ${promotion.promotionDate}'),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.delete),
-                          onPressed: () async {
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(icon: const Icon(Icons.edit), onPressed: () => _showPromotionDialog(context, promotion: promotion)),
+                            IconButton(
+                              icon: const Icon(Icons.delete),
+                              onPressed: () async {
                             final confirmed = await showDeleteConfirmationDialog(
                               context,
                               title: 'Delete promotion record?',
@@ -344,7 +468,9 @@ class _StudentManagementPageState extends State<StudentManagementPage> {
                             );
                             if (!confirmed) return;
                             setState(() => _promotions.removeAt(index));
-                          },
+                              },
+                            ),
+                          ],
                         ),
                       ),
                     );
@@ -359,7 +485,10 @@ class _StudentManagementPageState extends State<StudentManagementPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionHeader('Transfer Certificates', 'Generate and manage transfer certificates.'),
+        _buildSectionHeader(
+          'Transfer Certificates',
+          'Generated certificates remain available here for viewing.',
+        ),
         Expanded(
           child: _students.isEmpty
               ? const Center(child: Text('No students available for transfer certificates.'))
@@ -374,7 +503,33 @@ class _StudentManagementPageState extends State<StudentManagementPage> {
                       child: ListTile(
                         title: Text(student.name),
                         subtitle: Text('${student.admissionNo} • ${student.currentClass}-${student.section}'),
-                        trailing: ElevatedButton(onPressed: () => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Transfer certificate generated for ${student.name}.'))), child: const Text('Generate')),
+                        leading: Icon(
+                          _generatedCertificates.contains(student.admissionNo)
+                              ? Icons.verified_outlined
+                              : Icons.description_outlined,
+                        ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ElevatedButton(
+                              onPressed: () {
+                                if (_generatedCertificates.contains(student.admissionNo)) {
+                                  _showTransferCertificate(context, student);
+                                  return;
+                                }
+                                setState(() => _generatedCertificates.add(student.admissionNo));
+                                _showTransferCertificate(context, student);
+                              },
+                              child: Text(_generatedCertificates.contains(student.admissionNo) ? 'View' : 'Generate'),
+                            ),
+                            if (_generatedCertificates.contains(student.admissionNo))
+                              IconButton(
+                                tooltip: 'Revoke certificate',
+                                icon: const Icon(Icons.delete_outline),
+                                onPressed: () => setState(() => _generatedCertificates.remove(student.admissionNo)),
+                              ),
+                          ],
+                        ),
                       ),
                     );
                   },
@@ -403,9 +558,17 @@ class _StudentManagementPageState extends State<StudentManagementPage> {
                       child: ListTile(
                         title: Text(alum.name),
                         subtitle: Text('Batch ${alum.graduationYear} • ${alum.profession}'),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.delete),
-                          onPressed: () async {
+                        trailing: Wrap(
+                          children: [
+                            IconButton(
+                              tooltip: 'Edit alumni',
+                              icon: const Icon(Icons.edit_outlined),
+                              onPressed: () => _showAlumniDialog(context, alumni: alum),
+                            ),
+                            IconButton(
+                              tooltip: 'Delete alumni',
+                              icon: const Icon(Icons.delete),
+                              onPressed: () async {
                             final confirmed = await showDeleteConfirmationDialog(
                               context,
                               title: 'Delete alumni record?',
@@ -413,7 +576,9 @@ class _StudentManagementPageState extends State<StudentManagementPage> {
                             );
                             if (!confirmed) return;
                             setState(() => _alumni.removeAt(index));
-                          },
+                              },
+                            ),
+                          ],
                         ),
                       ),
                     );
@@ -425,212 +590,460 @@ class _StudentManagementPageState extends State<StudentManagementPage> {
   }
 
   Widget _buildProfileField(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+    return SizedBox(
+      width: 260,
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.black54)),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.w500)),
+          SizedBox(
+            width: 100,
+            child: Text(label, style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.black54)),
+          ),
+          Expanded(child: Text(value.isEmpty ? '—' : value, style: const TextStyle(fontWeight: FontWeight.w500))),
         ],
       ),
     );
   }
 
   void _showStudentDialog(BuildContext context, {StudentRecord? student}) {
+    final renderObject = _registrationContentKey.currentContext?.findRenderObject() ?? context.findRenderObject();
+    final contentRect = renderObject is RenderBox
+        ? renderObject.localToGlobal(Offset.zero) & renderObject.size
+      : Offset.zero & MediaQuery.sizeOf(context);
+    final formKey = GlobalKey<FormState>();
     final nameController = TextEditingController(text: student?.name ?? '');
     final generatedAdmissionNo = student?.admissionNo ?? _generateAdmissionNo();
     final admissionNoController = TextEditingController(text: generatedAdmissionNo);
-    final genderController = TextEditingController(text: student?.gender ?? '');
     final dobController = TextEditingController(text: student?.dob ?? '');
-    final bloodGroupController = TextEditingController(text: student?.bloodGroup ?? '');
     final addressController = TextEditingController(text: student?.address ?? '');
     final mobileController = TextEditingController(text: student?.mobileNumber ?? '');
     final aadhaarController = TextEditingController(text: student?.aadhaarNumber ?? '');
     final categoryController = TextEditingController(text: student?.category ?? '');
     final religionController = TextEditingController(text: student?.religion ?? '');
-    final classController = TextEditingController(text: student?.currentClass ?? '');
-    final sectionController = TextEditingController(text: student?.section ?? '');
+    String? gender = _genders.contains(student?.gender) ? student!.gender : null;
+    String? bloodGroup = _bloodGroups.contains(student?.bloodGroup) ? student!.bloodGroup : null;
+    String? currentClass = _classes.contains(student?.currentClass) ? student!.currentClass : null;
+    String? section = _sections.contains(student?.section) ? student!.section : null;
 
-    showDialog(
+    void submit(BuildContext drawerContext) {
+      if (!(formKey.currentState?.validate() ?? false)) return;
+      setState(() {
+        final record = student ??
+            StudentRecord(
+              admissionNo: generatedAdmissionNo.trim(),
+              name: '',
+              gender: '',
+              dob: '',
+              bloodGroup: '',
+              address: '',
+              mobileNumber: '',
+              aadhaarNumber: '',
+              category: '',
+              religion: '',
+              currentClass: '',
+              section: '',
+              parentName: '',
+              parentPhone: '',
+            );
+        record
+          ..name = nameController.text.trim()
+          ..gender = gender!
+          ..dob = dobController.text
+          ..bloodGroup = bloodGroup!
+          ..address = addressController.text.trim()
+          ..mobileNumber = mobileController.text
+          ..aadhaarNumber = aadhaarController.text
+          ..category = categoryController.text.trim()
+          ..religion = religionController.text.trim()
+          ..currentClass = currentClass!
+          ..section = section!;
+        if (student == null) _students.add(record);
+      });
+      Navigator.pop(drawerContext);
+    }
+
+    showGeneralDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(student == null ? 'New Admission' : 'Edit Student'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+      barrierDismissible: true,
+      barrierLabel: 'Close admission form',
+      barrierColor: Colors.black54,
+      transitionDuration: const Duration(milliseconds: 280),
+      transitionBuilder: (context, animation, secondaryAnimation, child) => child,
+      pageBuilder: (dialogContext, animation, secondaryAnimation) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          final availableWidth = contentRect.width;
+          final drawerWidth = availableWidth < 900 ? availableWidth : availableWidth * 0.52;
+          final panelAnimation = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic);
+          return Stack(
             children: [
-              TextField(
-                controller: admissionNoController,
-                readOnly: true,
-                decoration: const InputDecoration(labelText: 'Admission Number'),
+              Positioned(
+                left: contentRect.left,
+                top: contentRect.top,
+                width: drawerWidth,
+                height: contentRect.height,
+                child: ClipRect(
+                  child: SizeTransition(
+                    axis: Axis.horizontal,
+                    axisAlignment: -1,
+                    sizeFactor: panelAnimation,
+                    child: Material(
+                      key: const Key('admission_side_drawer'),
+                      elevation: 24,
+                      color: Theme.of(context).scaffoldBackgroundColor,
+                      child: Scaffold(
+            appBar: AppBar(
+              automaticallyImplyLeading: false,
+              title: Text(student == null ? 'New Admission' : 'Edit Student'),
+              actions: [
+                IconButton(
+                  tooltip: 'Close',
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.pop(dialogContext),
+                ),
+              ],
+            ),
+            body: Form(
+              key: formKey,
+              child: ListView(
+                padding: const EdgeInsets.all(24),
+                children: [
+                  Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 900),
+                      child: Wrap(
+                        spacing: 20,
+                        runSpacing: 16,
+                        children: [
+                          _formField(
+                            controller: admissionNoController,
+                            label: 'Admission Number',
+                            readOnly: true,
+                          ),
+                          _formField(
+                            controller: nameController,
+                            label: 'Student Name',
+                            validator: _required('student name'),
+                          ),
+                          _dropdownField(
+                            label: 'Gender',
+                            value: gender,
+                            items: _genders,
+                            onChanged: (value) => setDialogState(() => gender = value),
+                          ),
+                          _formField(
+                            controller: dobController,
+                            label: 'Date of Birth',
+                            readOnly: true,
+                            suffixIcon: const Icon(Icons.calendar_today_outlined),
+                            validator: _required('date of birth'),
+                            onTap: () async {
+                              final selected = await showDatePicker(
+                                context: context,
+                                initialDate: DateTime.tryParse(dobController.text) ?? DateTime(2010),
+                                firstDate: DateTime(1990),
+                                lastDate: DateTime.now(),
+                              );
+                              if (selected != null) {
+                                dobController.text = DateFormat('yyyy-MM-dd').format(selected);
+                              }
+                            },
+                          ),
+                          _dropdownField(
+                            label: 'Blood Group',
+                            value: bloodGroup,
+                            items: _bloodGroups,
+                            onChanged: (value) => setDialogState(() => bloodGroup = value),
+                          ),
+                          _formField(
+                            controller: mobileController,
+                            label: 'Mobile Number',
+                            fieldKey: const Key('admission_mobile'),
+                            keyboardType: TextInputType.phone,
+                            inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(10)],
+                            validator: (value) => RegExp(r'^[6-9]\d{9}$').hasMatch(value ?? '')
+                                ? null
+                                : 'Enter a valid 10-digit mobile number',
+                          ),
+                          _formField(
+                            controller: aadhaarController,
+                            label: 'Aadhaar Number',
+                            fieldKey: const Key('admission_aadhaar'),
+                            keyboardType: TextInputType.number,
+                            inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(12)],
+                            validator: (value) => RegExp(r'^\d{12}$').hasMatch(value ?? '')
+                                ? null
+                                : 'Enter a valid 12-digit Aadhaar number',
+                          ),
+                          _dropdownField(
+                            label: 'Class',
+                            value: currentClass,
+                            items: _classes,
+                            onChanged: (value) => setDialogState(() => currentClass = value),
+                          ),
+                          _dropdownField(
+                            label: 'Section',
+                            value: section,
+                            items: _sections,
+                            onChanged: (value) => setDialogState(() => section = value),
+                          ),
+                          _formField(controller: categoryController, label: 'Category', validator: _required('category')),
+                          _formField(controller: religionController, label: 'Religion', validator: _required('religion')),
+                          SizedBox(
+                            width: 900,
+                            child: TextFormField(
+                              controller: addressController,
+                              maxLines: 3,
+                              decoration: const InputDecoration(labelText: 'Address', alignLabelWithHint: true),
+                              validator: _required('address'),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              TextField(controller: nameController, decoration: const InputDecoration(labelText: 'Student Name')),
-              TextField(controller: genderController, decoration: const InputDecoration(labelText: 'Gender')),
-              TextField(controller: dobController, decoration: const InputDecoration(labelText: 'Date of Birth')),
-              TextField(controller: bloodGroupController, decoration: const InputDecoration(labelText: 'Blood Group')),
-              TextField(controller: addressController, decoration: const InputDecoration(labelText: 'Address')),
-              TextField(controller: mobileController, decoration: const InputDecoration(labelText: 'Mobile Number')),
-              TextField(controller: aadhaarController, decoration: const InputDecoration(labelText: 'Aadhaar Number')),
-              TextField(controller: categoryController, decoration: const InputDecoration(labelText: 'Category')),
-              TextField(controller: religionController, decoration: const InputDecoration(labelText: 'Religion')),
-              TextField(controller: classController, decoration: const InputDecoration(labelText: 'Class')),
-              TextField(controller: sectionController, decoration: const InputDecoration(labelText: 'Section')),
+            ),
+            bottomNavigationBar: Material(
+              elevation: 12,
+              child: SafeArea(
+                top: false,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      OutlinedButton(
+                        key: const Key('admission_cancel_button'),
+                        onPressed: () => Navigator.pop(dialogContext),
+                        child: const Text('Cancel'),
+                      ),
+                      const SizedBox(width: 12),
+                      ElevatedButton.icon(
+                        key: const Key('admission_submit_button'),
+                        onPressed: () => submit(dialogContext),
+                        icon: Icon(student == null ? Icons.add : Icons.save_outlined),
+                        label: Text(student == null ? 'Create' : 'Save'),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             ],
-          ),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-          ElevatedButton(
-            onPressed: () {
-              final name = nameController.text.trim();
-              if (name.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Enter student name.')));
-                return;
-              }
-              setState(() {
-                if (student != null) {
-                  student.name = name;
-                  student.gender = genderController.text.trim();
-                  student.dob = dobController.text.trim();
-                  student.bloodGroup = bloodGroupController.text.trim();
-                  student.address = addressController.text.trim();
-                  student.mobileNumber = mobileController.text.trim();
-                  student.aadhaarNumber = aadhaarController.text.trim();
-                  student.category = categoryController.text.trim();
-                  student.religion = religionController.text.trim();
-                  student.currentClass = classController.text.trim();
-                  student.section = sectionController.text.trim();
-                } else {
-                  _students.add(StudentRecord(
-                    admissionNo: generatedAdmissionNo,
-                    name: name,
-                    gender: genderController.text.trim(),
-                    dob: dobController.text.trim(),
-                    bloodGroup: bloodGroupController.text.trim(),
-                    address: addressController.text.trim(),
-                    mobileNumber: mobileController.text.trim(),
-                    aadhaarNumber: aadhaarController.text.trim(),
-                    category: categoryController.text.trim(),
-                    religion: religionController.text.trim(),
-                    currentClass: classController.text.trim(),
-                    section: sectionController.text.trim(),
-                    parentName: '',
-                    parentPhone: '',
-                  ));
-                }
-              });
-              Navigator.pop(context);
-            },
-            child: const Text('Save'),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
 
-  void _showDocumentDialog(BuildContext context) {
-    final fileNameController = TextEditingController();
-    final docTypeController = TextEditingController();
-    String selectedAdmissionNo = _students.isNotEmpty ? _students.first.admissionNo : '';
+  String? Function(String?) _required(String field) {
+    return (value) => value == null || value.trim().isEmpty ? 'Enter $field' : null;
+  }
+
+  Widget _formField({
+    required TextEditingController controller,
+    required String label,
+    bool readOnly = false,
+    TextInputType? keyboardType,
+    List<TextInputFormatter>? inputFormatters,
+    String? Function(String?)? validator,
+    VoidCallback? onTap,
+    Widget? suffixIcon,
+    Key? fieldKey,
+  }) {
+    return SizedBox(
+      width: 440,
+      child: TextFormField(
+        key: fieldKey,
+        controller: controller,
+        readOnly: readOnly,
+        keyboardType: keyboardType,
+        inputFormatters: inputFormatters,
+        validator: validator,
+        onTap: onTap,
+        decoration: InputDecoration(labelText: label, suffixIcon: suffixIcon),
+      ),
+    );
+  }
+
+  Widget _dropdownField({
+    required String label,
+    required String? value,
+    required List<String> items,
+    required ValueChanged<String?> onChanged,
+  }) {
+    return SizedBox(
+      width: 440,
+      child: DropdownButtonFormField<String>(
+        initialValue: value,
+        isExpanded: true,
+        decoration: InputDecoration(labelText: label),
+        items: items.map((item) => DropdownMenuItem(value: item, child: Text(item))).toList(),
+        onChanged: onChanged,
+        validator: (selection) => selection == null ? 'Select ${label.toLowerCase()}' : null,
+      ),
+    );
+  }
+
+  void _showDocumentDialog(BuildContext context, {StudentDocument? document}) {
+    if (_students.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Add a student before uploading documents.')));
+      return;
+    }
+    String selectedAdmissionNo = document?.studentAdmissionNo ?? _students.first.admissionNo;
+    String documentType = document?.documentType ?? 'Birth Certificate';
+    String? selectedFileName = document?.fileName;
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Upload Document'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              DropdownButtonFormField<String>(
-                value: selectedAdmissionNo.isNotEmpty ? selectedAdmissionNo : null,
-                items: _students
-                    .map((s) => DropdownMenuItem(value: s.admissionNo, child: Text('${s.name} (${s.admissionNo})')))
-                    .toList(),
-                decoration: const InputDecoration(labelText: 'Student'),
-                onChanged: (value) => selectedAdmissionNo = value ?? selectedAdmissionNo,
-              ),
-              TextField(controller: docTypeController, decoration: const InputDecoration(labelText: 'Document Type')),
-              TextField(controller: fileNameController, decoration: const InputDecoration(labelText: 'File Name')),
-            ],
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: Text(document == null ? 'Upload Document' : 'Edit Document'),
+          content: SizedBox(
+            width: 480,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                DropdownButtonFormField<String>(
+                  initialValue: selectedAdmissionNo,
+                  isExpanded: true,
+                  items: _students
+                      .map((s) => DropdownMenuItem(value: s.admissionNo, child: Text('${s.name} (${s.admissionNo})')))
+                      .toList(),
+                  decoration: const InputDecoration(labelText: 'Student'),
+                  onChanged: (value) => selectedAdmissionNo = value ?? selectedAdmissionNo,
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  initialValue: documentType,
+                  isExpanded: true,
+                  items: const ['Birth Certificate', 'Aadhaar Card', 'Previous Mark Sheet', 'Transfer Certificate', 'Other']
+                      .map((type) => DropdownMenuItem(value: type, child: Text(type)))
+                      .toList(),
+                  decoration: const InputDecoration(labelText: 'Document Type'),
+                  onChanged: (value) => documentType = value ?? documentType,
+                ),
+                const SizedBox(height: 16),
+                OutlinedButton.icon(
+                  icon: const Icon(Icons.attach_file),
+                  label: Text(selectedFileName ?? 'Choose file'),
+                  onPressed: () async {
+                    final result = await FilePicker.platform.pickFiles(
+                      type: FileType.custom,
+                      allowedExtensions: ['pdf', 'png', 'jpg', 'jpeg'],
+                    );
+                    if (result != null && result.files.isNotEmpty) {
+                      setDialogState(() => selectedFileName = result.files.single.name);
+                    }
+                  },
+                ),
+                const SizedBox(height: 8),
+                const Text('PDF, PNG or JPG', style: TextStyle(color: Colors.black54)),
+              ],
+            ),
           ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Cancel')),
+            ElevatedButton(
+              onPressed: selectedFileName == null
+                  ? null
+                  : () {
+                      final selectedStudent = _students.firstWhere((s) => s.admissionNo == selectedAdmissionNo);
+                      setState(() {
+                        if (document == null) {
+                          _documents.add(StudentDocument(
+                            id: _documents.isEmpty ? 1 : _documents.last.id + 1,
+                            studentAdmissionNo: selectedAdmissionNo,
+                            studentName: selectedStudent.name,
+                            documentType: documentType,
+                            fileName: selectedFileName!,
+                          ));
+                        } else {
+                          document
+                            ..studentAdmissionNo = selectedAdmissionNo
+                            ..studentName = selectedStudent.name
+                            ..documentType = documentType
+                            ..fileName = selectedFileName!;
+                        }
+                      });
+                      Navigator.pop(dialogContext);
+                    },
+              child: Text(document == null ? 'Upload' : 'Save'),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-          ElevatedButton(
-            onPressed: () {
-              final fileName = fileNameController.text.trim();
-              if (fileName.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Enter file name.')));
-                return;
-              }
-              setState(() {
-                final selectedStudent = _students.firstWhere(
-                  (s) => s.admissionNo == selectedAdmissionNo,
-                  orElse: () => StudentRecord(
-                    admissionNo: '',
-                    name: '',
-                    gender: '',
-                    dob: '',
-                    bloodGroup: '',
-                    address: '',
-                    mobileNumber: '',
-                    aadhaarNumber: '',
-                    category: '',
-                    religion: '',
-                    currentClass: '',
-                    section: '',
-                    parentName: '',
-                    parentPhone: '',
-                  ),
-                );
-                _documents.add(StudentDocument(
-                  id: _documents.isEmpty ? 1 : _documents.last.id + 1,
-                  studentAdmissionNo: selectedAdmissionNo,
-                  studentName: selectedStudent.name,
-                  documentType: docTypeController.text.trim(),
-                  fileName: fileName,
-                ));
-              });
-              Navigator.pop(context);
-            },
-            child: const Text('Upload'),
-          ),
-        ],
       ),
     );
   }
 
   void _showPhotoDialog(BuildContext context, {StudentRecord? student}) {
+    if (_students.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Add a student before uploading a photo.')));
+      return;
+    }
+    String selectedAdmissionNo = student?.admissionNo ?? _students.first.admissionNo;
+    String? selectedFileName;
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Upload Photo${student != null ? ' - ${student.name}' : ''}'),
-        content: const SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.cloud_upload, size: 64),
-              SizedBox(height: 16),
-              Text('Click to select a photo from your device.'),
-            ],
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Upload Student Photo'),
+          content: SizedBox(
+            width: 420,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (student == null)
+                  DropdownButtonFormField<String>(
+                    initialValue: selectedAdmissionNo,
+                    isExpanded: true,
+                    items: _students
+                        .map((s) => DropdownMenuItem(value: s.admissionNo, child: Text('${s.name} (${s.admissionNo})')))
+                        .toList(),
+                    decoration: const InputDecoration(labelText: 'Student'),
+                    onChanged: (value) => selectedAdmissionNo = value ?? selectedAdmissionNo,
+                  ),
+                const SizedBox(height: 16),
+                const Icon(Icons.add_a_photo_outlined, size: 56),
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  icon: const Icon(Icons.image_outlined),
+                  label: Text(selectedFileName ?? 'Choose photo'),
+                  onPressed: () async {
+                    final result = await FilePicker.platform.pickFiles(type: FileType.image);
+                    if (result != null && result.files.isNotEmpty) {
+                      setDialogState(() => selectedFileName = result.files.single.name);
+                    }
+                  },
+                ),
+              ],
+            ),
           ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Cancel')),
+            ElevatedButton(
+              onPressed: selectedFileName == null
+                  ? null
+                  : () {
+                      setState(() => _studentPhotos[selectedAdmissionNo] = selectedFileName!);
+                      Navigator.pop(dialogContext);
+                    },
+              child: const Text('Upload'),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-          ElevatedButton(
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Photo uploaded successfully.')));
-              Navigator.pop(context);
-            },
-            child: const Text('Upload'),
-          ),
-        ],
       ),
     );
   }
 
   void _showParentDialog(BuildContext context, {StudentRecord? student}) {
+    final formKey = GlobalKey<FormState>();
     final parentNameController = TextEditingController(text: student?.parentName ?? '');
     final parentPhoneController = TextEditingController(text: student?.parentPhone ?? '');
 
@@ -638,19 +1051,36 @@ class _StudentManagementPageState extends State<StudentManagementPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Parent Details'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(controller: parentNameController, decoration: const InputDecoration(labelText: 'Parent Name')),
-              TextField(controller: parentPhoneController, decoration: const InputDecoration(labelText: 'Phone Number')),
-            ],
+        content: Form(
+          key: formKey,
+          child: SizedBox(
+            width: 420,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: parentNameController,
+                  decoration: const InputDecoration(labelText: 'Parent Name'),
+                  validator: _required('parent name'),
+                ),
+                TextFormField(
+                  controller: parentPhoneController,
+                  decoration: const InputDecoration(labelText: 'Phone Number'),
+                  keyboardType: TextInputType.phone,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(10)],
+                  validator: (value) => RegExp(r'^[6-9]\d{9}$').hasMatch(value ?? '')
+                      ? null
+                      : 'Enter a valid 10-digit phone number',
+                ),
+              ],
+            ),
           ),
         ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () {
+              if (!(formKey.currentState?.validate() ?? false)) return;
               if (student != null) {
                 setState(() {
                   student.parentName = parentNameController.text.trim();
@@ -666,27 +1096,41 @@ class _StudentManagementPageState extends State<StudentManagementPage> {
     );
   }
 
-  void _showPromotionDialog(BuildContext context) {
-    String selectedAdmissionNo = _students.isNotEmpty ? _students.first.admissionNo : '';
-    final toClassController = TextEditingController();
+  void _showPromotionDialog(BuildContext context, {StudentPromotion? promotion}) {
+    if (_students.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No students available to promote.')));
+      return;
+    }
+    final formKey = GlobalKey<FormState>();
+    String selectedAdmissionNo = promotion?.studentAdmissionNo ?? _students.first.admissionNo;
+    String? toClass = promotion?.toClass;
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Promote Student'),
-        content: SingleChildScrollView(
+        title: Text(promotion == null ? 'Promote Student' : 'Edit Promotion'),
+        content: Form(
+          key: formKey,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               DropdownButtonFormField<String>(
-                value: selectedAdmissionNo.isNotEmpty ? selectedAdmissionNo : null,
+                initialValue: selectedAdmissionNo,
+                isExpanded: true,
                 items: _students
                     .map((s) => DropdownMenuItem(value: s.admissionNo, child: Text('${s.name} (${s.admissionNo})')))
                     .toList(),
                 decoration: const InputDecoration(labelText: 'Student'),
-                onChanged: (value) => selectedAdmissionNo = value ?? selectedAdmissionNo,
+                onChanged: promotion == null ? (value) => selectedAdmissionNo = value ?? selectedAdmissionNo : null,
               ),
-              TextField(controller: toClassController, decoration: const InputDecoration(labelText: 'New Class')),
+              DropdownButtonFormField<String>(
+                initialValue: toClass,
+                isExpanded: true,
+                items: _classes.map((item) => DropdownMenuItem(value: item, child: Text(item))).toList(),
+                decoration: const InputDecoration(labelText: 'New Class'),
+                onChanged: (value) => toClass = value,
+                validator: (value) => value == null ? 'Select the new class' : null,
+              ),
             ],
           ),
         ),
@@ -694,51 +1138,115 @@ class _StudentManagementPageState extends State<StudentManagementPage> {
           TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () {
-              final toClass = toClassController.text.trim();
-              if (toClass.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Enter new class.')));
-                return;
-              }
+              if (!(formKey.currentState?.validate() ?? false)) return;
               final studentIndex = _students.indexWhere((s) => s.admissionNo == selectedAdmissionNo);
               final selectedStudent = studentIndex >= 0 ? _students[studentIndex] : null;
+              if (promotion == null && selectedStudent?.currentClass == toClass) {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Select a different class.')));
+                return;
+              }
               setState(() {
-                _promotions.add(StudentPromotion(
-                  id: _promotions.isEmpty ? 1 : _promotions.last.id + 1,
-                  studentAdmissionNo: selectedAdmissionNo,
-                  studentName: selectedStudent?.name ?? '',
-                  fromClass: selectedStudent?.currentClass ?? '',
-                  toClass: toClass,
-                  promotionDate: DateTime.now().toString().split(' ').first,
-                ));
+                if (promotion == null) {
+                  _promotions.add(StudentPromotion(
+                    id: _promotions.isEmpty ? 1 : _promotions.last.id + 1,
+                    studentAdmissionNo: selectedAdmissionNo,
+                    studentName: selectedStudent?.name ?? '',
+                    fromClass: selectedStudent?.currentClass ?? '',
+                    toClass: toClass!,
+                    promotionDate: DateTime.now().toString().split(' ').first,
+                  ));
+                } else {
+                  promotion.toClass = toClass!;
+                }
                 if (selectedStudent != null) {
-                  selectedStudent.currentClass = toClass;
+                  selectedStudent.currentClass = toClass!;
                 }
               });
               Navigator.pop(context);
             },
-            child: const Text('Promote'),
+            child: Text(promotion == null ? 'Promote' : 'Save'),
           ),
         ],
       ),
     );
   }
 
-  void _showAlumniDialog(BuildContext context) {
-    final nameController = TextEditingController();
-    final yearController = TextEditingController();
-    final professionController = TextEditingController();
+  void _showTransferCertificate(BuildContext context, StudentRecord student) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.school_outlined),
+            SizedBox(width: 12),
+            Text('Transfer Certificate'),
+          ],
+        ),
+        content: SizedBox(
+          width: 520,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('This certifies that ${student.name} (${student.admissionNo}) was enrolled in ${student.currentClass}, Section ${student.section}.'),
+              const SizedBox(height: 16),
+              Text('Date issued: ${DateFormat('dd MMM yyyy').format(DateTime.now())}'),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Close')),
+          ElevatedButton.icon(
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Certificate is available in the Transfer Cert tab.')),
+              );
+            },
+            icon: const Icon(Icons.check),
+            label: const Text('Done'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAlumniDialog(BuildContext context, {AlumniRecord? alumni}) {
+    final formKey = GlobalKey<FormState>();
+    final nameController = TextEditingController(text: alumni?.name ?? '');
+    final yearController = TextEditingController(text: alumni?.graduationYear ?? '');
+    final professionController = TextEditingController(text: alumni?.profession ?? '');
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Add Alumni'),
-        content: SingleChildScrollView(
+        title: Text(alumni == null ? 'Add Alumni' : 'Edit Alumni'),
+        content: Form(
+          key: formKey,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(controller: nameController, decoration: const InputDecoration(labelText: 'Name')),
-              TextField(controller: yearController, decoration: const InputDecoration(labelText: 'Graduation Year')),
-              TextField(controller: professionController, decoration: const InputDecoration(labelText: 'Current Profession')),
+              TextFormField(
+                controller: nameController,
+                decoration: const InputDecoration(labelText: 'Name'),
+                validator: _required('name'),
+              ),
+              TextFormField(
+                controller: yearController,
+                decoration: const InputDecoration(labelText: 'Graduation Year'),
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(4)],
+                validator: (value) {
+                  final year = int.tryParse(value ?? '');
+                  if (year == null || year < 1950 || year > DateTime.now().year) return 'Enter a valid graduation year';
+                  return null;
+                },
+              ),
+              TextFormField(
+                controller: professionController,
+                decoration: const InputDecoration(labelText: 'Current Profession'),
+                validator: _required('current profession'),
+              ),
             ],
           ),
         ),
@@ -746,22 +1254,25 @@ class _StudentManagementPageState extends State<StudentManagementPage> {
           TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () {
-              final name = nameController.text.trim();
-              if (name.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Enter name.')));
-                return;
-              }
+              if (!(formKey.currentState?.validate() ?? false)) return;
               setState(() {
-                _alumni.add(AlumniRecord(
-                  id: _alumni.isEmpty ? 1 : _alumni.last.id + 1,
-                  name: name,
-                  graduationYear: yearController.text.trim(),
-                  profession: professionController.text.trim(),
-                ));
+                if (alumni == null) {
+                  _alumni.add(AlumniRecord(
+                    id: _alumni.isEmpty ? 1 : _alumni.last.id + 1,
+                    name: nameController.text.trim(),
+                    graduationYear: yearController.text.trim(),
+                    profession: professionController.text.trim(),
+                  ));
+                } else {
+                  alumni
+                    ..name = nameController.text.trim()
+                    ..graduationYear = yearController.text.trim()
+                    ..profession = professionController.text.trim();
+                }
               });
               Navigator.pop(context);
             },
-            child: const Text('Add'),
+            child: Text(alumni == null ? 'Add' : 'Save'),
           ),
         ],
       ),
@@ -801,16 +1312,42 @@ class StudentRecord {
   String section;
   String parentName;
   String parentPhone;
+
+  Map<String, dynamic> toJson() => {
+        'admissionNo': admissionNo, 'name': name, 'gender': gender, 'dob': dob,
+        'bloodGroup': bloodGroup, 'address': address, 'mobileNumber': mobileNumber,
+        'aadhaarNumber': aadhaarNumber, 'category': category, 'religion': religion,
+        'currentClass': currentClass, 'section': section, 'parentName': parentName,
+        'parentPhone': parentPhone,
+      };
+
+  factory StudentRecord.fromJson(Map<String, dynamic> json) => StudentRecord(
+        admissionNo: json['admissionNo'] as String, name: json['name'] as String,
+        gender: json['gender'] as String, dob: json['dob'] as String,
+        bloodGroup: json['bloodGroup'] as String, address: json['address'] as String,
+        mobileNumber: json['mobileNumber'] as String, aadhaarNumber: json['aadhaarNumber'] as String,
+        category: json['category'] as String, religion: json['religion'] as String,
+        currentClass: json['currentClass'] as String, section: json['section'] as String,
+        parentName: json['parentName'] as String, parentPhone: json['parentPhone'] as String,
+      );
 }
 
 class StudentDocument {
   StudentDocument({required this.id, required this.studentAdmissionNo, required this.studentName, required this.documentType, required this.fileName});
 
   final int id;
-  final String studentAdmissionNo;
-  final String studentName;
-  final String documentType;
-  final String fileName;
+  String studentAdmissionNo;
+  String studentName;
+  String documentType;
+  String fileName;
+
+  Map<String, dynamic> toJson() => {'id': id, 'studentAdmissionNo': studentAdmissionNo, 'studentName': studentName, 'documentType': documentType, 'fileName': fileName};
+
+  factory StudentDocument.fromJson(Map<String, dynamic> json) => StudentDocument(
+        id: json['id'] as int, studentAdmissionNo: json['studentAdmissionNo'] as String,
+        studentName: json['studentName'] as String, documentType: json['documentType'] as String,
+        fileName: json['fileName'] as String,
+      );
 }
 
 class StudentPromotion {
@@ -820,16 +1357,30 @@ class StudentPromotion {
   final String studentAdmissionNo;
   final String studentName;
   final String fromClass;
-  final String toClass;
+  String toClass;
   final String promotionDate;
+
+  Map<String, dynamic> toJson() => {'id': id, 'studentAdmissionNo': studentAdmissionNo, 'studentName': studentName, 'fromClass': fromClass, 'toClass': toClass, 'promotionDate': promotionDate};
+
+  factory StudentPromotion.fromJson(Map<String, dynamic> json) => StudentPromotion(
+        id: json['id'] as int, studentAdmissionNo: json['studentAdmissionNo'] as String,
+        studentName: json['studentName'] as String, fromClass: json['fromClass'] as String,
+        toClass: json['toClass'] as String, promotionDate: json['promotionDate'] as String,
+      );
 }
 
 class AlumniRecord {
   AlumniRecord({required this.id, required this.name, required this.graduationYear, required this.profession});
 
   final int id;
-  final String name;
-  final String graduationYear;
-  final String profession;
-}
+  String name;
+  String graduationYear;
+  String profession;
 
+  Map<String, dynamic> toJson() => {'id': id, 'name': name, 'graduationYear': graduationYear, 'profession': profession};
+
+  factory AlumniRecord.fromJson(Map<String, dynamic> json) => AlumniRecord(
+        id: json['id'] as int, name: json['name'] as String,
+        graduationYear: json['graduationYear'] as String, profession: json['profession'] as String,
+      );
+}

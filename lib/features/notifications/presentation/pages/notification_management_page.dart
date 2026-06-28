@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:educare/core/widgets/persistent_module_state.dart';
 
 class NotificationManagementPage extends StatefulWidget {
   const NotificationManagementPage({super.key});
@@ -7,7 +8,7 @@ class NotificationManagementPage extends StatefulWidget {
   State<NotificationManagementPage> createState() => _NotificationManagementPageState();
 }
 
-class _NotificationManagementPageState extends State<NotificationManagementPage> {
+class _NotificationManagementPageState extends PersistentModuleState<NotificationManagementPage> {
   final List<NotificationChannel> _channels = [
     NotificationChannel(id: 1, name: 'Push Notifications', enabled: true, description: 'Send app push alerts to parents and students.'),
     NotificationChannel(id: 2, name: 'Email Notifications', enabled: true, description: 'Send email notifications for important updates.'),
@@ -31,6 +32,25 @@ class _NotificationManagementPageState extends State<NotificationManagementPage>
   ];
 
   String _selectedReportType = 'student';
+
+  @override
+  String get moduleKey => 'notifications';
+
+  @override
+  Map<String, dynamic> exportState() => {
+        'channels': _channels.map((item) => item.toJson()).toList(),
+        'types': _notificationTypes.map((item) => item.toJson()).toList(),
+      };
+
+  @override
+  void importState(Map<String, dynamic> data) {
+    _channels
+      ..clear()
+      ..addAll((data['channels'] as List? ?? []).map((item) => NotificationChannel.fromJson(Map<String, dynamic>.from(item as Map))));
+    _notificationTypes
+      ..clear()
+      ..addAll((data['types'] as List? ?? []).map((item) => NotificationType.fromJson(Map<String, dynamic>.from(item as Map))));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -63,7 +83,12 @@ class _NotificationManagementPageState extends State<NotificationManagementPage>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionHeader('Notification Channels', 'Enable and configure communication channels.'),
+        _buildSectionHeader(
+          'Notification Channels',
+          'Enable and configure communication channels.',
+          action: () => _showChannelDialog(context),
+          actionLabel: 'Add Channel',
+        ),
         Expanded(
           child: ListView.separated(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -73,11 +98,22 @@ class _NotificationManagementPageState extends State<NotificationManagementPage>
               final channel = _channels[index];
               return Card(
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                child: SwitchListTile(
-                  title: Text(channel.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: Text(channel.description),
-                  value: channel.enabled,
-                  onChanged: (value) => setState(() => channel.enabled = value),
+                child: Column(
+                  children: [
+                    SwitchListTile(
+                      title: Text(channel.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                      subtitle: Text(channel.description),
+                      value: channel.enabled,
+                      onChanged: (value) => setState(() => channel.enabled = value),
+                    ),
+                    OverflowBar(
+                      alignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton.icon(onPressed: () => _showChannelDialog(context, channel: channel), icon: const Icon(Icons.edit), label: const Text('Edit')),
+                        TextButton.icon(onPressed: () => setState(() => _channels.removeAt(index)), icon: const Icon(Icons.delete), label: const Text('Delete')),
+                      ],
+                    ),
+                  ],
                 ),
               );
             },
@@ -99,7 +135,12 @@ class _NotificationManagementPageState extends State<NotificationManagementPage>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionHeader('Notification Types', 'Select alert categories to activate.'),
+        _buildSectionHeader(
+          'Notification Types',
+          'Select alert categories to activate.',
+          action: () => _showTypeDialog(context),
+          actionLabel: 'Add Alert',
+        ),
         Expanded(
           child: ListView.separated(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -109,11 +150,22 @@ class _NotificationManagementPageState extends State<NotificationManagementPage>
               final type = _notificationTypes[index];
               return Card(
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                child: SwitchListTile(
-                  title: Text(type.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: Text(type.description),
-                  value: type.enabled,
-                  onChanged: (value) => setState(() => type.enabled = value),
+                child: Column(
+                  children: [
+                    SwitchListTile(
+                      title: Text(type.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                      subtitle: Text(type.description),
+                      value: type.enabled,
+                      onChanged: (value) => setState(() => type.enabled = value),
+                    ),
+                    OverflowBar(
+                      alignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton.icon(onPressed: () => _showTypeDialog(context, type: type), icon: const Icon(Icons.edit), label: const Text('Edit')),
+                        TextButton.icon(onPressed: () => setState(() => _notificationTypes.removeAt(index)), icon: const Icon(Icons.delete), label: const Text('Delete')),
+                      ],
+                    ),
+                  ],
                 ),
               );
             },
@@ -192,15 +244,109 @@ class _NotificationManagementPageState extends State<NotificationManagementPage>
     );
   }
 
-  Widget _buildSectionHeader(String title, String subtitle) {
+  Widget _buildSectionHeader(String title, String subtitle, {VoidCallback? action, String? actionLabel}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 6),
-          Text(subtitle, style: const TextStyle(color: Colors.black54)),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 6),
+                Text(subtitle, style: const TextStyle(color: Colors.black54)),
+              ],
+            ),
+          ),
+          if (action != null && actionLabel != null) ElevatedButton(onPressed: action, child: Text(actionLabel)),
+        ],
+      ),
+    );
+  }
+
+  void _showChannelDialog(BuildContext context, {NotificationChannel? channel}) {
+    final nameController = TextEditingController(text: channel?.name ?? '');
+    final descriptionController = TextEditingController(text: channel?.description ?? '');
+    _showConfigDialog(
+      context,
+      title: channel == null ? 'Add Channel' : 'Edit Channel',
+      nameController: nameController,
+      descriptionController: descriptionController,
+      onSave: () {
+        setState(() {
+          if (channel == null) {
+            _channels.add(NotificationChannel(
+              id: _channels.isEmpty ? 1 : _channels.last.id + 1,
+              name: nameController.text.trim(),
+              enabled: true,
+              description: descriptionController.text.trim(),
+            ));
+          } else {
+            channel
+              ..name = nameController.text.trim()
+              ..description = descriptionController.text.trim();
+          }
+        });
+      },
+    );
+  }
+
+  void _showTypeDialog(BuildContext context, {NotificationType? type}) {
+    final nameController = TextEditingController(text: type?.name ?? '');
+    final descriptionController = TextEditingController(text: type?.description ?? '');
+    _showConfigDialog(
+      context,
+      title: type == null ? 'Add Alert Type' : 'Edit Alert Type',
+      nameController: nameController,
+      descriptionController: descriptionController,
+      onSave: () {
+        setState(() {
+          if (type == null) {
+            _notificationTypes.add(NotificationType(
+              id: _notificationTypes.isEmpty ? 1 : _notificationTypes.last.id + 1,
+              name: nameController.text.trim(),
+              description: descriptionController.text.trim(),
+              enabled: true,
+            ));
+          } else {
+            type
+              ..name = nameController.text.trim()
+              ..description = descriptionController.text.trim();
+          }
+        });
+      },
+    );
+  }
+
+  void _showConfigDialog(
+    BuildContext context, {
+    required String title,
+    required TextEditingController nameController,
+    required TextEditingController descriptionController,
+    required VoidCallback onSave,
+  }) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(controller: nameController, decoration: const InputDecoration(labelText: 'Name')),
+            TextField(controller: descriptionController, decoration: const InputDecoration(labelText: 'Description')),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () {
+              if (nameController.text.trim().isEmpty || descriptionController.text.trim().isEmpty) return;
+              onSave();
+              Navigator.pop(context);
+            },
+            child: const Text('Save'),
+          ),
         ],
       ),
     );
@@ -211,18 +357,36 @@ class NotificationChannel {
   NotificationChannel({required this.id, required this.name, required this.enabled, required this.description});
 
   final int id;
-  final String name;
+  String name;
   bool enabled;
-  final String description;
+  String description;
+
+  Map<String, dynamic> toJson() => {'id': id, 'name': name, 'enabled': enabled, 'description': description};
+
+  factory NotificationChannel.fromJson(Map<String, dynamic> json) => NotificationChannel(
+        id: json['id'] as int,
+        name: json['name'] as String,
+        enabled: json['enabled'] as bool,
+        description: json['description'] as String,
+      );
 }
 
 class NotificationType {
   NotificationType({required this.id, required this.name, required this.description, required this.enabled});
 
   final int id;
-  final String name;
-  final String description;
+  String name;
+  String description;
   bool enabled;
+
+  Map<String, dynamic> toJson() => {'id': id, 'name': name, 'description': description, 'enabled': enabled};
+
+  factory NotificationType.fromJson(Map<String, dynamic> json) => NotificationType(
+        id: json['id'] as int,
+        name: json['name'] as String,
+        description: json['description'] as String,
+        enabled: json['enabled'] as bool,
+      );
 }
 
 class ReportItem {

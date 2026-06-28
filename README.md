@@ -67,13 +67,32 @@ cd EduCare
 flutter pub get
 ```
 
-3. Run the app on a connected device or emulator:
+3. Install and start the backend API in a separate terminal:
+
+```bash
+cd backend
+npm install
+npm start
+```
+
+The login flow depends on the backend being available at `http://127.0.0.1:3000` by default. The backend seeds this development account on first start:
+
+- Email: `testing@educaree.com`
+- Password: `testing@2026`
+
+If you run the API on a different host or port, pass it to Flutter with `--dart-define`, for example:
+
+```bash
+flutter run -d chrome --dart-define=API_BASE_URL=http://127.0.0.1:3000
+```
+
+4. Run the app on a connected device or emulator:
 
 ```bash
 flutter run
 ```
 
-4. Run on a specific platform:
+5. Run on a specific platform:
 
 - Android:
   ```bash
@@ -88,13 +107,13 @@ flutter run
   flutter run -d chrome
   ```
 
-5. Analyze the project:
+6. Analyze the project:
 
 ```bash
 flutter analyze
 ```
 
-6. Run tests:
+7. Run tests:
 
 ```bash
 flutter test
@@ -102,7 +121,7 @@ flutter test
 
 ## Backend Integration
 
-EduCare expects a REST API backend to support authentication, student operations, and staff workflows. Configure the base API URL in `lib/core/services/api_service.dart`.
+EduCare expects the bundled Node.js backend in `backend/` for authentication, module persistence, and record storage. Configure the base API URL with `--dart-define=API_BASE_URL=...` or adjust the default in `lib/core/services/api_service.dart`.
 
 Example backend endpoints:
 

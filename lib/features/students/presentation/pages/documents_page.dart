@@ -42,7 +42,9 @@ class _DocumentsPageState extends ConsumerState<DocumentsPage> {
                         title: Text(document.title),
                         subtitle: Text(document.documentType),
                         trailing: const Icon(Icons.download),
-                        onTap: () {},
+                        onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Downloading ${document.title}...')),
+                        ),
                       );
                     },
                     separatorBuilder: (_, __) => const Divider(),

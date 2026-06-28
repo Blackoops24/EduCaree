@@ -1,4 +1,5 @@
 import 'package:educare/core/widgets/delete_confirmation_dialog.dart';
+import 'package:educare/core/widgets/persistent_module_state.dart';
 import 'package:flutter/material.dart';
 
 class FeeManagementPage extends StatefulWidget {
@@ -8,7 +9,7 @@ class FeeManagementPage extends StatefulWidget {
   State<FeeManagementPage> createState() => _FeeManagementPageState();
 }
 
-class _FeeManagementPageState extends State<FeeManagementPage> {
+class _FeeManagementPageState extends PersistentModuleState<FeeManagementPage> {
   final List<FeeStructure> _structures = [
     FeeStructure(id: 1, name: 'Annual Tuition', amount: 65000, description: 'Standard academic year tuition fee'),
     FeeStructure(id: 2, name: 'Transport Fee', amount: 12000, description: 'Bus transport fee per academic year'),
@@ -43,6 +44,27 @@ class _FeeManagementPageState extends State<FeeManagementPage> {
     PaymentGateway(name: 'PhonePe', enabled: false),
     PaymentGateway(name: 'Stripe', enabled: true),
   ];
+
+  @override
+  String get moduleKey => 'fees';
+
+  @override
+  Map<String, dynamic> exportState() => {
+    'structures': _structures.map((e) => e.toJson()).toList(),
+    'categories': _categories.map((e) => e.toJson()).toList(),
+    'installments': _installments.map((e) => e.toJson()).toList(),
+    'collections': _collections.map((e) => e.toJson()).toList(),
+    'gateways': _gateways.map((e) => e.toJson()).toList(),
+  };
+
+  @override
+  void importState(Map<String, dynamic> data) {
+    _structures..clear()..addAll((data['structures'] as List? ?? []).map((e) => FeeStructure.fromJson(Map<String, dynamic>.from(e as Map))));
+    _categories..clear()..addAll((data['categories'] as List? ?? []).map((e) => FeeCategory.fromJson(Map<String, dynamic>.from(e as Map))));
+    _installments..clear()..addAll((data['installments'] as List? ?? []).map((e) => InstallmentPlan.fromJson(Map<String, dynamic>.from(e as Map))));
+    _collections..clear()..addAll((data['collections'] as List? ?? []).map((e) => FeeCollection.fromJson(Map<String, dynamic>.from(e as Map))));
+    _gateways..clear()..addAll((data['gateways'] as List? ?? []).map((e) => PaymentGateway.fromJson(Map<String, dynamic>.from(e as Map))));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -278,6 +300,10 @@ class _FeeManagementPageState extends State<FeeManagementPage> {
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
+                            IconButton(
+                              icon: const Icon(Icons.edit),
+                              onPressed: () => _showCollectionDialog(context, collection: collection),
+                            ),
                             IconButton(
                               icon: const Icon(Icons.download),
                               onPressed: collection.receiptId != null
@@ -621,16 +647,16 @@ class _FeeManagementPageState extends State<FeeManagementPage> {
     );
   }
 
-  void _showCollectionDialog(BuildContext context) {
-    final studentController = TextEditingController();
-    final amountController = TextEditingController();
-    String selectedCategory = _categories.isNotEmpty ? _categories.first.name : '';
-    String selectedMethod = _gateways.first.name;
+  void _showCollectionDialog(BuildContext context, {FeeCollection? collection}) {
+    final studentController = TextEditingController(text: collection?.studentName ?? '');
+    final amountController = TextEditingController(text: collection?.amount.toString() ?? '');
+    String selectedCategory = collection?.category ?? (_categories.isNotEmpty ? _categories.first.name : '');
+    String selectedMethod = collection?.paymentMethod ?? _gateways.first.name;
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('New Fee Collection'),
+        title: Text(collection == null ? 'New Fee Collection' : 'Edit Fee Collection'),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -638,7 +664,7 @@ class _FeeManagementPageState extends State<FeeManagementPage> {
               TextField(controller: studentController, decoration: const InputDecoration(labelText: 'Student Name')),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
-                value: selectedCategory,
+                initialValue: selectedCategory.isNotEmpty ? selectedCategory : null,
                 items: _categories.map((category) => DropdownMenuItem(value: category.name, child: Text(category.name))).toList(),
                 decoration: const InputDecoration(labelText: 'Category'),
                 onChanged: (value) => selectedCategory = value ?? selectedCategory,
@@ -647,7 +673,7 @@ class _FeeManagementPageState extends State<FeeManagementPage> {
               TextField(controller: amountController, decoration: const InputDecoration(labelText: 'Amount'), keyboardType: TextInputType.number),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
-                value: selectedMethod,
+                initialValue: selectedMethod,
                 items: _gateways.map((gateway) => DropdownMenuItem(value: gateway.name, child: Text(gateway.name))).toList(),
                 decoration: const InputDecoration(labelText: 'Payment Method'),
                 onChanged: (value) => selectedMethod = value ?? selectedMethod,
@@ -671,20 +697,28 @@ class _FeeManagementPageState extends State<FeeManagementPage> {
                 return;
               }
               setState(() {
-                final newId = _collections.isEmpty ? 1 : _collections.last.id + 1;
-                _collections.add(FeeCollection(
-                  id: newId,
-                  studentName: studentName,
-                  category: selectedCategory,
-                  amount: amount,
-                  paidOn: DateTime.now().toString().split(' ').first,
-                  paymentMethod: selectedMethod,
-                  receiptId: 'RCPT-${1000 + newId}',
-                ));
+                if (collection == null) {
+                  final newId = _collections.isEmpty ? 1 : _collections.last.id + 1;
+                  _collections.add(FeeCollection(
+                    id: newId,
+                    studentName: studentName,
+                    category: selectedCategory,
+                    amount: amount,
+                    paidOn: DateTime.now().toString().split(' ').first,
+                    paymentMethod: selectedMethod,
+                    receiptId: 'RCPT-${1000 + newId}',
+                  ));
+                } else {
+                  collection
+                    ..studentName = studentName
+                    ..category = selectedCategory
+                    ..amount = amount
+                    ..paymentMethod = selectedMethod;
+                }
               });
               Navigator.pop(context);
             },
-            child: const Text('Collect'),
+            child: Text(collection == null ? 'Collect' : 'Save'),
           ),
         ],
       ),
@@ -699,6 +733,8 @@ class FeeStructure {
   String name;
   double amount;
   String description;
+  Map<String, dynamic> toJson() => {'id': id, 'name': name, 'amount': amount, 'description': description};
+  factory FeeStructure.fromJson(Map<String, dynamic> j) => FeeStructure(id: j['id'] as int, name: j['name'] as String, amount: (j['amount'] as num).toDouble(), description: j['description'] as String);
 }
 
 class FeeCategory {
@@ -707,6 +743,8 @@ class FeeCategory {
   final int id;
   String name;
   String description;
+  Map<String, dynamic> toJson() => {'id': id, 'name': name, 'description': description};
+  factory FeeCategory.fromJson(Map<String, dynamic> j) => FeeCategory(id: j['id'] as int, name: j['name'] as String, description: j['description'] as String);
 }
 
 class InstallmentPlan {
@@ -717,18 +755,22 @@ class InstallmentPlan {
   String dueDate;
   double amount;
   bool paid;
+  Map<String, dynamic> toJson() => {'id': id, 'name': name, 'dueDate': dueDate, 'amount': amount, 'paid': paid};
+  factory InstallmentPlan.fromJson(Map<String, dynamic> j) => InstallmentPlan(id: j['id'] as int, name: j['name'] as String, dueDate: j['dueDate'] as String, amount: (j['amount'] as num).toDouble(), paid: j['paid'] as bool);
 }
 
 class FeeCollection {
   FeeCollection({required this.id, required this.studentName, required this.category, required this.amount, required this.paidOn, required this.paymentMethod, this.receiptId});
 
   final int id;
-  final String studentName;
-  final String category;
-  final double amount;
+  String studentName;
+  String category;
+  double amount;
   final String paidOn;
-  final String paymentMethod;
+  String paymentMethod;
   String? receiptId;
+  Map<String, dynamic> toJson() => {'id': id, 'studentName': studentName, 'category': category, 'amount': amount, 'paidOn': paidOn, 'paymentMethod': paymentMethod, 'receiptId': receiptId};
+  factory FeeCollection.fromJson(Map<String, dynamic> j) => FeeCollection(id: j['id'] as int, studentName: j['studentName'] as String, category: j['category'] as String, amount: (j['amount'] as num).toDouble(), paidOn: j['paidOn'] as String, paymentMethod: j['paymentMethod'] as String, receiptId: j['receiptId'] as String?);
 }
 
 class PaymentGateway {
@@ -736,6 +778,8 @@ class PaymentGateway {
 
   final String name;
   bool enabled;
+  Map<String, dynamic> toJson() => {'name': name, 'enabled': enabled};
+  factory PaymentGateway.fromJson(Map<String, dynamic> j) => PaymentGateway(name: j['name'] as String, enabled: j['enabled'] as bool);
 }
 
 class Receipt {

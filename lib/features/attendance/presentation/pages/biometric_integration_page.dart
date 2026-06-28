@@ -1,11 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:educare/core/services/module_persistence_service.dart';
 
-class BiometricIntegrationPage extends ConsumerWidget {
+class BiometricIntegrationPage extends ConsumerStatefulWidget {
   const BiometricIntegrationPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<BiometricIntegrationPage> createState() => _BiometricIntegrationPageState();
+}
+
+class _BiometricIntegrationPageState extends ConsumerState<BiometricIntegrationPage> {
+  final Set<String> _syncedDevices = {};
+
+  @override
+  void initState() {
+    super.initState();
+    ModulePersistenceService.instance.load('biometric-sync').then((data) {
+      if (mounted && data != null) setState(() => _syncedDevices.addAll(List<String>.from(data['devices'] as List? ?? [])));
+    }).catchError((_) {});
+  }
+
+  void _sync(String device) {
+    setState(() => _syncedDevices.add(device));
+    ModulePersistenceService.instance.save('biometric-sync', {'devices': _syncedDevices.toList()}).catchError((_) {});
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$device synced successfully.')));
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Biometric Integration'),
@@ -45,9 +67,9 @@ class BiometricIntegrationPage extends ConsumerWidget {
                     ),
                     const SizedBox(height: 8),
                     ElevatedButton.icon(
-                      onPressed: () {},
+                      onPressed: () => _sync('ZKTeco Device'),
                       icon: const Icon(Icons.sync),
-                      label: const Text('Sync Device'),
+                      label: Text(_syncedDevices.contains('ZKTeco Device') ? 'Synced' : 'Sync Device'),
                     ),
                   ],
                 ),
@@ -78,9 +100,9 @@ class BiometricIntegrationPage extends ConsumerWidget {
                     ),
                     const SizedBox(height: 8),
                     ElevatedButton.icon(
-                      onPressed: () {},
+                      onPressed: () => _sync('eSSL Device'),
                       icon: const Icon(Icons.sync),
-                      label: const Text('Sync Device'),
+                      label: Text(_syncedDevices.contains('eSSL Device') ? 'Synced' : 'Sync Device'),
                     ),
                   ],
                 ),

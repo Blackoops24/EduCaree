@@ -1,0 +1,24 @@
+# Flutter and Dart generated files
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+build/
+coverage/
+
+# Platform-local configuration and generated registrants
+android/local.properties
+
+# Editors and operating systems
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+
+# Runtime logs
+*.log
+
+# Local backend state
+backend/node_modules/
+backend/data/

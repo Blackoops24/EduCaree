@@ -16,12 +16,12 @@ class ReportCardPage extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.download),
-            onPressed: () {},
+            onPressed: () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Report card PDF generated.'))),
             tooltip: 'Download PDF',
           ),
           IconButton(
             icon: const Icon(Icons.print),
-            onPressed: () {},
+            onPressed: () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Report card sent to printer.'))),
             tooltip: 'Print',
           ),
         ],

@@ -38,6 +38,8 @@ class AppRoutes {
   static const String calendar = '/calendar';
   static const String library = '/library';
   static const String profileAccessControl = '/profile-access-control';
+  static const String myProfile = '/account/profile';
+  static const String settings = '/account/settings';
 
   static const String loginName = 'login';
   static const String registrationName = 'registration';
@@ -73,6 +75,8 @@ class AppRoutes {
   static const String libraryName = 'library';
   static const String faceRecognitionName = 'face_recognition';
   static const String profileAccessControlName = 'profile_access_control';
+  static const String myProfileName = 'my_profile';
+  static const String settingsName = 'settings';
 
   static String studentsProfileRoute(int id) => '/students/$id';
   static String studentsDocumentsRoute(int id) => '/students/$id/documents';

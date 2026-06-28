@@ -13,4 +13,20 @@ class AuthRepositoryImpl implements AuthRepository {
     final data = await _remoteDatasource.login(email, password);
     return UserModel.fromJson(data);
   }
+
+  @override
+  Future<void> changePassword(String email, String currentPassword, String newPassword) {
+    return _remoteDatasource.changePassword(email, currentPassword, newPassword);
+  }
+
+  @override
+  Future<User> updateProfile(User currentUser, String name, String email) async {
+    final data = await _remoteDatasource.updateProfile(currentUser.id, name, email);
+    return User(
+      id: currentUser.id,
+      name: data['name'] as String,
+      email: data['email'] as String,
+      token: currentUser.token,
+    );
+  }
 }

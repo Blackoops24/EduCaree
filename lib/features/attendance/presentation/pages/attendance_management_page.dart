@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:educare/core/widgets/persistent_module_state.dart';
 
 class AttendanceManagementPage extends StatefulWidget {
   const AttendanceManagementPage({super.key});
@@ -7,7 +8,7 @@ class AttendanceManagementPage extends StatefulWidget {
   State<AttendanceManagementPage> createState() => _AttendanceManagementPageState();
 }
 
-class _AttendanceManagementPageState extends State<AttendanceManagementPage> {
+class _AttendanceManagementPageState extends PersistentModuleState<AttendanceManagementPage> {
   final List<StudentAttendanceRecord> _studentAttendance = [];
   final List<StaffAttendanceRecord> _staffAttendance = [];
   final List<BiometricDevice> _biometricDevices = [
@@ -15,6 +16,25 @@ class _AttendanceManagementPageState extends State<AttendanceManagementPage> {
     BiometricDevice(id: 2, deviceName: 'Device 2', type: 'eSSL', status: 'Offline', location: 'Admin Block'),
   ];
   final List<FaceRecognitionRecord> _faceRecords = [];
+
+  @override
+  String get moduleKey => 'attendance';
+
+  @override
+  Map<String, dynamic> exportState() => {
+    'students': _studentAttendance.map((e) => e.toJson()).toList(),
+    'staff': _staffAttendance.map((e) => e.toJson()).toList(),
+    'devices': _biometricDevices.map((e) => e.toJson()).toList(),
+    'faces': _faceRecords.map((e) => e.toJson()).toList(),
+  };
+
+  @override
+  void importState(Map<String, dynamic> data) {
+    _studentAttendance..clear()..addAll((data['students'] as List? ?? []).map((e) => StudentAttendanceRecord.fromJson(Map<String, dynamic>.from(e as Map))));
+    _staffAttendance..clear()..addAll((data['staff'] as List? ?? []).map((e) => StaffAttendanceRecord.fromJson(Map<String, dynamic>.from(e as Map))));
+    _biometricDevices..clear()..addAll((data['devices'] as List? ?? []).map((e) => BiometricDevice.fromJson(Map<String, dynamic>.from(e as Map))));
+    _faceRecords..clear()..addAll((data['faces'] as List? ?? []).map((e) => FaceRecognitionRecord.fromJson(Map<String, dynamic>.from(e as Map))));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -87,9 +107,13 @@ class _AttendanceManagementPageState extends State<AttendanceManagementPage> {
                       child: ListTile(
                         title: Text(record.studentName),
                         subtitle: Text('${record.date} • ${record.status} • ${record.className}'),
-                        trailing: Icon(
-                          record.status == 'Present' ? Icons.check_circle : Icons.cancel,
-                          color: record.status == 'Present' ? Colors.green : Colors.red,
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(record.status == 'Present' ? Icons.check_circle : Icons.cancel, color: record.status == 'Present' ? Colors.green : Colors.red),
+                            IconButton(icon: const Icon(Icons.edit), onPressed: () => _showStudentAttendanceDialog(context, record: record)),
+                            IconButton(icon: const Icon(Icons.delete), onPressed: () => setState(() => _studentAttendance.removeAt(index))),
+                          ],
                         ),
                       ),
                     );
@@ -120,9 +144,13 @@ class _AttendanceManagementPageState extends State<AttendanceManagementPage> {
                       child: ListTile(
                         title: Text(record.employeeName),
                         subtitle: Text('${record.date} • ${record.status} • Check-in: ${record.checkIn}'),
-                        trailing: Icon(
-                          record.status == 'Present' ? Icons.check_circle : Icons.cancel,
-                          color: record.status == 'Present' ? Colors.green : Colors.red,
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(record.status == 'Present' ? Icons.check_circle : Icons.cancel, color: record.status == 'Present' ? Colors.green : Colors.red),
+                            IconButton(icon: const Icon(Icons.edit), onPressed: () => _showStaffAttendanceDialog(context, record: record)),
+                            IconButton(icon: const Icon(Icons.delete), onPressed: () => setState(() => _staffAttendance.removeAt(index))),
+                          ],
                         ),
                       ),
                     );
@@ -153,12 +181,17 @@ class _AttendanceManagementPageState extends State<AttendanceManagementPage> {
                       child: ListTile(
                         title: Text(device.deviceName),
                         subtitle: Text('Type: ${device.type} • Location: ${device.location}'),
-                        trailing: Chip(
-                          label: Text(device.status),
-                          backgroundColor: device.status == 'Connected' ? Colors.green[100] : Colors.red[100],
-                          labelStyle: TextStyle(
-                            color: device.status == 'Connected' ? Colors.green : Colors.red,
-                          ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Chip(
+                              label: Text(device.status),
+                              backgroundColor: device.status == 'Connected' ? Colors.green[100] : Colors.red[100],
+                              labelStyle: TextStyle(color: device.status == 'Connected' ? Colors.green : Colors.red),
+                            ),
+                            IconButton(icon: const Icon(Icons.edit), onPressed: () => _showBiometricDialog(context, device: device)),
+                            IconButton(icon: const Icon(Icons.delete), onPressed: () => setState(() => _biometricDevices.removeAt(index))),
+                          ],
                         ),
                       ),
                     );
@@ -215,7 +248,14 @@ class _AttendanceManagementPageState extends State<AttendanceManagementPage> {
                       child: ListTile(
                         title: Text(record.personName),
                         subtitle: Text('${record.timestamp} • Confidence: ${record.confidence}%'),
-                        trailing: Icon(Icons.face_retouching_natural, color: Colors.blue),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.face_retouching_natural, color: Colors.blue),
+                            IconButton(icon: const Icon(Icons.edit), onPressed: () => _showFaceRecognitionDialog(context, record: record)),
+                            IconButton(icon: const Icon(Icons.delete), onPressed: () => setState(() => _faceRecords.removeAt(index))),
+                          ],
+                        ),
                       ),
                     );
                   },
@@ -245,15 +285,15 @@ class _AttendanceManagementPageState extends State<AttendanceManagementPage> {
     );
   }
 
-  void _showStudentAttendanceDialog(BuildContext context) {
-    final studentNameController = TextEditingController();
-    final classController = TextEditingController();
-    String status = 'Present';
+  void _showStudentAttendanceDialog(BuildContext context, {StudentAttendanceRecord? record}) {
+    final studentNameController = TextEditingController(text: record?.studentName ?? '');
+    final classController = TextEditingController(text: record?.className ?? '');
+    String status = record?.status ?? 'Present';
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Mark Student Attendance'),
+        title: Text(record == null ? 'Mark Student Attendance' : 'Edit Student Attendance'),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -261,7 +301,7 @@ class _AttendanceManagementPageState extends State<AttendanceManagementPage> {
               TextField(controller: studentNameController, decoration: const InputDecoration(labelText: 'Student Name')),
               TextField(controller: classController, decoration: const InputDecoration(labelText: 'Class')),
               DropdownButtonFormField<String>(
-                value: status,
+                initialValue: status,
                 items: ['Present', 'Absent', 'Leave', 'Late'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
                 onChanged: (value) => status = value ?? status,
                 decoration: const InputDecoration(labelText: 'Status'),
@@ -279,32 +319,39 @@ class _AttendanceManagementPageState extends State<AttendanceManagementPage> {
                 return;
               }
               setState(() {
-                _studentAttendance.add(StudentAttendanceRecord(
-                  id: _studentAttendance.isEmpty ? 1 : _studentAttendance.last.id + 1,
-                  studentName: name,
-                  className: classController.text.trim(),
-                  date: DateTime.now().toString().split(' ').first,
-                  status: status,
-                ));
+                if (record == null) {
+                  _studentAttendance.add(StudentAttendanceRecord(
+                    id: _studentAttendance.isEmpty ? 1 : _studentAttendance.last.id + 1,
+                    studentName: name,
+                    className: classController.text.trim(),
+                    date: DateTime.now().toString().split(' ').first,
+                    status: status,
+                  ));
+                } else {
+                  record
+                    ..studentName = name
+                    ..className = classController.text.trim()
+                    ..status = status;
+                }
               });
               Navigator.pop(context);
             },
-            child: const Text('Mark'),
+            child: Text(record == null ? 'Mark' : 'Save'),
           ),
         ],
       ),
     );
   }
 
-  void _showStaffAttendanceDialog(BuildContext context) {
-    final employeeNameController = TextEditingController();
-    final checkInController = TextEditingController();
-    String status = 'Present';
+  void _showStaffAttendanceDialog(BuildContext context, {StaffAttendanceRecord? record}) {
+    final employeeNameController = TextEditingController(text: record?.employeeName ?? '');
+    final checkInController = TextEditingController(text: record?.checkIn ?? '');
+    String status = record?.status ?? 'Present';
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Mark Staff Attendance'),
+        title: Text(record == null ? 'Mark Staff Attendance' : 'Edit Staff Attendance'),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -312,7 +359,7 @@ class _AttendanceManagementPageState extends State<AttendanceManagementPage> {
               TextField(controller: employeeNameController, decoration: const InputDecoration(labelText: 'Employee Name')),
               TextField(controller: checkInController, decoration: const InputDecoration(labelText: 'Check-in Time')),
               DropdownButtonFormField<String>(
-                value: status,
+                initialValue: status,
                 items: ['Present', 'Absent', 'Leave', 'Half Day'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
                 onChanged: (value) => status = value ?? status,
                 decoration: const InputDecoration(labelText: 'Status'),
@@ -330,44 +377,58 @@ class _AttendanceManagementPageState extends State<AttendanceManagementPage> {
                 return;
               }
               setState(() {
-                _staffAttendance.add(StaffAttendanceRecord(
-                  id: _staffAttendance.isEmpty ? 1 : _staffAttendance.last.id + 1,
-                  employeeName: name,
-                  date: DateTime.now().toString().split(' ').first,
-                  status: status,
-                  checkIn: checkInController.text.trim(),
-                ));
+                if (record == null) {
+                  _staffAttendance.add(StaffAttendanceRecord(
+                    id: _staffAttendance.isEmpty ? 1 : _staffAttendance.last.id + 1,
+                    employeeName: name,
+                    date: DateTime.now().toString().split(' ').first,
+                    status: status,
+                    checkIn: checkInController.text.trim(),
+                  ));
+                } else {
+                  record
+                    ..employeeName = name
+                    ..status = status
+                    ..checkIn = checkInController.text.trim();
+                }
               });
               Navigator.pop(context);
             },
-            child: const Text('Mark'),
+            child: Text(record == null ? 'Mark' : 'Save'),
           ),
         ],
       ),
     );
   }
 
-  void _showBiometricDialog(BuildContext context) {
-    final deviceNameController = TextEditingController();
-    final locationController = TextEditingController();
-    String deviceType = 'ZKTeco';
+  void _showBiometricDialog(BuildContext context, {BiometricDevice? device}) {
+    final deviceNameController = TextEditingController(text: device?.deviceName ?? '');
+    final locationController = TextEditingController(text: device?.location ?? '');
+    String deviceType = device?.type ?? 'ZKTeco';
+    String status = device?.status ?? 'Offline';
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Add Biometric Device'),
+        title: Text(device == null ? 'Add Biometric Device' : 'Edit Biometric Device'),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(controller: deviceNameController, decoration: const InputDecoration(labelText: 'Device Name')),
               DropdownButtonFormField<String>(
-                value: deviceType,
+                initialValue: deviceType,
                 items: ['ZKTeco', 'eSSL'].map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
                 onChanged: (value) => deviceType = value ?? deviceType,
                 decoration: const InputDecoration(labelText: 'Device Type'),
               ),
               TextField(controller: locationController, decoration: const InputDecoration(labelText: 'Location')),
+              DropdownButtonFormField<String>(
+                initialValue: status,
+                items: ['Connected', 'Offline'].map((value) => DropdownMenuItem(value: value, child: Text(value))).toList(),
+                onChanged: (value) => status = value ?? status,
+                decoration: const InputDecoration(labelText: 'Status'),
+              ),
             ],
           ),
         ),
@@ -381,31 +442,39 @@ class _AttendanceManagementPageState extends State<AttendanceManagementPage> {
                 return;
               }
               setState(() {
-                _biometricDevices.add(BiometricDevice(
-                  id: _biometricDevices.isEmpty ? 1 : _biometricDevices.last.id + 1,
-                  deviceName: name,
-                  type: deviceType,
-                  status: 'Offline',
-                  location: locationController.text.trim(),
-                ));
+                if (device == null) {
+                  _biometricDevices.add(BiometricDevice(
+                    id: _biometricDevices.isEmpty ? 1 : _biometricDevices.last.id + 1,
+                    deviceName: name,
+                    type: deviceType,
+                    status: status,
+                    location: locationController.text.trim(),
+                  ));
+                } else {
+                  device
+                    ..deviceName = name
+                    ..type = deviceType
+                    ..status = status
+                    ..location = locationController.text.trim();
+                }
               });
               Navigator.pop(context);
             },
-            child: const Text('Add'),
+            child: Text(device == null ? 'Add' : 'Save'),
           ),
         ],
       ),
     );
   }
 
-  void _showFaceRecognitionDialog(BuildContext context) {
-    final personNameController = TextEditingController();
-    final confidenceController = TextEditingController(text: '95');
+  void _showFaceRecognitionDialog(BuildContext context, {FaceRecognitionRecord? record}) {
+    final personNameController = TextEditingController(text: record?.personName ?? '');
+    final confidenceController = TextEditingController(text: record?.confidence ?? '95');
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Face Recognition Record'),
+        title: Text(record == null ? 'Face Recognition Record' : 'Edit Face Record'),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -435,18 +504,29 @@ class _AttendanceManagementPageState extends State<AttendanceManagementPage> {
                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Enter person name.')));
                 return;
               }
+              final confidence = int.tryParse(confidenceController.text);
+              if (confidence == null || confidence < 0 || confidence > 100) {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Confidence must be between 0 and 100.')));
+                return;
+              }
               setState(() {
-                _faceRecords.add(FaceRecognitionRecord(
-                  id: _faceRecords.isEmpty ? 1 : _faceRecords.last.id + 1,
-                  personName: name,
-                  timestamp: DateTime.now().toString(),
-                  confidence: confidenceController.text.trim(),
-                ));
+                if (record == null) {
+                  _faceRecords.add(FaceRecognitionRecord(
+                    id: _faceRecords.isEmpty ? 1 : _faceRecords.last.id + 1,
+                    personName: name,
+                    timestamp: DateTime.now().toString(),
+                    confidence: confidence.toString(),
+                  ));
+                } else {
+                  record
+                    ..personName = name
+                    ..confidence = confidence.toString();
+                }
               });
               ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Face record for $name added.')));
               Navigator.pop(context);
             },
-            child: const Text('Record'),
+            child: Text(record == null ? 'Record' : 'Save'),
           ),
         ],
       ),
@@ -457,34 +537,42 @@ class _AttendanceManagementPageState extends State<AttendanceManagementPage> {
 class StudentAttendanceRecord {
   StudentAttendanceRecord({required this.id, required this.studentName, required this.className, required this.date, required this.status});
   final int id;
-  final String studentName;
-  final String className;
+  String studentName;
+  String className;
   final String date;
-  final String status;
+  String status;
+  Map<String, dynamic> toJson() => {'id': id, 'studentName': studentName, 'className': className, 'date': date, 'status': status};
+  factory StudentAttendanceRecord.fromJson(Map<String, dynamic> j) => StudentAttendanceRecord(id: j['id'] as int, studentName: j['studentName'] as String, className: j['className'] as String, date: j['date'] as String, status: j['status'] as String);
 }
 
 class StaffAttendanceRecord {
   StaffAttendanceRecord({required this.id, required this.employeeName, required this.date, required this.status, required this.checkIn});
   final int id;
-  final String employeeName;
+  String employeeName;
   final String date;
-  final String status;
-  final String checkIn;
+  String status;
+  String checkIn;
+  Map<String, dynamic> toJson() => {'id': id, 'employeeName': employeeName, 'date': date, 'status': status, 'checkIn': checkIn};
+  factory StaffAttendanceRecord.fromJson(Map<String, dynamic> j) => StaffAttendanceRecord(id: j['id'] as int, employeeName: j['employeeName'] as String, date: j['date'] as String, status: j['status'] as String, checkIn: j['checkIn'] as String);
 }
 
 class BiometricDevice {
   BiometricDevice({required this.id, required this.deviceName, required this.type, required this.status, required this.location});
   final int id;
-  final String deviceName;
-  final String type;
-  final String status;
-  final String location;
+  String deviceName;
+  String type;
+  String status;
+  String location;
+  Map<String, dynamic> toJson() => {'id': id, 'deviceName': deviceName, 'type': type, 'status': status, 'location': location};
+  factory BiometricDevice.fromJson(Map<String, dynamic> j) => BiometricDevice(id: j['id'] as int, deviceName: j['deviceName'] as String, type: j['type'] as String, status: j['status'] as String, location: j['location'] as String);
 }
 
 class FaceRecognitionRecord {
   FaceRecognitionRecord({required this.id, required this.personName, required this.timestamp, required this.confidence});
   final int id;
-  final String personName;
+  String personName;
   final String timestamp;
-  final String confidence;
+  String confidence;
+  Map<String, dynamic> toJson() => {'id': id, 'personName': personName, 'timestamp': timestamp, 'confidence': confidence};
+  factory FaceRecognitionRecord.fromJson(Map<String, dynamic> j) => FaceRecognitionRecord(id: j['id'] as int, personName: j['personName'] as String, timestamp: j['timestamp'] as String, confidence: j['confidence'] as String);
 }

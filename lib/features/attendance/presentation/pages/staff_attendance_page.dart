@@ -1,79 +1,59 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:educare/core/widgets/persistent_module_state.dart';
 
-class StaffAttendancePage extends ConsumerWidget {
+class StaffAttendancePage extends StatefulWidget {
   const StaffAttendancePage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  State<StaffAttendancePage> createState() => _StaffAttendancePageState();
+}
+
+class _StaffAttendancePageState extends PersistentModuleState<StaffAttendancePage> {
+  DateTime? _checkIn;
+  DateTime? _checkOut;
+
+  @override
+  String get moduleKey => 'staff-daily-attendance';
+  @override
+  Map<String, dynamic> exportState() => {'checkIn': _checkIn?.toIso8601String(), 'checkOut': _checkOut?.toIso8601String()};
+  @override
+  void importState(Map<String, dynamic> data) {
+    _checkIn = DateTime.tryParse(data['checkIn'] as String? ?? '');
+    _checkOut = DateTime.tryParse(data['checkOut'] as String? ?? '');
+  }
+
+  String _time(DateTime? value) => value == null ? '--:--' : TimeOfDay.fromDateTime(value).format(context);
+
+  @override
+  Widget build(BuildContext context) {
+    final hours = _checkIn != null && _checkOut != null ? _checkOut!.difference(_checkIn!).inMinutes / 60 : null;
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Staff Attendance'),
-        centerTitle: true,
-      ),
-      body: SingleChildScrollView(
+      appBar: AppBar(title: const Text('Staff Attendance')),
+      body: ListView(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Daily Staff Attendance',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            Row(
+        children: [
+          const Text('Daily Staff Attendance', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(child: ElevatedButton.icon(onPressed: _checkIn == null ? () => setState(() => _checkIn = DateTime.now()) : null, icon: const Icon(Icons.login), label: const Text('Check In'))),
+              const SizedBox(width: 12),
+              Expanded(child: ElevatedButton.icon(onPressed: _checkIn != null && _checkOut == null ? () => setState(() => _checkOut = DateTime.now()) : null, icon: const Icon(Icons.logout), label: const Text('Check Out'))),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Card(
+            child: Column(
               children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () {},
-                    icon: const Icon(Icons.login),
-                    label: const Text('Check In'),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () {},
-                    icon: const Icon(Icons.logout),
-                    label: const Text('Check Out'),
-                  ),
-                ),
+                ListTile(title: const Text('Check In Time'), trailing: Text(_time(_checkIn))),
+                ListTile(title: const Text('Check Out Time'), trailing: Text(_time(_checkOut))),
+                ListTile(title: const Text('Work Hours'), trailing: Text(hours == null ? '-- hrs' : '${hours.toStringAsFixed(2)} hrs')),
+                if (_checkIn != null)
+                  TextButton(onPressed: () => setState(() { _checkIn = null; _checkOut = null; }), child: const Text('Clear Record')),
               ],
             ),
-            const SizedBox(height: 24),
-            const Text(
-              'Today\'s Status',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    const ListTile(
-                      leading: Icon(Icons.check_circle, color: Colors.green),
-                      title: Text('Check In Time'),
-                      trailing: Text('--:--'),
-                    ),
-                    const Divider(),
-                    const ListTile(
-                      leading: Icon(Icons.exit_to_app, color: Colors.orange),
-                      title: Text('Check Out Time'),
-                      trailing: Text('--:--'),
-                    ),
-                    const Divider(),
-                    const ListTile(
-                      leading: Icon(Icons.schedule),
-                      title: Text('Work Hours'),
-                      trailing: Text('-- hrs'),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

@@ -1,4 +1,5 @@
 import 'package:educare/core/widgets/delete_confirmation_dialog.dart';
+import 'package:educare/core/widgets/persistent_module_state.dart';
 import 'package:flutter/material.dart';
 
 class TransportManagementPage extends StatefulWidget {
@@ -8,7 +9,7 @@ class TransportManagementPage extends StatefulWidget {
   State<TransportManagementPage> createState() => _TransportManagementPageState();
 }
 
-class _TransportManagementPageState extends State<TransportManagementPage> {
+class _TransportManagementPageState extends PersistentModuleState<TransportManagementPage> {
   final List<Vehicle> _vehicles = [
     Vehicle(id: 1, name: 'Bus A1', registration: 'KA01AB1234', capacity: 40, assignedRoute: 'Route 1'),
     Vehicle(id: 2, name: 'Van V2', registration: 'KA05CD5678', capacity: 18, assignedRoute: 'Route 3'),
@@ -29,6 +30,25 @@ class _TransportManagementPageState extends State<TransportManagementPage> {
     StudentAssignment(id: 1, studentName: 'Anika Shah', vehicle: 'Bus A1', route: 'Route 1'),
     StudentAssignment(id: 2, studentName: 'Rohan Iyer', vehicle: 'Van V2', route: 'Route 3'),
   ];
+
+  @override
+  String get moduleKey => 'transport';
+
+  @override
+  Map<String, dynamic> exportState() => {
+    'vehicles': _vehicles.map((e) => e.toJson()).toList(),
+    'drivers': _drivers.map((e) => e.toJson()).toList(),
+    'routes': _routes.map((e) => e.toJson()).toList(),
+    'assignments': _assignments.map((e) => e.toJson()).toList(),
+  };
+
+  @override
+  void importState(Map<String, dynamic> data) {
+    _vehicles..clear()..addAll((data['vehicles'] as List? ?? []).map((e) => Vehicle.fromJson(Map<String, dynamic>.from(e as Map))));
+    _drivers..clear()..addAll((data['drivers'] as List? ?? []).map((e) => Driver.fromJson(Map<String, dynamic>.from(e as Map))));
+    _routes..clear()..addAll((data['routes'] as List? ?? []).map((e) => TransportRoute.fromJson(Map<String, dynamic>.from(e as Map))));
+    _assignments..clear()..addAll((data['assignments'] as List? ?? []).map((e) => StudentAssignment.fromJson(Map<String, dynamic>.from(e as Map))));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -246,9 +266,13 @@ class _TransportManagementPageState extends State<TransportManagementPage> {
                       child: ListTile(
                         title: Text(assignment.studentName),
                         subtitle: Text('${assignment.vehicle} • ${assignment.route}'),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.delete),
-                          onPressed: () async {
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(icon: const Icon(Icons.edit), onPressed: () => _showAllocationDialog(context, assignment: assignment)),
+                            IconButton(
+                              icon: const Icon(Icons.delete),
+                              onPressed: () async {
                             final confirmed = await showDeleteConfirmationDialog(
                               context,
                               title: 'Delete allocation?',
@@ -256,7 +280,9 @@ class _TransportManagementPageState extends State<TransportManagementPage> {
                             );
                             if (!confirmed) return;
                             setState(() => _assignments.removeAt(index));
-                          },
+                              },
+                            ),
+                          ],
                         ),
                       ),
                     );
@@ -387,7 +413,7 @@ class _TransportManagementPageState extends State<TransportManagementPage> {
               TextField(controller: registrationController, decoration: const InputDecoration(labelText: 'Registration Number')),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
-                value: selectedRoute.isNotEmpty ? selectedRoute : null,
+                initialValue: selectedRoute.isNotEmpty ? selectedRoute : null,
                 items: _routes.map((route) => DropdownMenuItem(value: route.name, child: Text(route.name))).toList(),
                 decoration: const InputDecoration(labelText: 'Assigned Route'),
                 onChanged: (value) => selectedRoute = value ?? selectedRoute,
@@ -451,7 +477,7 @@ class _TransportManagementPageState extends State<TransportManagementPage> {
               TextField(controller: phoneController, decoration: const InputDecoration(labelText: 'Phone Number'), keyboardType: TextInputType.phone),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
-                value: assignedVehicle.isNotEmpty ? assignedVehicle : null,
+                initialValue: assignedVehicle.isNotEmpty ? assignedVehicle : null,
                 items: _vehicles.map((vehicle) => DropdownMenuItem(value: vehicle.name, child: Text(vehicle.name))).toList(),
                 decoration: const InputDecoration(labelText: 'Assigned Vehicle'),
                 onChanged: (value) => assignedVehicle = value ?? assignedVehicle,
@@ -548,15 +574,15 @@ class _TransportManagementPageState extends State<TransportManagementPage> {
     );
   }
 
-  void _showAllocationDialog(BuildContext context) {
-    final studentController = TextEditingController();
-    String selectedVehicle = _vehicles.isNotEmpty ? _vehicles.first.name : '';
-    String selectedRoute = _routes.isNotEmpty ? _routes.first.name : '';
+  void _showAllocationDialog(BuildContext context, {StudentAssignment? assignment}) {
+    final studentController = TextEditingController(text: assignment?.studentName ?? '');
+    String selectedVehicle = assignment?.vehicle ?? (_vehicles.isNotEmpty ? _vehicles.first.name : '');
+    String selectedRoute = assignment?.route ?? (_routes.isNotEmpty ? _routes.first.name : '');
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Allocate Student'),
+        title: Text(assignment == null ? 'Allocate Student' : 'Edit Student Allocation'),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -564,14 +590,14 @@ class _TransportManagementPageState extends State<TransportManagementPage> {
               TextField(controller: studentController, decoration: const InputDecoration(labelText: 'Student Name')),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
-                value: selectedVehicle.isNotEmpty ? selectedVehicle : null,
+                initialValue: selectedVehicle.isNotEmpty ? selectedVehicle : null,
                 items: _vehicles.map((vehicle) => DropdownMenuItem(value: vehicle.name, child: Text(vehicle.name))).toList(),
                 decoration: const InputDecoration(labelText: 'Vehicle'),
                 onChanged: (value) => selectedVehicle = value ?? selectedVehicle,
               ),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
-                value: selectedRoute.isNotEmpty ? selectedRoute : null,
+                initialValue: selectedRoute.isNotEmpty ? selectedRoute : null,
                 items: _routes.map((route) => DropdownMenuItem(value: route.name, child: Text(route.name))).toList(),
                 decoration: const InputDecoration(labelText: 'Route'),
                 onChanged: (value) => selectedRoute = value ?? selectedRoute,
@@ -589,16 +615,23 @@ class _TransportManagementPageState extends State<TransportManagementPage> {
                 return;
               }
               setState(() {
-                _assignments.add(StudentAssignment(
-                  id: _assignments.isEmpty ? 1 : _assignments.last.id + 1,
-                  studentName: studentName,
-                  vehicle: selectedVehicle,
-                  route: selectedRoute,
-                ));
+                if (assignment == null) {
+                  _assignments.add(StudentAssignment(
+                    id: _assignments.isEmpty ? 1 : _assignments.last.id + 1,
+                    studentName: studentName,
+                    vehicle: selectedVehicle,
+                    route: selectedRoute,
+                  ));
+                } else {
+                  assignment
+                    ..studentName = studentName
+                    ..vehicle = selectedVehicle
+                    ..route = selectedRoute;
+                }
               });
               Navigator.pop(context);
             },
-            child: const Text('Allocate'),
+            child: Text(assignment == null ? 'Allocate' : 'Save'),
           ),
         ],
       ),
@@ -614,6 +647,8 @@ class Vehicle {
   String registration;
   int capacity;
   String assignedRoute;
+  Map<String, dynamic> toJson() => {'id': id, 'name': name, 'registration': registration, 'capacity': capacity, 'assignedRoute': assignedRoute};
+  factory Vehicle.fromJson(Map<String, dynamic> j) => Vehicle(id: j['id'] as int, name: j['name'] as String, registration: j['registration'] as String, capacity: j['capacity'] as int, assignedRoute: j['assignedRoute'] as String);
 }
 
 class Driver {
@@ -624,6 +659,8 @@ class Driver {
   String license;
   String phone;
   String assignedVehicle;
+  Map<String, dynamic> toJson() => {'id': id, 'name': name, 'license': license, 'phone': phone, 'assignedVehicle': assignedVehicle};
+  factory Driver.fromJson(Map<String, dynamic> j) => Driver(id: j['id'] as int, name: j['name'] as String, license: j['license'] as String, phone: j['phone'] as String, assignedVehicle: j['assignedVehicle'] as String);
 }
 
 class TransportRoute {
@@ -633,15 +670,19 @@ class TransportRoute {
   String name;
   String stops;
   String distance;
+  Map<String, dynamic> toJson() => {'id': id, 'name': name, 'stops': stops, 'distance': distance};
+  factory TransportRoute.fromJson(Map<String, dynamic> j) => TransportRoute(id: j['id'] as int, name: j['name'] as String, stops: j['stops'] as String, distance: j['distance'] as String);
 }
 
 class StudentAssignment {
   StudentAssignment({required this.id, required this.studentName, required this.vehicle, required this.route});
 
   final int id;
-  final String studentName;
-  final String vehicle;
-  final String route;
+  String studentName;
+  String vehicle;
+  String route;
+  Map<String, dynamic> toJson() => {'id': id, 'studentName': studentName, 'vehicle': vehicle, 'route': route};
+  factory StudentAssignment.fromJson(Map<String, dynamic> j) => StudentAssignment(id: j['id'] as int, studentName: j['studentName'] as String, vehicle: j['vehicle'] as String, route: j['route'] as String);
 }
 
 class _ReportCard extends StatelessWidget {

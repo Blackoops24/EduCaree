@@ -1,4 +1,5 @@
 import 'package:educare/core/widgets/delete_confirmation_dialog.dart';
+import 'package:educare/core/widgets/persistent_module_state.dart';
 import 'package:flutter/material.dart';
 
 class ProfileAccessControlPage extends StatefulWidget {
@@ -8,7 +9,7 @@ class ProfileAccessControlPage extends StatefulWidget {
   State<ProfileAccessControlPage> createState() => _ProfileAccessControlPageState();
 }
 
-class _ProfileAccessControlPageState extends State<ProfileAccessControlPage> {
+class _ProfileAccessControlPageState extends PersistentModuleState<ProfileAccessControlPage> {
   final List<ProfileAccessConfig> _accessConfigs = [
     ProfileAccessConfig(
       id: 1,
@@ -63,6 +64,21 @@ class _ProfileAccessControlPageState extends State<ProfileAccessControlPage> {
     ScreenAccess(name: 'Inventory Management', module: 'Inventory', hasAccess: false),
     ScreenAccess(name: 'Notifications', module: 'Notifications', hasAccess: false),
   ];
+
+  @override
+  String get moduleKey => 'access-control';
+
+  @override
+  Map<String, dynamic> exportState() => {
+        'profiles': _accessConfigs.map((item) => item.toJson()).toList(),
+      };
+
+  @override
+  void importState(Map<String, dynamic> data) {
+    _accessConfigs
+      ..clear()
+      ..addAll((data['profiles'] as List? ?? []).map((item) => ProfileAccessConfig.fromJson(Map<String, dynamic>.from(item as Map))));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -250,7 +266,7 @@ class _ProfileAccessControlPageState extends State<ProfileAccessControlPage> {
                 const Text('Category', style: TextStyle(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
                 DropdownButtonFormField<String>(
-                  value: selectedCategory,
+                  initialValue: selectedCategory,
                   items: _categories.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
                   decoration: const InputDecoration(labelText: 'Select Category'),
                   onChanged: (value) {
@@ -265,7 +281,7 @@ class _ProfileAccessControlPageState extends State<ProfileAccessControlPage> {
                 const Text('Role', style: TextStyle(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
                 DropdownButtonFormField<String>(
-                  value: selectedRole,
+                  initialValue: selectedRole,
                   items: roles.map((r) => DropdownMenuItem(value: r, child: Text(r))).toList(),
                   decoration: const InputDecoration(labelText: 'Select Role'),
                   onChanged: (value) => setDialogState(() => selectedRole = value ?? selectedRole),
@@ -396,6 +412,20 @@ class ProfileAccessConfig {
   final String category;
   final String role;
   List<ScreenAccess> screensAccess;
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'category': category,
+        'role': role,
+        'screensAccess': screensAccess.map((item) => item.toJson()).toList(),
+      };
+
+  factory ProfileAccessConfig.fromJson(Map<String, dynamic> json) => ProfileAccessConfig(
+        id: json['id'] as int,
+        category: json['category'] as String,
+        role: json['role'] as String,
+        screensAccess: (json['screensAccess'] as List).map((item) => ScreenAccess.fromJson(Map<String, dynamic>.from(item as Map))).toList(),
+      );
 }
 
 class ScreenAccess {
@@ -408,4 +438,12 @@ class ScreenAccess {
   final String name;
   final String module;
   bool hasAccess;
+
+  Map<String, dynamic> toJson() => {'name': name, 'module': module, 'hasAccess': hasAccess};
+
+  factory ScreenAccess.fromJson(Map<String, dynamic> json) => ScreenAccess(
+        name: json['name'] as String,
+        module: json['module'] as String,
+        hasAccess: json['hasAccess'] as bool,
+      );
 }
