@@ -49,4 +49,111 @@ void main() {
     expect(find.text('Enter a valid 10-digit mobile number'), findsOneWidget);
     expect(find.text('Enter a valid 12-digit Aadhaar number'), findsOneWidget);
   });
+
+  testWidgets('profile search filters students by name or admission number', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(1200, 900));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(const MaterialApp(home: StudentManagementPage()));
+    await tester.tap(find.text('Profiles'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byKey(const Key('student_profile_search_field')), 'edu20261');
+    await tester.pump();
+
+    expect(find.text('Aarav Sharma'), findsOneWidget);
+    expect(find.text('Priya Patel'), findsNothing);
+  });
+
+  testWidgets('document upload dialog lets users search students', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(1200, 900));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(const MaterialApp(home: StudentManagementPage()));
+    await tester.tap(find.text('Documents'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Upload Document'));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('document_student_search_field')), findsOneWidget);
+  });
+
+  testWidgets('document search is compact in the header', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(1200, 900));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(const MaterialApp(home: StudentManagementPage()));
+    await tester.tap(find.text('Documents'));
+    await tester.pumpAndSettle();
+
+    final searchField = tester.getSize(find.byKey(const Key('student_document_search_field')));
+    expect(searchField.width, lessThan(320));
+  });
+
+  testWidgets('profile search is compact and aligned in the header', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(1200, 900));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(const MaterialApp(home: StudentManagementPage()));
+    await tester.tap(find.text('Profiles'));
+    await tester.pumpAndSettle();
+
+    final searchField = tester.getSize(find.byKey(const Key('student_profile_search_field')));
+    expect(searchField.width, lessThan(320));
+  });
+
+  testWidgets('parent details dialog includes father and mother fields', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(1200, 900));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(const MaterialApp(home: StudentManagementPage()));
+    await tester.tap(find.text('Parent Info'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Edit parent details').first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Father Name'), findsOneWidget);
+    expect(find.text('Father Occupation'), findsOneWidget);
+    expect(find.text('Father Phone No.'), findsOneWidget);
+    expect(find.text('Mother Name'), findsOneWidget);
+    expect(find.text('Mother Occupation'), findsOneWidget);
+    expect(find.text('Mother Phone No.'), findsOneWidget);
+  });
+
+  testWidgets('promotion submit updates search bar with student name', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(1200, 900));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(const MaterialApp(home: StudentManagementPage()));
+    await tester.tap(find.text('Promotion'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Promote Student'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('New Class'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Grade 10').last);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Promote'));
+    await tester.pumpAndSettle();
+
+    final searchField = tester.widget<TextField>(find.byKey(const Key('student_promotion_search_field')));
+    expect(searchField.controller?.text, 'Aarav Sharma');
+  });
+
+  testWidgets('promotion dialog lets users search students', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(1200, 900));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(const MaterialApp(home: StudentManagementPage()));
+    await tester.tap(find.text('Promotion'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Promote Student'));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('promotion_student_search_field')), findsOneWidget);
+  });
 }
