@@ -17,6 +17,7 @@ dependencies:
   file_picker: ^10.3.10
   intl: ^0.18.0
   responsive_framework: ^0.2.0
+  shared_preferences: ^2.5.3
 
 dev_dependencies:
   flutter_test:

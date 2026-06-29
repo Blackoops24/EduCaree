@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:educare/core/providers.dart';
+import 'package:educare/core/services/auth_session_service.dart';
 import 'package:educare/core/theme/app_theme.dart';
 import 'package:educare/routes/app_router.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await AuthSessionService.instance.initialize();
   runApp(const ProviderScope(child: EduCareApp()));
 }
 
