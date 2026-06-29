@@ -1,3 +1,4 @@
+import 'package:educare/core/widgets/app_flash_message.dart';
 import 'package:educare/core/widgets/delete_confirmation_dialog.dart';
 import 'package:educare/core/widgets/persistent_module_state.dart';
 import 'package:flutter/material.dart';
@@ -922,7 +923,24 @@ class _StaffManagementPageState
         formKey.currentState?.validate();
         return;
       }
-      if (!(formKey.currentState?.validate() ?? false)) return;
+      if (!(formKey.currentState?.validate() ?? false)) {
+        final invalidField =
+            !RegExp(
+              r'^[^@\s]+@[^@\s]+\.[^@\s]+$',
+            ).hasMatch(emailController.text)
+            ? 'Email'
+            : !RegExp(r'^[6-9]\d{9}$').hasMatch(phoneController.text)
+            ? 'Mobile Number'
+            : (double.tryParse(salaryController.text) ?? 0) <= 0
+            ? 'Monthly Salary'
+            : 'Employee Details';
+        _showFlashMessage(
+          drawerContext,
+          'Invalid field: $invalidField',
+          type: AppFlashType.error,
+        );
+        return;
+      }
       final isNew = staff == null;
       final employeeName = nameController.text.trim();
       final monthlySalary = salaryController.text.trim();
@@ -1022,6 +1040,7 @@ class _StaffManagementPageState
         isNew
             ? 'Employee created successfully.'
             : 'Employee updated successfully.',
+        type: isNew ? AppFlashType.success : AppFlashType.update,
       );
     }
 
@@ -1029,7 +1048,7 @@ class _StaffManagementPageState
       context: context,
       barrierDismissible: true,
       barrierLabel: 'Close employee form',
-      barrierColor: Colors.black54,
+      barrierColor: Colors.black38,
       transitionDuration: const Duration(milliseconds: 280),
       transitionBuilder: (context, animation, secondaryAnimation, child) =>
           child,
@@ -1336,10 +1355,12 @@ class _StaffManagementPageState
     return null;
   }
 
-  void _showFlashMessage(BuildContext context, String message) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(message)));
+  void _showFlashMessage(
+    BuildContext context,
+    String message, {
+    AppFlashType type = AppFlashType.error,
+  }) {
+    showAppFlashMessage(context, message: message, type: type);
   }
 
   String? Function(String?) _required(String field) {
@@ -1414,7 +1435,7 @@ class _StaffManagementPageState
       context: context,
       barrierDismissible: true,
       barrierLabel: 'Close $title',
-      barrierColor: Colors.black54,
+      barrierColor: Colors.black38,
       transitionDuration: const Duration(milliseconds: 280),
       transitionBuilder: (context, animation, secondaryAnimation, child) =>
           child,
@@ -1493,6 +1514,9 @@ class _StaffManagementPageState
                                           _showFlashMessage(
                                             context,
                                             successMessage,
+                                            type: submitLabel == 'Create'
+                                                ? AppFlashType.success
+                                                : AppFlashType.update,
                                           );
                                         },
                                         icon: const Icon(Icons.save_outlined),

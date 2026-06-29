@@ -57,6 +57,9 @@ void main() {
     expect(find.text('Missing required field: Full Name'), findsWidgets);
     expect(find.text('Enter a valid email'), findsOneWidget);
     expect(find.text('Enter a valid 10-digit mobile number'), findsOneWidget);
+    final validationFlash = tester.widget<SnackBar>(find.byType(SnackBar).last);
+    expect(validationFlash.behavior, SnackBarBehavior.floating);
+    expect(validationFlash.backgroundColor, Colors.red.shade700);
   });
 
   testWidgets('employee creation shows success and adds salary record', (
@@ -101,12 +104,42 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Employee created successfully.'), findsOneWidget);
+    expect(
+      tester.widget<SnackBar>(find.byType(SnackBar).last).backgroundColor,
+      Colors.green.shade700,
+    );
     expect(find.textContaining('Test Employee'), findsOneWidget);
 
     await tester.tap(find.text('Salary'));
     await tester.pumpAndSettle();
     expect(find.text('Test Employee'), findsOneWidget);
     expect(find.textContaining('₹50000'), findsOneWidget);
+  });
+
+  testWidgets('invalid non-empty employee value shows validation alert', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(1200, 900));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(const MaterialApp(home: StaffManagementPage()));
+    await tester.tap(find.text('Profile'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(ExpansionTile).first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Edit Profile'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(fieldWithLabel('Email'), 'invalid-email');
+    await tester.tap(find.byKey(const Key('staff_submit_button')));
+    await tester.pump();
+
+    expect(find.text('Invalid field: Email'), findsWidgets);
+    expect(find.byKey(const Key('staff_side_drawer')), findsOneWidget);
+    expect(
+      tester.widget<SnackBar>(find.byType(SnackBar).last).backgroundColor,
+      Colors.red.shade700,
+    );
   });
 
   testWidgets('profile edit and operational forms use aligned drawers', (
@@ -140,6 +173,10 @@ void main() {
     await tester.tap(find.byKey(const Key('staff_submit_button')));
     await tester.pumpAndSettle();
     expect(find.text('Employee updated successfully.'), findsOneWidget);
+    expect(
+      tester.widget<SnackBar>(find.byType(SnackBar).last).backgroundColor,
+      Colors.blue.shade700,
+    );
     await tester.tap(find.text('Leave'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('New Leave'));

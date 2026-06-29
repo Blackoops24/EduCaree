@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:educare/core/utils/browser_download.dart';
+import 'package:educare/core/widgets/app_flash_message.dart';
 import 'package:educare/core/widgets/delete_confirmation_dialog.dart';
 import 'package:educare/core/widgets/persistent_module_state.dart';
 import 'package:file_picker/file_picker.dart';
@@ -1309,17 +1310,28 @@ class _StudentManagementPageState
           .where((entry) => !entry.value)
           .map((entry) => entry.key);
       if (missingFields.isNotEmpty) {
-        ScaffoldMessenger.of(drawerContext)
-          ..hideCurrentSnackBar()
-          ..showSnackBar(
-            SnackBar(
-              content: Text('Missing required field: ${missingFields.first}'),
-            ),
-          );
+        showAppFlashMessage(
+          drawerContext,
+          message: 'Missing required field: ${missingFields.first}',
+          type: AppFlashType.error,
+        );
         formKey.currentState?.validate();
         return;
       }
-      if (!(formKey.currentState?.validate() ?? false)) return;
+      if (!(formKey.currentState?.validate() ?? false)) {
+        final invalidField =
+            !RegExp(r'^[6-9]\d{9}$').hasMatch(mobileController.text)
+            ? 'Mobile Number'
+            : !RegExp(r'^\d{12}$').hasMatch(aadhaarController.text)
+            ? 'Aadhaar Number'
+            : 'Admission Details';
+        showAppFlashMessage(
+          drawerContext,
+          message: 'Invalid field: $invalidField',
+          type: AppFlashType.error,
+        );
+        return;
+      }
       final isNew = student == null;
       final normalizedCategory = categoryController.text.trim().isEmpty
           ? 'Others'
@@ -1365,24 +1377,20 @@ class _StudentManagementPageState
       await persistNow();
       if (!drawerContext.mounted) return;
       Navigator.pop(drawerContext);
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            content: Text(
-              isNew
-                  ? 'Student created successfully.'
-                  : 'Student updated successfully.',
-            ),
-          ),
-        );
+      showAppFlashMessage(
+        context,
+        message: isNew
+            ? 'Student created successfully.'
+            : 'Student updated successfully.',
+        type: isNew ? AppFlashType.success : AppFlashType.update,
+      );
     }
 
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
       barrierLabel: 'Close admission form',
-      barrierColor: Colors.black54,
+      barrierColor: Colors.black38,
       transitionDuration: const Duration(milliseconds: 280),
       transitionBuilder: (context, animation, secondaryAnimation, child) =>
           child,
