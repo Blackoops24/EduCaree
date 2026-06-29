@@ -47,6 +47,12 @@ abstract class PersistentModuleState<T extends StatefulWidget> extends State<T> 
     }
   }
 
+  @protected
+  Future<void> persistNow() async {
+    _saveTimer?.cancel();
+    await _save();
+  }
+
   @override
   void dispose() {
     _saveTimer?.cancel();
