@@ -73,6 +73,11 @@ class _StaffManagementPageState
   final List<PerformanceRecord> _performance = [];
   final List<SalaryRecord> _salaryRecords = [];
   final GlobalKey _registrationContentKey = GlobalKey();
+  final GlobalKey _profileContentKey = GlobalKey();
+  final GlobalKey _leaveContentKey = GlobalKey();
+  final GlobalKey _attendanceContentKey = GlobalKey();
+  final GlobalKey _performanceContentKey = GlobalKey();
+  final GlobalKey _salaryContentKey = GlobalKey();
   final TextEditingController _registrationSearchController =
       TextEditingController();
   final TextEditingController _profileSearchController =
@@ -82,6 +87,12 @@ class _StaffManagementPageState
 
   @override
   String get moduleKey => 'staff';
+
+  @override
+  void initState() {
+    super.initState();
+    _ensureCurrentSalaryRecords();
+  }
 
   @override
   Map<String, dynamic> exportState() => {
@@ -135,6 +146,7 @@ class _StaffManagementPageState
               SalaryRecord.fromJson(Map<String, dynamic>.from(item as Map)),
         ),
       );
+    _ensureCurrentSalaryRecords();
   }
 
   @override
@@ -329,7 +341,8 @@ class _StaffManagementPageState
           subtitle: 'Register and manage employee records.',
           controller: _registrationSearchController,
           onSearch: (value) => setState(() => _registrationSearchQuery = value),
-          action: () => _showStaffDrawer(context),
+          action: () =>
+              _showStaffDrawer(context, anchorKey: _registrationContentKey),
           actionLabel: 'New Employee',
         ),
         Expanded(
@@ -359,8 +372,11 @@ class _StaffManagementPageState
                             IconButton(
                               tooltip: 'Edit employee',
                               icon: const Icon(Icons.edit_outlined),
-                              onPressed: () =>
-                                  _showStaffDrawer(context, staff: employee),
+                              onPressed: () => _showStaffDrawer(
+                                context,
+                                staff: employee,
+                                anchorKey: _registrationContentKey,
+                              ),
                             ),
                             IconButton(
                               icon: const Icon(Icons.delete),
@@ -409,6 +425,7 @@ class _StaffManagementPageState
   Widget _buildProfileTab(BuildContext context) {
     final filteredStaff = _filterStaff(_profileSearchQuery);
     return Column(
+      key: _profileContentKey,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildStaffHeader(
@@ -476,6 +493,7 @@ class _StaffManagementPageState
                                     onPressed: () => _showStaffDrawer(
                                       context,
                                       staff: employee,
+                                      anchorKey: _profileContentKey,
                                     ),
                                     icon: const Icon(Icons.edit_outlined),
                                     label: const Text('Edit Profile'),
@@ -496,13 +514,16 @@ class _StaffManagementPageState
 
   Widget _buildLeaveTab(BuildContext context) {
     return Column(
+      key: _leaveContentKey,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildSectionHeader(
           'Leave Management',
           'Manage employee leave records.',
-          action: () =>
-              _withRegisteredStaff(context, () => _showLeaveDialog(context)),
+          action: () => _withRegisteredStaff(
+            context,
+            () => _showLeaveDialog(context, anchorKey: _leaveContentKey),
+          ),
           actionLabel: 'New Leave',
         ),
         Expanded(
@@ -546,8 +567,11 @@ class _StaffManagementPageState
                               ),
                             IconButton(
                               icon: const Icon(Icons.edit),
-                              onPressed: () =>
-                                  _showLeaveDialog(context, leave: leave),
+                              onPressed: () => _showLeaveDialog(
+                                context,
+                                leave: leave,
+                                anchorKey: _leaveContentKey,
+                              ),
                             ),
                             IconButton(
                               icon: const Icon(Icons.delete),
@@ -577,6 +601,7 @@ class _StaffManagementPageState
 
   Widget _buildAttendanceTab(BuildContext context) {
     return Column(
+      key: _attendanceContentKey,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildSectionHeader(
@@ -584,7 +609,10 @@ class _StaffManagementPageState
           'Mark and track staff attendance.',
           action: () => _withRegisteredStaff(
             context,
-            () => _showAttendanceDialog(context),
+            () => _showAttendanceDialog(
+              context,
+              anchorKey: _attendanceContentKey,
+            ),
           ),
           actionLabel: 'Mark Attendance',
         ),
@@ -614,6 +642,7 @@ class _StaffManagementPageState
                               onPressed: () => _showAttendanceDialog(
                                 context,
                                 attendance: attendance,
+                                anchorKey: _attendanceContentKey,
                               ),
                             ),
                             IconButton(
@@ -646,6 +675,7 @@ class _StaffManagementPageState
 
   Widget _buildPerformanceTab(BuildContext context) {
     return Column(
+      key: _performanceContentKey,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildSectionHeader(
@@ -653,7 +683,10 @@ class _StaffManagementPageState
           'Manage employee performance records.',
           action: () => _withRegisteredStaff(
             context,
-            () => _showPerformanceDialog(context),
+            () => _showPerformanceDialog(
+              context,
+              anchorKey: _performanceContentKey,
+            ),
           ),
           actionLabel: 'New Review',
         ),
@@ -683,6 +716,7 @@ class _StaffManagementPageState
                               onPressed: () => _showPerformanceDialog(
                                 context,
                                 performance: perf,
+                                anchorKey: _performanceContentKey,
                               ),
                             ),
                             IconButton(
@@ -713,13 +747,16 @@ class _StaffManagementPageState
 
   Widget _buildSalaryTab(BuildContext context) {
     return Column(
+      key: _salaryContentKey,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildSectionHeader(
           'Salary Details',
           'View and manage salary information.',
-          action: () =>
-              _withRegisteredStaff(context, () => _showSalaryDialog(context)),
+          action: () => _withRegisteredStaff(
+            context,
+            () => _showSalaryDialog(context, anchorKey: _salaryContentKey),
+          ),
           actionLabel: 'Add Salary',
         ),
         Expanded(
@@ -756,8 +793,11 @@ class _StaffManagementPageState
                             ),
                             IconButton(
                               icon: const Icon(Icons.edit),
-                              onPressed: () =>
-                                  _showSalaryDialog(context, salary: salary),
+                              onPressed: () => _showSalaryDialog(
+                                context,
+                                salary: salary,
+                                anchorKey: _salaryContentKey,
+                              ),
                             ),
                             IconButton(
                               icon: const Icon(Icons.delete),
@@ -824,9 +864,13 @@ class _StaffManagementPageState
     );
   }
 
-  void _showStaffDrawer(BuildContext context, {StaffRecord? staff}) {
+  void _showStaffDrawer(
+    BuildContext context, {
+    StaffRecord? staff,
+    GlobalKey? anchorKey,
+  }) {
     final renderObject =
-        _registrationContentKey.currentContext?.findRenderObject() ??
+        anchorKey?.currentContext?.findRenderObject() ??
         context.findRenderObject();
     final contentRect = renderObject is RenderBox
         ? renderObject.localToGlobal(Offset.zero) & renderObject.size
@@ -859,7 +903,30 @@ class _StaffManagementPageState
         : _statuses.first;
 
     Future<void> submit(BuildContext drawerContext) async {
+      final missingField = _firstMissingEmployeeField(
+        name: nameController.text,
+        gender: gender,
+        email: emailController.text,
+        phone: phoneController.text,
+        designation: designation,
+        department: department,
+        qualification: qualificationController.text,
+        joiningDate: joiningDateController.text,
+        salary: salaryController.text,
+      );
+      if (missingField != null) {
+        _showFlashMessage(
+          drawerContext,
+          'Missing required field: $missingField',
+        );
+        formKey.currentState?.validate();
+        return;
+      }
       if (!(formKey.currentState?.validate() ?? false)) return;
+      final isNew = staff == null;
+      final employeeName = nameController.text.trim();
+      final monthlySalary = salaryController.text.trim();
+      final salaryMonth = DateFormat('yyyy-MM').format(DateTime.now());
       setState(() {
         if (staff == null) {
           _staff.add(
@@ -871,7 +938,7 @@ class _StaffManagementPageState
                             .reduce((a, b) => a > b ? a : b) +
                         1,
               employeeId: employeeId,
-              name: nameController.text.trim(),
+              name: employeeName,
               gender: gender!,
               email: emailController.text.trim(),
               phone: phoneController.text.trim(),
@@ -880,14 +947,22 @@ class _StaffManagementPageState
               employmentType: employmentType,
               qualification: qualificationController.text.trim(),
               joiningDate: joiningDateController.text,
-              salary: salaryController.text.trim(),
+              salary: monthlySalary,
               status: status,
+            ),
+          );
+          _salaryRecords.add(
+            SalaryRecord(
+              id: _nextSalaryId(),
+              employeeName: employeeName,
+              baseSalary: monthlySalary,
+              month: salaryMonth,
             ),
           );
         } else {
           final previousName = staff.name;
           staff
-            ..name = nameController.text.trim()
+            ..name = employeeName
             ..gender = gender!
             ..email = emailController.text.trim()
             ..phone = phoneController.text.trim()
@@ -896,7 +971,7 @@ class _StaffManagementPageState
             ..employmentType = employmentType
             ..qualification = qualificationController.text.trim()
             ..joiningDate = joiningDateController.text
-            ..salary = salaryController.text.trim()
+            ..salary = monthlySalary
             ..status = status;
           for (final record in _leaves.where(
             (item) => item.employeeName == previousName,
@@ -918,10 +993,36 @@ class _StaffManagementPageState
           )) {
             record.employeeName = staff.name;
           }
+          final currentSalaries = _salaryRecords
+              .where(
+                (item) =>
+                    item.employeeName == employeeName &&
+                    item.month == salaryMonth,
+              )
+              .toList();
+          if (currentSalaries.isEmpty) {
+            _salaryRecords.add(
+              SalaryRecord(
+                id: _nextSalaryId(),
+                employeeName: employeeName,
+                baseSalary: monthlySalary,
+                month: salaryMonth,
+              ),
+            );
+          } else {
+            currentSalaries.first.baseSalary = monthlySalary;
+          }
         }
       });
       await persistNow();
-      if (drawerContext.mounted) Navigator.pop(drawerContext);
+      if (!drawerContext.mounted) return;
+      Navigator.pop(drawerContext);
+      _showFlashMessage(
+        context,
+        isNew
+            ? 'Employee created successfully.'
+            : 'Employee updated successfully.',
+      );
     }
 
     showGeneralDialog(
@@ -1177,6 +1278,70 @@ class _StaffManagementPageState
     return candidate;
   }
 
+  int _nextSalaryId() {
+    if (_salaryRecords.isEmpty) return 1;
+    return _salaryRecords
+            .map((record) => record.id)
+            .reduce((a, b) => a > b ? a : b) +
+        1;
+  }
+
+  void _ensureCurrentSalaryRecords() {
+    final currentMonth = DateFormat('yyyy-MM').format(DateTime.now());
+    for (final employee in _staff) {
+      if (employee.salary.trim().isEmpty) continue;
+      final exists = _salaryRecords.any(
+        (record) =>
+            record.employeeName == employee.name &&
+            record.month == currentMonth,
+      );
+      if (!exists) {
+        _salaryRecords.add(
+          SalaryRecord(
+            id: _nextSalaryId(),
+            employeeName: employee.name,
+            baseSalary: employee.salary,
+            month: currentMonth,
+          ),
+        );
+      }
+    }
+  }
+
+  String? _firstMissingEmployeeField({
+    required String name,
+    required String? gender,
+    required String email,
+    required String phone,
+    required String? designation,
+    required String? department,
+    required String qualification,
+    required String joiningDate,
+    required String salary,
+  }) {
+    final requiredFields = <String, bool>{
+      'Full Name': name.trim().isNotEmpty,
+      'Gender': gender != null,
+      'Email': email.trim().isNotEmpty,
+      'Mobile Number': phone.trim().isNotEmpty,
+      'Designation': designation != null,
+      'Department': department != null,
+      'Qualification': qualification.trim().isNotEmpty,
+      'Joining Date': joiningDate.trim().isNotEmpty,
+      'Monthly Salary': salary.trim().isNotEmpty,
+    };
+    for (final entry in requiredFields.entries) {
+      if (!entry.value) return entry.key;
+    }
+    return null;
+  }
+
+  void _showFlashMessage(BuildContext context, String message) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
+  }
+
   String? Function(String?) _required(String field) {
     return (value) =>
         value == null || value.trim().isEmpty ? 'Enter $field' : null;
@@ -1228,7 +1393,133 @@ class _StaffManagementPageState
     );
   }
 
-  void _showLeaveDialog(BuildContext context, {LeaveRecord? leave}) {
+  void _showAlignedStaffDrawer({
+    required BuildContext context,
+    required GlobalKey anchorKey,
+    required String drawerKey,
+    required String title,
+    required String submitLabel,
+    required Widget Function(BuildContext, StateSetter) contentBuilder,
+    required Future<bool> Function(BuildContext) onSubmit,
+    required String successMessage,
+  }) {
+    final renderObject =
+        anchorKey.currentContext?.findRenderObject() ??
+        context.findRenderObject();
+    final contentRect = renderObject is RenderBox
+        ? renderObject.localToGlobal(Offset.zero) & renderObject.size
+        : Offset.zero & MediaQuery.sizeOf(context);
+
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'Close $title',
+      barrierColor: Colors.black54,
+      transitionDuration: const Duration(milliseconds: 280),
+      transitionBuilder: (context, animation, secondaryAnimation, child) =>
+          child,
+      pageBuilder: (dialogContext, animation, secondaryAnimation) =>
+          StatefulBuilder(
+            builder: (context, setDrawerState) {
+              final drawerWidth = contentRect.width < 900
+                  ? contentRect.width
+                  : contentRect.width * 0.52;
+              final panelAnimation = CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeOutCubic,
+              );
+              return Stack(
+                children: [
+                  Positioned(
+                    left: contentRect.left,
+                    top: contentRect.top,
+                    width: drawerWidth,
+                    height: contentRect.height,
+                    child: ClipRect(
+                      child: AnimatedBuilder(
+                        animation: panelAnimation,
+                        builder: (context, child) => Align(
+                          alignment: Alignment.centerLeft,
+                          widthFactor: panelAnimation.value,
+                          child: child,
+                        ),
+                        child: Material(
+                          key: Key(drawerKey),
+                          elevation: 24,
+                          color: Theme.of(context).scaffoldBackgroundColor,
+                          child: Scaffold(
+                            appBar: AppBar(
+                              automaticallyImplyLeading: false,
+                              title: Text(title),
+                              actions: [
+                                IconButton(
+                                  tooltip: 'Close',
+                                  onPressed: () => Navigator.pop(dialogContext),
+                                  icon: const Icon(Icons.close),
+                                ),
+                              ],
+                            ),
+                            body: ListView(
+                              padding: const EdgeInsets.all(24),
+                              children: [
+                                contentBuilder(context, setDrawerState),
+                              ],
+                            ),
+                            bottomNavigationBar: Material(
+                              elevation: 12,
+                              child: SafeArea(
+                                top: false,
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 24,
+                                    vertical: 16,
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children: [
+                                      OutlinedButton(
+                                        onPressed: () =>
+                                            Navigator.pop(dialogContext),
+                                        child: const Text('Cancel'),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      ElevatedButton.icon(
+                                        onPressed: () async {
+                                          if (!await onSubmit(dialogContext)) {
+                                            return;
+                                          }
+                                          if (!dialogContext.mounted) return;
+                                          Navigator.pop(dialogContext);
+                                          _showFlashMessage(
+                                            context,
+                                            successMessage,
+                                          );
+                                        },
+                                        icon: const Icon(Icons.save_outlined),
+                                        label: Text(submitLabel),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+    );
+  }
+
+  void _showLeaveDialog(
+    BuildContext context, {
+    LeaveRecord? leave,
+    required GlobalKey anchorKey,
+  }) {
     String selectedEmployee =
         leave?.employeeName ?? (_staff.isNotEmpty ? _staff.first.name : '');
     final fromDateController = TextEditingController(
@@ -1238,117 +1529,118 @@ class _StaffManagementPageState
     final reasonController = TextEditingController(text: leave?.reason ?? '');
     String leaveType = leave?.leaveType ?? 'Casual Leave';
 
-    showDialog(
+    _showAlignedStaffDrawer(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(leave == null ? 'New Leave Request' : 'Edit Leave Request'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              DropdownButtonFormField<String>(
-                initialValue: selectedEmployee.isNotEmpty
-                    ? selectedEmployee
-                    : null,
-                items: _staff
-                    .map(
-                      (s) =>
-                          DropdownMenuItem(value: s.name, child: Text(s.name)),
-                    )
-                    .toList(),
-                decoration: const InputDecoration(labelText: 'Employee'),
-                onChanged: (value) =>
-                    selectedEmployee = value ?? selectedEmployee,
-              ),
-              DropdownButtonFormField<String>(
-                initialValue: leaveType,
-                items: ['Casual Leave', 'Sick Leave', 'Earned Leave']
-                    .map((t) => DropdownMenuItem(value: t, child: Text(t)))
-                    .toList(),
-                onChanged: (value) => leaveType = value ?? leaveType,
-                decoration: const InputDecoration(labelText: 'Leave Type'),
-              ),
-              _dialogDateField(
-                context,
-                controller: fromDateController,
-                label: 'From Date',
-              ),
-              _dialogDateField(
-                context,
-                controller: toDateController,
-                label: 'To Date',
-              ),
-              TextField(
-                controller: reasonController,
-                decoration: const InputDecoration(labelText: 'Reason'),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final fromDate = DateTime.tryParse(fromDateController.text);
-              final toDate = DateTime.tryParse(toDateController.text);
-              if (fromDate == null || toDate == null) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Select valid leave dates.')),
-                );
-                return;
-              }
-              if (toDate.isBefore(fromDate)) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('To Date cannot be before From Date.'),
+      anchorKey: anchorKey,
+      drawerKey: 'staff_leave_drawer',
+      title: leave == null ? 'New Leave Request' : 'Edit Leave Request',
+      submitLabel: leave == null ? 'Create' : 'Save',
+      successMessage: leave == null
+          ? 'Leave request created successfully.'
+          : 'Leave request updated successfully.',
+      contentBuilder: (drawerContext, setDrawerState) => Column(
+        children: [
+          DropdownButtonFormField<String>(
+            initialValue: selectedEmployee.isNotEmpty ? selectedEmployee : null,
+            items: _staff
+                .map(
+                  (staff) => DropdownMenuItem(
+                    value: staff.name,
+                    child: Text(staff.name),
                   ),
-                );
-                return;
-              }
-              if (reasonController.text.trim().isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Enter a leave reason.')),
-                );
-                return;
-              }
-              setState(() {
-                if (leave == null) {
-                  _leaves.add(
-                    LeaveRecord(
-                      id: _leaves.isEmpty ? 1 : _leaves.last.id + 1,
-                      employeeName: selectedEmployee,
-                      leaveType: leaveType,
-                      fromDate: fromDateController.text.trim(),
-                      toDate: toDateController.text.trim(),
-                      reason: reasonController.text.trim(),
-                    ),
-                  );
-                } else {
-                  leave
-                    ..employeeName = selectedEmployee
-                    ..leaveType = leaveType
-                    ..fromDate = fromDateController.text.trim()
-                    ..toDate = toDateController.text.trim()
-                    ..reason = reasonController.text.trim();
-                }
-              });
-              await persistNow();
-              if (!context.mounted) return;
-              Navigator.pop(context);
-            },
-            child: Text(leave == null ? 'Submit' : 'Save'),
+                )
+                .toList(),
+            decoration: const InputDecoration(labelText: 'Employee'),
+            onChanged: (value) =>
+                setDrawerState(() => selectedEmployee = value ?? ''),
+          ),
+          const SizedBox(height: 16),
+          DropdownButtonFormField<String>(
+            initialValue: leaveType,
+            items: ['Casual Leave', 'Sick Leave', 'Earned Leave']
+                .map((type) => DropdownMenuItem(value: type, child: Text(type)))
+                .toList(),
+            onChanged: (value) =>
+                setDrawerState(() => leaveType = value ?? leaveType),
+            decoration: const InputDecoration(labelText: 'Leave Type'),
+          ),
+          const SizedBox(height: 16),
+          _dialogDateField(
+            drawerContext,
+            controller: fromDateController,
+            label: 'From Date',
+          ),
+          const SizedBox(height: 16),
+          _dialogDateField(
+            drawerContext,
+            controller: toDateController,
+            label: 'To Date',
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: reasonController,
+            maxLines: 3,
+            decoration: const InputDecoration(
+              labelText: 'Reason',
+              alignLabelWithHint: true,
+            ),
           ),
         ],
       ),
+      onSubmit: (drawerContext) async {
+        final missingField = <String, bool>{
+          'Employee': selectedEmployee.isNotEmpty,
+          'From Date': fromDateController.text.isNotEmpty,
+          'To Date': toDateController.text.isNotEmpty,
+          'Reason': reasonController.text.trim().isNotEmpty,
+        }.entries.where((entry) => !entry.value).map((entry) => entry.key);
+        if (missingField.isNotEmpty) {
+          _showFlashMessage(
+            drawerContext,
+            'Missing required field: ${missingField.first}',
+          );
+          return false;
+        }
+        final fromDate = DateTime.parse(fromDateController.text);
+        final toDate = DateTime.parse(toDateController.text);
+        if (toDate.isBefore(fromDate)) {
+          _showFlashMessage(
+            drawerContext,
+            'To Date cannot be before From Date.',
+          );
+          return false;
+        }
+        setState(() {
+          if (leave == null) {
+            _leaves.add(
+              LeaveRecord(
+                id: _leaves.isEmpty ? 1 : _leaves.last.id + 1,
+                employeeName: selectedEmployee,
+                leaveType: leaveType,
+                fromDate: fromDateController.text,
+                toDate: toDateController.text,
+                reason: reasonController.text.trim(),
+              ),
+            );
+          } else {
+            leave
+              ..employeeName = selectedEmployee
+              ..leaveType = leaveType
+              ..fromDate = fromDateController.text
+              ..toDate = toDateController.text
+              ..reason = reasonController.text.trim();
+          }
+        });
+        await persistNow();
+        return true;
+      },
     );
   }
 
   void _showAttendanceDialog(
     BuildContext context, {
     AttendanceRecord? attendance,
+    required GlobalKey anchorKey,
   }) {
     String selectedEmployee =
         attendance?.employeeName ??
@@ -1358,101 +1650,107 @@ class _StaffManagementPageState
       text: attendance?.date ?? DateFormat('yyyy-MM-dd').format(DateTime.now()),
     );
 
-    showDialog(
+    _showAlignedStaffDrawer(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(attendance == null ? 'Mark Attendance' : 'Edit Attendance'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              DropdownButtonFormField<String>(
-                initialValue: selectedEmployee.isNotEmpty
-                    ? selectedEmployee
-                    : null,
-                items: _staff
-                    .map(
-                      (s) =>
-                          DropdownMenuItem(value: s.name, child: Text(s.name)),
-                    )
-                    .toList(),
-                decoration: const InputDecoration(labelText: 'Employee'),
-                onChanged: (value) =>
-                    selectedEmployee = value ?? selectedEmployee,
-              ),
-              DropdownButtonFormField<String>(
-                initialValue: status,
-                items: ['Present', 'Absent', 'Leave', 'Half Day']
-                    .map((s) => DropdownMenuItem(value: s, child: Text(s)))
-                    .toList(),
-                onChanged: (value) => status = value ?? status,
-                decoration: const InputDecoration(labelText: 'Status'),
-              ),
-              _dialogDateField(
-                context,
-                controller: dateController,
-                label: 'Attendance Date',
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final duplicate =
-                  attendance == null &&
-                  _staffAttendance.any(
-                    (record) =>
-                        record.employeeName == selectedEmployee &&
-                        record.date == dateController.text,
-                  );
-              if (duplicate) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      'Attendance is already marked for this employee and date.',
-                    ),
+      anchorKey: anchorKey,
+      drawerKey: 'staff_attendance_drawer',
+      title: attendance == null ? 'Mark Attendance' : 'Edit Attendance',
+      submitLabel: attendance == null ? 'Create' : 'Save',
+      successMessage: attendance == null
+          ? 'Attendance created successfully.'
+          : 'Attendance updated successfully.',
+      contentBuilder: (drawerContext, setDrawerState) => Column(
+        children: [
+          DropdownButtonFormField<String>(
+            initialValue: selectedEmployee.isNotEmpty ? selectedEmployee : null,
+            items: _staff
+                .map(
+                  (staff) => DropdownMenuItem(
+                    value: staff.name,
+                    child: Text(staff.name),
                   ),
-                );
-                return;
-              }
-              setState(() {
-                if (attendance == null) {
-                  _staffAttendance.add(
-                    AttendanceRecord(
-                      id: _staffAttendance.isEmpty
-                          ? 1
-                          : _staffAttendance.last.id + 1,
-                      employeeName: selectedEmployee,
-                      date: dateController.text,
-                      status: status,
-                    ),
-                  );
-                } else {
-                  attendance
-                    ..employeeName = selectedEmployee
-                    ..status = status
-                    ..date = dateController.text;
-                }
-              });
-              await persistNow();
-              if (!context.mounted) return;
-              Navigator.pop(context);
-            },
-            child: Text(attendance == null ? 'Mark' : 'Save'),
+                )
+                .toList(),
+            decoration: const InputDecoration(labelText: 'Employee'),
+            onChanged: (value) =>
+                setDrawerState(() => selectedEmployee = value ?? ''),
+          ),
+          const SizedBox(height: 16),
+          DropdownButtonFormField<String>(
+            initialValue: status,
+            items: ['Present', 'Absent', 'Leave', 'Half Day']
+                .map(
+                  (attendanceStatus) => DropdownMenuItem(
+                    value: attendanceStatus,
+                    child: Text(attendanceStatus),
+                  ),
+                )
+                .toList(),
+            onChanged: (value) =>
+                setDrawerState(() => status = value ?? status),
+            decoration: const InputDecoration(labelText: 'Status'),
+          ),
+          const SizedBox(height: 16),
+          _dialogDateField(
+            drawerContext,
+            controller: dateController,
+            label: 'Attendance Date',
           ),
         ],
       ),
+      onSubmit: (drawerContext) async {
+        if (selectedEmployee.isEmpty) {
+          _showFlashMessage(drawerContext, 'Missing required field: Employee');
+          return false;
+        }
+        if (dateController.text.isEmpty) {
+          _showFlashMessage(
+            drawerContext,
+            'Missing required field: Attendance Date',
+          );
+          return false;
+        }
+        final duplicate =
+            attendance == null &&
+            _staffAttendance.any(
+              (record) =>
+                  record.employeeName == selectedEmployee &&
+                  record.date == dateController.text,
+            );
+        if (duplicate) {
+          _showFlashMessage(
+            drawerContext,
+            'Attendance is already marked for this employee and date.',
+          );
+          return false;
+        }
+        setState(() {
+          if (attendance == null) {
+            _staffAttendance.add(
+              AttendanceRecord(
+                id: _staffAttendance.isEmpty ? 1 : _staffAttendance.last.id + 1,
+                employeeName: selectedEmployee,
+                date: dateController.text,
+                status: status,
+              ),
+            );
+          } else {
+            attendance
+              ..employeeName = selectedEmployee
+              ..status = status
+              ..date = dateController.text;
+          }
+        });
+        await persistNow();
+        return true;
+      },
     );
   }
 
   void _showPerformanceDialog(
     BuildContext context, {
     PerformanceRecord? performance,
+    required GlobalKey anchorKey,
   }) {
     String selectedEmployee =
         performance?.employeeName ??
@@ -1464,96 +1762,101 @@ class _StaffManagementPageState
       text: performance?.rating ?? '8',
     );
 
-    showDialog(
+    _showAlignedStaffDrawer(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(
-          performance == null
-              ? 'Performance Review'
-              : 'Edit Performance Review',
-        ),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              DropdownButtonFormField<String>(
-                initialValue: selectedEmployee.isNotEmpty
-                    ? selectedEmployee
-                    : null,
-                items: _staff
-                    .map(
-                      (s) =>
-                          DropdownMenuItem(value: s.name, child: Text(s.name)),
-                    )
-                    .toList(),
-                decoration: const InputDecoration(labelText: 'Employee'),
-                onChanged: (value) =>
-                    selectedEmployee = value ?? selectedEmployee,
-              ),
-              TextField(
-                controller: ratingController,
-                decoration: const InputDecoration(labelText: 'Rating (1-10)'),
-                keyboardType: TextInputType.number,
-              ),
-              TextField(
-                controller: commentsController,
-                decoration: const InputDecoration(labelText: 'Comments'),
-              ),
+      anchorKey: anchorKey,
+      drawerKey: 'staff_performance_drawer',
+      title: performance == null
+          ? 'Performance Review'
+          : 'Edit Performance Review',
+      submitLabel: performance == null ? 'Create' : 'Save',
+      successMessage: performance == null
+          ? 'Performance review created successfully.'
+          : 'Performance review updated successfully.',
+      contentBuilder: (drawerContext, setDrawerState) => Column(
+        children: [
+          DropdownButtonFormField<String>(
+            initialValue: selectedEmployee.isNotEmpty ? selectedEmployee : null,
+            items: _staff
+                .map(
+                  (staff) => DropdownMenuItem(
+                    value: staff.name,
+                    child: Text(staff.name),
+                  ),
+                )
+                .toList(),
+            decoration: const InputDecoration(labelText: 'Employee'),
+            onChanged: (value) =>
+                setDrawerState(() => selectedEmployee = value ?? ''),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: ratingController,
+            decoration: const InputDecoration(labelText: 'Rating (1-10)'),
+            keyboardType: TextInputType.number,
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              LengthLimitingTextInputFormatter(2),
             ],
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final rating = int.tryParse(ratingController.text);
-              if (rating == null || rating < 1 || rating > 10) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Rating must be between 1 and 10.'),
-                  ),
-                );
-                return;
-              }
-              if (commentsController.text.trim().isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Enter review comments.')),
-                );
-                return;
-              }
-              setState(() {
-                if (performance == null) {
-                  _performance.add(
-                    PerformanceRecord(
-                      id: _performance.isEmpty ? 1 : _performance.last.id + 1,
-                      employeeName: selectedEmployee,
-                      rating: rating.toString(),
-                      comments: commentsController.text.trim(),
-                      reviewDate: DateTime.now().toString().split(' ').first,
-                    ),
-                  );
-                } else {
-                  performance
-                    ..employeeName = selectedEmployee
-                    ..rating = rating.toString()
-                    ..comments = commentsController.text.trim();
-                }
-              });
-              await persistNow();
-              if (!context.mounted) return;
-              Navigator.pop(context);
-            },
-            child: Text(performance == null ? 'Submit Review' : 'Save'),
+          const SizedBox(height: 16),
+          TextField(
+            controller: commentsController,
+            maxLines: 4,
+            decoration: const InputDecoration(
+              labelText: 'Comments',
+              alignLabelWithHint: true,
+            ),
           ),
         ],
       ),
+      onSubmit: (drawerContext) async {
+        if (selectedEmployee.isEmpty) {
+          _showFlashMessage(drawerContext, 'Missing required field: Employee');
+          return false;
+        }
+        if (ratingController.text.trim().isEmpty) {
+          _showFlashMessage(drawerContext, 'Missing required field: Rating');
+          return false;
+        }
+        if (commentsController.text.trim().isEmpty) {
+          _showFlashMessage(drawerContext, 'Missing required field: Comments');
+          return false;
+        }
+        final rating = int.tryParse(ratingController.text);
+        if (rating == null || rating < 1 || rating > 10) {
+          _showFlashMessage(drawerContext, 'Rating must be between 1 and 10.');
+          return false;
+        }
+        setState(() {
+          if (performance == null) {
+            _performance.add(
+              PerformanceRecord(
+                id: _performance.isEmpty ? 1 : _performance.last.id + 1,
+                employeeName: selectedEmployee,
+                rating: rating.toString(),
+                comments: commentsController.text.trim(),
+                reviewDate: DateFormat('yyyy-MM-dd').format(DateTime.now()),
+              ),
+            );
+          } else {
+            performance
+              ..employeeName = selectedEmployee
+              ..rating = rating.toString()
+              ..comments = commentsController.text.trim();
+          }
+        });
+        await persistNow();
+        return true;
+      },
     );
   }
 
-  void _showSalaryDialog(BuildContext context, {SalaryRecord? salary}) {
+  void _showSalaryDialog(
+    BuildContext context, {
+    SalaryRecord? salary,
+    required GlobalKey anchorKey,
+  }) {
     String selectedEmployee =
         salary?.employeeName ?? (_staff.isNotEmpty ? _staff.first.name : '');
     final amountController = TextEditingController(
@@ -1568,90 +1871,109 @@ class _StaffManagementPageState
     String selectedMonth = monthOptions.contains(salary?.month)
         ? salary!.month
         : monthOptions.first;
-    showDialog(
+    _showAlignedStaffDrawer(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(
-          salary == null ? 'Add Salary Record' : 'Edit Salary Record',
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            DropdownButtonFormField<String>(
-              initialValue: selectedEmployee.isNotEmpty
-                  ? selectedEmployee
-                  : null,
-              items: _staff
-                  .map(
-                    (item) => DropdownMenuItem(
-                      value: item.name,
-                      child: Text(item.name),
-                    ),
-                  )
-                  .toList(),
-              decoration: const InputDecoration(labelText: 'Employee'),
-              onChanged: (value) =>
-                  selectedEmployee = value ?? selectedEmployee,
-            ),
-            TextField(
-              controller: amountController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Base Salary'),
-            ),
-            DropdownButtonFormField<String>(
-              initialValue: selectedMonth,
-              items: monthOptions
-                  .map(
-                    (month) =>
-                        DropdownMenuItem(value: month, child: Text(month)),
-                  )
-                  .toList(),
-              onChanged: (value) => selectedMonth = value ?? selectedMonth,
-              decoration: const InputDecoration(labelText: 'Salary Month'),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+      anchorKey: anchorKey,
+      drawerKey: 'staff_salary_drawer',
+      title: salary == null ? 'Add Salary Record' : 'Edit Salary Record',
+      submitLabel: salary == null ? 'Create' : 'Save',
+      successMessage: salary == null
+          ? 'Salary record created successfully.'
+          : 'Salary record updated successfully.',
+      contentBuilder: (drawerContext, setDrawerState) => Column(
+        children: [
+          DropdownButtonFormField<String>(
+            initialValue: selectedEmployee.isNotEmpty ? selectedEmployee : null,
+            items: _staff
+                .map(
+                  (staff) => DropdownMenuItem(
+                    value: staff.name,
+                    child: Text(staff.name),
+                  ),
+                )
+                .toList(),
+            decoration: const InputDecoration(labelText: 'Employee'),
+            onChanged: (value) =>
+                setDrawerState(() => selectedEmployee = value ?? ''),
           ),
-          ElevatedButton(
-            onPressed: () async {
-              if (selectedEmployee.isEmpty ||
-                  double.tryParse(amountController.text) == null) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Complete all salary fields.')),
-                );
-                return;
-              }
-              setState(() {
-                if (salary == null) {
-                  _salaryRecords.add(
-                    SalaryRecord(
-                      id: _salaryRecords.isEmpty
-                          ? 1
-                          : _salaryRecords.last.id + 1,
-                      employeeName: selectedEmployee,
-                      baseSalary: amountController.text.trim(),
-                      month: selectedMonth,
-                    ),
-                  );
-                } else {
-                  salary
-                    ..employeeName = selectedEmployee
-                    ..baseSalary = amountController.text.trim()
-                    ..month = selectedMonth;
-                }
-              });
-              await persistNow();
-              if (!context.mounted) return;
-              Navigator.pop(context);
-            },
-            child: Text(salary == null ? 'Add' : 'Save'),
+          const SizedBox(height: 16),
+          TextField(
+            controller: amountController,
+            keyboardType: TextInputType.number,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            decoration: const InputDecoration(labelText: 'Base Salary'),
+          ),
+          const SizedBox(height: 16),
+          DropdownButtonFormField<String>(
+            initialValue: selectedMonth,
+            items: monthOptions
+                .map(
+                  (month) => DropdownMenuItem(value: month, child: Text(month)),
+                )
+                .toList(),
+            onChanged: (value) =>
+                setDrawerState(() => selectedMonth = value ?? selectedMonth),
+            decoration: const InputDecoration(labelText: 'Salary Month'),
           ),
         ],
       ),
+      onSubmit: (drawerContext) async {
+        if (selectedEmployee.isEmpty) {
+          _showFlashMessage(drawerContext, 'Missing required field: Employee');
+          return false;
+        }
+        if (amountController.text.trim().isEmpty) {
+          _showFlashMessage(
+            drawerContext,
+            'Missing required field: Base Salary',
+          );
+          return false;
+        }
+        final amount = double.tryParse(amountController.text);
+        if (amount == null || amount <= 0) {
+          _showFlashMessage(drawerContext, 'Enter a valid base salary.');
+          return false;
+        }
+        final duplicate =
+            salary == null &&
+            _salaryRecords.any(
+              (record) =>
+                  record.employeeName == selectedEmployee &&
+                  record.month == selectedMonth,
+            );
+        if (duplicate) {
+          _showFlashMessage(
+            drawerContext,
+            'A salary record already exists for this employee and month.',
+          );
+          return false;
+        }
+        setState(() {
+          if (salary == null) {
+            _salaryRecords.add(
+              SalaryRecord(
+                id: _nextSalaryId(),
+                employeeName: selectedEmployee,
+                baseSalary: amountController.text.trim(),
+                month: selectedMonth,
+              ),
+            );
+          } else {
+            salary
+              ..employeeName = selectedEmployee
+              ..baseSalary = amountController.text.trim()
+              ..month = selectedMonth;
+          }
+          final employee = _staff
+              .where((staff) => staff.name == selectedEmployee)
+              .toList();
+          if (employee.isNotEmpty) {
+            employee.first.salary = amountController.text.trim();
+          }
+        });
+        await persistNow();
+        return true;
+      },
     );
   }
 
