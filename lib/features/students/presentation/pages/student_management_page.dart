@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:educare/core/utils/browser_download.dart';
+import 'package:educare/core/widgets/app_flash_message.dart';
 import 'package:educare/core/widgets/delete_confirmation_dialog.dart';
 import 'package:educare/core/widgets/persistent_module_state.dart';
 import 'package:file_picker/file_picker.dart';
@@ -15,15 +16,35 @@ class StudentManagementPage extends StatefulWidget {
   State<StudentManagementPage> createState() => _StudentManagementPageState();
 }
 
-class _StudentManagementPageState extends PersistentModuleState<StudentManagementPage> {
+class _StudentManagementPageState
+    extends PersistentModuleState<StudentManagementPage> {
   static const String _admissionBrandPrefix = 'edu';
   static const _genders = ['Male', 'Female', 'Other'];
-  static const _bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+  static const _bloodGroups = [
+    'A+',
+    'A-',
+    'B+',
+    'B-',
+    'AB+',
+    'AB-',
+    'O+',
+    'O-',
+  ];
   static const _defaultCategories = ['Others', 'General', 'OBC', 'SC', 'ST'];
   static const _sections = ['A', 'B', 'C', 'D'];
   static const _classes = [
-    'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6',
-    'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12',
+    'Grade 1',
+    'Grade 2',
+    'Grade 3',
+    'Grade 4',
+    'Grade 5',
+    'Grade 6',
+    'Grade 7',
+    'Grade 8',
+    'Grade 9',
+    'Grade 10',
+    'Grade 11',
+    'Grade 12',
   ];
 
   final List<StudentRecord> _students = [
@@ -77,12 +98,16 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
   final GlobalKey _registrationContentKey = GlobalKey();
   final GlobalKey _profilesContentKey = GlobalKey();
   final GlobalKey _documentsContentKey = GlobalKey();
-  final TextEditingController _profileSearchController = TextEditingController();
-  final TextEditingController _documentSearchController = TextEditingController();
+  final TextEditingController _profileSearchController =
+      TextEditingController();
+  final TextEditingController _documentSearchController =
+      TextEditingController();
   final TextEditingController _photoSearchController = TextEditingController();
   final TextEditingController _parentSearchController = TextEditingController();
-  final TextEditingController _promotionSearchController = TextEditingController();
-  final TextEditingController _transferSearchController = TextEditingController();
+  final TextEditingController _promotionSearchController =
+      TextEditingController();
+  final TextEditingController _transferSearchController =
+      TextEditingController();
   final TextEditingController _alumniSearchController = TextEditingController();
   final Set<String> _categoryOptions = {..._defaultCategories};
   String _profileSearchQuery = '';
@@ -98,28 +123,48 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
 
   @override
   Map<String, dynamic> exportState() => {
-        'students': _students.map((item) => item.toJson()).toList(),
-        'documents': _documents.map((item) => item.toJson()).toList(),
-        'promotions': _promotions.map((item) => item.toJson()).toList(),
-        'alumni': _alumni.map((item) => item.toJson()).toList(),
-        'photos': _studentPhotos,
-        'certificates': _generatedCertificates.toList(),
-      };
+    'students': _students.map((item) => item.toJson()).toList(),
+    'documents': _documents.map((item) => item.toJson()).toList(),
+    'promotions': _promotions.map((item) => item.toJson()).toList(),
+    'alumni': _alumni.map((item) => item.toJson()).toList(),
+    'photos': _studentPhotos,
+    'certificates': _generatedCertificates.toList(),
+  };
 
   @override
   void importState(Map<String, dynamic> data) {
     _students
       ..clear()
-      ..addAll((data['students'] as List? ?? []).map((item) => StudentRecord.fromJson(Map<String, dynamic>.from(item as Map))));
+      ..addAll(
+        (data['students'] as List? ?? []).map(
+          (item) =>
+              StudentRecord.fromJson(Map<String, dynamic>.from(item as Map)),
+        ),
+      );
     _documents
       ..clear()
-      ..addAll((data['documents'] as List? ?? []).map((item) => StudentDocument.fromJson(Map<String, dynamic>.from(item as Map))));
+      ..addAll(
+        (data['documents'] as List? ?? []).map(
+          (item) =>
+              StudentDocument.fromJson(Map<String, dynamic>.from(item as Map)),
+        ),
+      );
     _promotions
       ..clear()
-      ..addAll((data['promotions'] as List? ?? []).map((item) => StudentPromotion.fromJson(Map<String, dynamic>.from(item as Map))));
+      ..addAll(
+        (data['promotions'] as List? ?? []).map(
+          (item) =>
+              StudentPromotion.fromJson(Map<String, dynamic>.from(item as Map)),
+        ),
+      );
     _alumni
       ..clear()
-      ..addAll((data['alumni'] as List? ?? []).map((item) => AlumniRecord.fromJson(Map<String, dynamic>.from(item as Map))));
+      ..addAll(
+        (data['alumni'] as List? ?? []).map(
+          (item) =>
+              AlumniRecord.fromJson(Map<String, dynamic>.from(item as Map)),
+        ),
+      );
     _studentPhotos
       ..clear()
       ..addAll(Map<String, String>.from(data['photos'] as Map? ?? {}));
@@ -155,8 +200,12 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
   void _removeStudent(StudentRecord student) {
     setState(() {
       _students.remove(student);
-      _documents.removeWhere((item) => item.studentAdmissionNo == student.admissionNo);
-      _promotions.removeWhere((item) => item.studentAdmissionNo == student.admissionNo);
+      _documents.removeWhere(
+        (item) => item.studentAdmissionNo == student.admissionNo,
+      );
+      _promotions.removeWhere(
+        (item) => item.studentAdmissionNo == student.admissionNo,
+      );
       _studentPhotos.remove(student.admissionNo);
       _generatedCertificates.remove(student.admissionNo);
     });
@@ -167,7 +216,9 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
       ..clear()
       ..addAll(_defaultCategories)
       ..addAll(
-        _students.map((student) => student.category.trim()).where((category) => category.isNotEmpty),
+        _students
+            .map((student) => student.category.trim())
+            .where((category) => category.isNotEmpty),
       );
   }
 
@@ -179,7 +230,9 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
   }
 
   List<StudentRecord> _filterStudents(String query) {
-    return _students.where((student) => _matchesStudentQuery(student, query)).toList();
+    return _students
+        .where((student) => _matchesStudentQuery(student, query))
+        .toList();
   }
 
   bool _matchesDocumentQuery(StudentDocument document, String query) {
@@ -189,11 +242,18 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
         document.studentAdmissionNo.toLowerCase().contains(normalizedQuery);
   }
 
-  Future<void> _downloadDocument(BuildContext context, StudentDocument document) async {
+  Future<void> _downloadDocument(
+    BuildContext context,
+    StudentDocument document,
+  ) async {
     final encodedBytes = document.fileData;
     if (encodedBytes == null || encodedBytes.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Original file data is unavailable for ${document.fileName}.')),
+        SnackBar(
+          content: Text(
+            'Original file data is unavailable for ${document.fileName}.',
+          ),
+        ),
       );
       return;
     }
@@ -205,7 +265,11 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
 
     if (!didDownload) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Document download is currently available in the web build only.')),
+        const SnackBar(
+          content: Text(
+            'Document download is currently available in the web build only.',
+          ),
+        ),
       );
       return;
     }
@@ -227,17 +291,31 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
           isDense: true,
           hintText: 'Search by name or admission no',
           prefixIcon: const Icon(Icons.search, size: 18),
-          prefixIconConstraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          prefixIconConstraints: const BoxConstraints(
+            minWidth: 36,
+            minHeight: 36,
+          ),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 10,
+          ),
           filled: true,
-          fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.45),
+          fillColor: Theme.of(
+            context,
+          ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.45),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(14),
-            borderSide: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+            borderSide: BorderSide(
+              color: Theme.of(context).colorScheme.outlineVariant,
+            ),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(14),
-            borderSide: BorderSide(color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5)),
+            borderSide: BorderSide(
+              color: Theme.of(
+                context,
+              ).colorScheme.outlineVariant.withValues(alpha: 0.5),
+            ),
           ),
         ),
       ),
@@ -272,9 +350,18 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                       const SizedBox(height: 4),
-                      Text(subtitle, style: const TextStyle(color: Colors.black54)),
+                      Text(
+                        subtitle,
+                        style: const TextStyle(color: Colors.black54),
+                      ),
                     ],
                   ),
                 ),
@@ -291,7 +378,13 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               const SizedBox(height: 4),
               Text(subtitle, style: const TextStyle(color: Colors.black54)),
               const SizedBox(height: 12),
@@ -344,7 +437,12 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
     );
   }
 
-  Widget _buildSectionHeader(String title, String subtitle, {VoidCallback? action, String? actionLabel}) {
+  Widget _buildSectionHeader(
+    String title,
+    String subtitle, {
+    VoidCallback? action,
+    String? actionLabel,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       child: Row(
@@ -353,7 +451,13 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 const SizedBox(height: 4),
                 Text(subtitle, style: const TextStyle(color: Colors.black54)),
               ],
@@ -375,7 +479,8 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
           _buildSectionHeader(
             'Student Registration',
             'Add new students or edit existing registrations.',
-            action: () => _showStudentDialog(context, anchorKey: _registrationContentKey),
+            action: () =>
+                _showStudentDialog(context, anchorKey: _registrationContentKey),
             actionLabel: 'New Admission',
           ),
           Expanded(
@@ -389,10 +494,16 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
                       final student = _students[index];
                       return Card(
                         elevation: 1,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                         child: ListTile(
-                          title: Text('${student.name} (${student.admissionNo})'),
-                          subtitle: Text('${student.currentClass}-${student.section} • ${student.gender} • DOB: ${student.dob}'),
+                          title: Text(
+                            '${student.name} (${student.admissionNo})',
+                          ),
+                          subtitle: Text(
+                            '${student.currentClass}-${student.section} • ${student.gender} • DOB: ${student.dob}',
+                          ),
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -407,11 +518,13 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
                               IconButton(
                                 icon: const Icon(Icons.delete),
                                 onPressed: () async {
-                                  final confirmed = await showDeleteConfirmationDialog(
-                                    context,
-                                    title: 'Delete student?',
-                                    message: 'This will remove ${student.name} from student registrations.',
-                                  );
+                                  final confirmed =
+                                      await showDeleteConfirmationDialog(
+                                        context,
+                                        title: 'Delete student?',
+                                        message:
+                                            'This will remove ${student.name} from student registrations.',
+                                      );
                                   if (!confirmed) return;
                                   _removeStudent(student);
                                 },
@@ -445,14 +558,19 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
           child: filteredStudents.isEmpty
               ? const Center(child: Text('No student profiles available.'))
               : ListView.separated(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 4,
+                  ),
                   itemCount: filteredStudents.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 6),
                   itemBuilder: (context, index) {
                     final student = filteredStudents[index];
                     return Card(
                       elevation: 1,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       child: ExpansionTile(
                         title: Text(student.name),
                         subtitle: Text(student.admissionNo),
@@ -466,15 +584,39 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
                                   spacing: 20,
                                   runSpacing: 4,
                                   children: [
-                                _buildProfileField('Gender', student.gender),
-                                _buildProfileField('DOB', student.dob),
-                                _buildProfileField('Blood Group', student.bloodGroup),
-                                _buildProfileField('Address', student.address),
-                                _buildProfileField('Mobile', student.mobileNumber),
-                                _buildProfileField('Aadhaar', student.aadhaarNumber),
-                                _buildProfileField('Category', student.category),
-                                _buildProfileField('Religion', student.religion),
-                                _buildProfileField('Class-Section', '${student.currentClass}-${student.section}'),
+                                    _buildProfileField(
+                                      'Gender',
+                                      student.gender,
+                                    ),
+                                    _buildProfileField('DOB', student.dob),
+                                    _buildProfileField(
+                                      'Blood Group',
+                                      student.bloodGroup,
+                                    ),
+                                    _buildProfileField(
+                                      'Address',
+                                      student.address,
+                                    ),
+                                    _buildProfileField(
+                                      'Mobile',
+                                      student.mobileNumber,
+                                    ),
+                                    _buildProfileField(
+                                      'Aadhaar',
+                                      student.aadhaarNumber,
+                                    ),
+                                    _buildProfileField(
+                                      'Category',
+                                      student.category,
+                                    ),
+                                    _buildProfileField(
+                                      'Religion',
+                                      student.religion,
+                                    ),
+                                    _buildProfileField(
+                                      'Class-Section',
+                                      '${student.currentClass}-${student.section}',
+                                    ),
                                   ],
                                 ),
                                 const Divider(),
@@ -483,17 +625,23 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
                                   spacing: 8,
                                   children: [
                                     OutlinedButton.icon(
-                                      onPressed: () => _showStudentDialog(context, student: student, anchorKey: _profilesContentKey),
+                                      onPressed: () => _showStudentDialog(
+                                        context,
+                                        student: student,
+                                        anchorKey: _profilesContentKey,
+                                      ),
                                       icon: const Icon(Icons.edit_outlined),
                                       label: const Text('Edit'),
                                     ),
                                     TextButton.icon(
                                       onPressed: () async {
-                                        final confirmed = await showDeleteConfirmationDialog(
-                                          context,
-                                          title: 'Delete student?',
-                                          message: 'This will remove ${student.name} and their profile.',
-                                        );
+                                        final confirmed =
+                                            await showDeleteConfirmationDialog(
+                                              context,
+                                              title: 'Delete student?',
+                                              message:
+                                                  'This will remove ${student.name} and their profile.',
+                                            );
                                         if (confirmed) _removeStudent(student);
                                       },
                                       icon: const Icon(Icons.delete_outline),
@@ -515,7 +663,11 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
   }
 
   Widget _buildDocumentsTab(BuildContext context) {
-    final filteredDocuments = _documents.where((document) => _matchesDocumentQuery(document, _documentSearchQuery)).toList();
+    final filteredDocuments = _documents
+        .where(
+          (document) => _matchesDocumentQuery(document, _documentSearchQuery),
+        )
+        .toList();
     return Column(
       key: _documentsContentKey,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -528,7 +680,8 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
               final searchField = _buildCompactSearchField(
                 fieldKey: const Key('student_document_search_field'),
                 controller: _documentSearchController,
-                onChanged: (value) => setState(() => _documentSearchQuery = value),
+                onChanged: (value) =>
+                    setState(() => _documentSearchQuery = value),
               );
 
               return Column(
@@ -542,9 +695,18 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Student Documents', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                              Text(
+                                'Student Documents',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                               SizedBox(height: 4),
-                              Text('Upload and manage student documents.', style: TextStyle(color: Colors.black54)),
+                              Text(
+                                'Upload and manage student documents.',
+                                style: TextStyle(color: Colors.black54),
+                              ),
                             ],
                           ),
                         ),
@@ -558,9 +720,18 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
                       ],
                     )
                   else ...[
-                    const Text('Student Documents', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                    const Text(
+                      'Student Documents',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     const SizedBox(height: 4),
-                    const Text('Upload and manage student documents.', style: TextStyle(color: Colors.black54)),
+                    const Text(
+                      'Upload and manage student documents.',
+                      style: TextStyle(color: Colors.black54),
+                    ),
                     const SizedBox(height: 12),
                     searchField,
                     const SizedBox(height: 12),
@@ -584,10 +755,14 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
                   itemBuilder: (context, index) {
                     final doc = filteredDocuments[index];
                     return Card(
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       child: ListTile(
                         title: Text(doc.fileName),
-                        subtitle: Text('${doc.studentName} • ${doc.documentType}'),
+                        subtitle: Text(
+                          '${doc.studentName} • ${doc.documentType}',
+                        ),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -596,18 +771,24 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
                               icon: const Icon(Icons.download_outlined),
                               onPressed: () => _downloadDocument(context, doc),
                             ),
-                            IconButton(icon: const Icon(Icons.edit), onPressed: () => _showDocumentDialog(context, document: doc)),
+                            IconButton(
+                              icon: const Icon(Icons.edit),
+                              onPressed: () =>
+                                  _showDocumentDialog(context, document: doc),
+                            ),
                             IconButton(
                               icon: const Icon(Icons.delete),
                               onPressed: () async {
-                            final confirmed = await showDeleteConfirmationDialog(
-                              context,
-                              title: 'Delete document?',
-                              message: 'This will remove ${doc.fileName} from student documents.',
-                            );
-                            if (!confirmed) return;
-                            setState(() => _documents.remove(doc));
-                            await persistNow();
+                                final confirmed =
+                                    await showDeleteConfirmationDialog(
+                                      context,
+                                      title: 'Delete document?',
+                                      message:
+                                          'This will remove ${doc.fileName} from student documents.',
+                                    );
+                                if (!confirmed) return;
+                                setState(() => _documents.remove(doc));
+                                await persistNow();
                               },
                             ),
                           ],
@@ -641,18 +822,21 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
               final maxColumns = constraints.maxWidth >= 1100
                   ? 4
                   : constraints.maxWidth >= 780
-                      ? 3
-                      : constraints.maxWidth >= 520
-                          ? 2
-                          : 1;
+                  ? 3
+                  : constraints.maxWidth >= 520
+                  ? 2
+                  : 1;
               final effectiveColumns = filteredStudents.isEmpty
                   ? maxColumns
                   : filteredStudents.length < maxColumns
-                      ? filteredStudents.length
-                      : maxColumns;
+                  ? filteredStudents.length
+                  : maxColumns;
 
               return GridView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 16,
+                ),
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: effectiveColumns == 0 ? 1 : effectiveColumns,
                   childAspectRatio: effectiveColumns <= 1 ? 1.6 : 1,
@@ -664,18 +848,29 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
                   final student = filteredStudents[index];
                   return Card(
                     elevation: 1,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     child: Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(
-                            _studentPhotos.containsKey(student.admissionNo) ? Icons.account_circle : Icons.person_outline,
+                            _studentPhotos.containsKey(student.admissionNo)
+                                ? Icons.account_circle
+                                : Icons.person_outline,
                             size: 48,
-                            color: _studentPhotos.containsKey(student.admissionNo) ? Theme.of(context).colorScheme.primary : null,
+                            color:
+                                _studentPhotos.containsKey(student.admissionNo)
+                                ? Theme.of(context).colorScheme.primary
+                                : null,
                           ),
                           const SizedBox(height: 8),
-                          Text(student.name, textAlign: TextAlign.center, overflow: TextOverflow.ellipsis),
+                          Text(
+                            student.name,
+                            textAlign: TextAlign.center,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                           if (_studentPhotos.containsKey(student.admissionNo))
                             Text(
                               _studentPhotos[student.admissionNo]!,
@@ -686,9 +881,22 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              IconButton(icon: const Icon(Icons.edit), onPressed: () => _showPhotoDialog(context, student: student)),
-                              if (_studentPhotos.containsKey(student.admissionNo))
-                                IconButton(icon: const Icon(Icons.delete_outline), onPressed: () => setState(() => _studentPhotos.remove(student.admissionNo))),
+                              IconButton(
+                                icon: const Icon(Icons.edit),
+                                onPressed: () =>
+                                    _showPhotoDialog(context, student: student),
+                              ),
+                              if (_studentPhotos.containsKey(
+                                student.admissionNo,
+                              ))
+                                IconButton(
+                                  icon: const Icon(Icons.delete_outline),
+                                  onPressed: () => setState(
+                                    () => _studentPhotos.remove(
+                                      student.admissionNo,
+                                    ),
+                                  ),
+                                ),
                             ],
                           ),
                         ],
@@ -729,7 +937,9 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
                     final student = filteredStudents[index];
                     return Card(
                       elevation: 1,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       child: ListTile(
                         title: Text(student.name),
                         subtitle: Text(
@@ -743,17 +953,20 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
                             IconButton(
                               tooltip: 'Edit parent details',
                               icon: const Icon(Icons.edit),
-                              onPressed: () => _showParentDialog(context, student: student),
+                              onPressed: () =>
+                                  _showParentDialog(context, student: student),
                             ),
                             IconButton(
                               tooltip: 'Clear parent details',
                               icon: const Icon(Icons.delete),
                               onPressed: () async {
-                                final confirmed = await showDeleteConfirmationDialog(
-                                  context,
-                                  title: 'Delete parent details?',
-                                  message: 'This will clear parent details for ${student.name}.',
-                                );
+                                final confirmed =
+                                    await showDeleteConfirmationDialog(
+                                      context,
+                                      title: 'Delete parent details?',
+                                      message:
+                                          'This will clear parent details for ${student.name}.',
+                                    );
                                 if (!confirmed) return;
                                 setState(() {
                                   student
@@ -806,24 +1019,36 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
                   itemBuilder: (context, index) {
                     final promotion = filteredPromotions[index];
                     return Card(
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       child: ListTile(
                         title: Text(promotion.studentName),
-                        subtitle: Text('${promotion.fromClass} → ${promotion.toClass} • ${promotion.promotionDate}'),
+                        subtitle: Text(
+                          '${promotion.fromClass} → ${promotion.toClass} • ${promotion.promotionDate}',
+                        ),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            IconButton(icon: const Icon(Icons.edit), onPressed: () => _showPromotionDialog(context, promotion: promotion)),
+                            IconButton(
+                              icon: const Icon(Icons.edit),
+                              onPressed: () => _showPromotionDialog(
+                                context,
+                                promotion: promotion,
+                              ),
+                            ),
                             IconButton(
                               icon: const Icon(Icons.delete),
                               onPressed: () async {
-                            final confirmed = await showDeleteConfirmationDialog(
-                              context,
-                              title: 'Delete promotion record?',
-                              message: 'This will remove the promotion record for ${promotion.studentName}.',
-                            );
-                            if (!confirmed) return;
-                            setState(() => _promotions.remove(promotion));
+                                final confirmed =
+                                    await showDeleteConfirmationDialog(
+                                      context,
+                                      title: 'Delete promotion record?',
+                                      message:
+                                          'This will remove the promotion record for ${promotion.studentName}.',
+                                    );
+                                if (!confirmed) return;
+                                setState(() => _promotions.remove(promotion));
                               },
                             ),
                           ],
@@ -851,7 +1076,11 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
         ),
         Expanded(
           child: filteredStudents.isEmpty
-              ? const Center(child: Text('No students available for transfer certificates.'))
+              ? const Center(
+                  child: Text(
+                    'No students available for transfer certificates.',
+                  ),
+                )
               : ListView.separated(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   itemCount: filteredStudents.length,
@@ -859,10 +1088,14 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
                   itemBuilder: (context, index) {
                     final student = filteredStudents[index];
                     return Card(
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       child: ListTile(
                         title: Text(student.name),
-                        subtitle: Text('${student.admissionNo} • ${student.currentClass}-${student.section}'),
+                        subtitle: Text(
+                          '${student.admissionNo} • ${student.currentClass}-${student.section}',
+                        ),
                         leading: Icon(
                           _generatedCertificates.contains(student.admissionNo)
                               ? Icons.verified_outlined
@@ -873,20 +1106,38 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
                           children: [
                             ElevatedButton(
                               onPressed: () {
-                                if (_generatedCertificates.contains(student.admissionNo)) {
+                                if (_generatedCertificates.contains(
+                                  student.admissionNo,
+                                )) {
                                   _showTransferCertificate(context, student);
                                   return;
                                 }
-                                setState(() => _generatedCertificates.add(student.admissionNo));
+                                setState(
+                                  () => _generatedCertificates.add(
+                                    student.admissionNo,
+                                  ),
+                                );
                                 _showTransferCertificate(context, student);
                               },
-                              child: Text(_generatedCertificates.contains(student.admissionNo) ? 'View' : 'Transfer'),
+                              child: Text(
+                                _generatedCertificates.contains(
+                                      student.admissionNo,
+                                    )
+                                    ? 'View'
+                                    : 'Transfer',
+                              ),
                             ),
-                            if (_generatedCertificates.contains(student.admissionNo))
+                            if (_generatedCertificates.contains(
+                              student.admissionNo,
+                            ))
                               IconButton(
                                 tooltip: 'Revoke certificate',
                                 icon: const Icon(Icons.delete_outline),
-                                onPressed: () => setState(() => _generatedCertificates.remove(student.admissionNo)),
+                                onPressed: () => setState(
+                                  () => _generatedCertificates.remove(
+                                    student.admissionNo,
+                                  ),
+                                ),
                               ),
                           ],
                         ),
@@ -928,28 +1179,35 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
                   itemBuilder: (context, index) {
                     final alum = filteredAlumni[index];
                     return Card(
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       child: ListTile(
                         title: Text(alum.name),
-                        subtitle: Text('Batch ${alum.graduationYear} • ${alum.profession}'),
+                        subtitle: Text(
+                          'Batch ${alum.graduationYear} • ${alum.profession}',
+                        ),
                         trailing: Wrap(
                           children: [
                             IconButton(
                               tooltip: 'Edit alumni',
                               icon: const Icon(Icons.edit_outlined),
-                              onPressed: () => _showAlumniDialog(context, alumni: alum),
+                              onPressed: () =>
+                                  _showAlumniDialog(context, alumni: alum),
                             ),
                             IconButton(
                               tooltip: 'Delete alumni',
                               icon: const Icon(Icons.delete),
                               onPressed: () async {
-                            final confirmed = await showDeleteConfirmationDialog(
-                              context,
-                              title: 'Delete alumni record?',
-                              message: 'This will remove ${alum.name} from alumni records.',
-                            );
-                            if (!confirmed) return;
-                            setState(() => _alumni.remove(alum));
+                                final confirmed =
+                                    await showDeleteConfirmationDialog(
+                                      context,
+                                      title: 'Delete alumni record?',
+                                      message:
+                                          'This will remove ${alum.name} from alumni records.',
+                                    );
+                                if (!confirmed) return;
+                                setState(() => _alumni.remove(alum));
                               },
                             ),
                           ],
@@ -971,39 +1229,116 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
         children: [
           SizedBox(
             width: 100,
-            child: Text(label, style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.black54)),
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                color: Colors.black54,
+              ),
+            ),
           ),
-          Expanded(child: Text(value.isEmpty ? '—' : value, style: const TextStyle(fontWeight: FontWeight.w500))),
+          Expanded(
+            child: Text(
+              value.isEmpty ? '—' : value,
+              style: const TextStyle(fontWeight: FontWeight.w500),
+            ),
+          ),
         ],
       ),
     );
   }
 
-  void _showStudentDialog(BuildContext context, {StudentRecord? student, GlobalKey? anchorKey}) {
-    final renderObject = anchorKey?.currentContext?.findRenderObject() ?? context.findRenderObject();
+  void _showStudentDialog(
+    BuildContext context, {
+    StudentRecord? student,
+    GlobalKey? anchorKey,
+  }) {
+    final renderObject =
+        anchorKey?.currentContext?.findRenderObject() ??
+        context.findRenderObject();
     final contentRect = renderObject is RenderBox
         ? renderObject.localToGlobal(Offset.zero) & renderObject.size
-      : Offset.zero & MediaQuery.sizeOf(context);
+        : Offset.zero & MediaQuery.sizeOf(context);
     final formKey = GlobalKey<FormState>();
     final nameController = TextEditingController(text: student?.name ?? '');
     final generatedAdmissionNo = student?.admissionNo ?? _generateAdmissionNo();
-    final admissionNoController = TextEditingController(text: generatedAdmissionNo);
+    final admissionNoController = TextEditingController(
+      text: generatedAdmissionNo,
+    );
     final dobController = TextEditingController(text: student?.dob ?? '');
-    final addressController = TextEditingController(text: student?.address ?? '');
-    final mobileController = TextEditingController(text: student?.mobileNumber ?? '');
-    final aadhaarController = TextEditingController(text: student?.aadhaarNumber ?? '');
-    final categoryController = TextEditingController(text: student?.category.isNotEmpty == true ? student!.category : 'Others');
-    final religionController = TextEditingController(text: student?.religion ?? '');
-    String? gender = _genders.contains(student?.gender) ? student!.gender : null;
-    String? bloodGroup = _bloodGroups.contains(student?.bloodGroup) ? student!.bloodGroup : null;
-    String? currentClass = _classes.contains(student?.currentClass) ? student!.currentClass : null;
-    String? section = _sections.contains(student?.section) ? student!.section : null;
+    final addressController = TextEditingController(
+      text: student?.address ?? '',
+    );
+    final mobileController = TextEditingController(
+      text: student?.mobileNumber ?? '',
+    );
+    final aadhaarController = TextEditingController(
+      text: student?.aadhaarNumber ?? '',
+    );
+    final categoryController = TextEditingController(
+      text: student?.category.isNotEmpty == true ? student!.category : 'Others',
+    );
+    final religionController = TextEditingController(
+      text: student?.religion ?? '',
+    );
+    String? gender = _genders.contains(student?.gender)
+        ? student!.gender
+        : null;
+    String? bloodGroup = _bloodGroups.contains(student?.bloodGroup)
+        ? student!.bloodGroup
+        : null;
+    String? currentClass = _classes.contains(student?.currentClass)
+        ? student!.currentClass
+        : null;
+    String? section = _sections.contains(student?.section)
+        ? student!.section
+        : null;
 
     Future<void> submit(BuildContext drawerContext) async {
-      if (!(formKey.currentState?.validate() ?? false)) return;
-      final normalizedCategory = categoryController.text.trim().isEmpty ? 'Others' : categoryController.text.trim();
+      final requiredFields = <String, bool>{
+        'Student Name': nameController.text.trim().isNotEmpty,
+        'Gender': gender != null,
+        'Date of Birth': dobController.text.isNotEmpty,
+        'Mobile Number': mobileController.text.isNotEmpty,
+        'Aadhaar Number': aadhaarController.text.isNotEmpty,
+        'Class': currentClass != null,
+        'Section': section != null,
+        'Religion': religionController.text.trim().isNotEmpty,
+        'Address': addressController.text.trim().isNotEmpty,
+      };
+      final missingFields = requiredFields.entries
+          .where((entry) => !entry.value)
+          .map((entry) => entry.key);
+      if (missingFields.isNotEmpty) {
+        showAppFlashMessage(
+          drawerContext,
+          message: 'Missing required field: ${missingFields.first}',
+          type: AppFlashType.error,
+        );
+        formKey.currentState?.validate();
+        return;
+      }
+      if (!(formKey.currentState?.validate() ?? false)) {
+        final invalidField =
+            !RegExp(r'^[6-9]\d{9}$').hasMatch(mobileController.text)
+            ? 'Mobile Number'
+            : !RegExp(r'^\d{12}$').hasMatch(aadhaarController.text)
+            ? 'Aadhaar Number'
+            : 'Admission Details';
+        showAppFlashMessage(
+          drawerContext,
+          message: 'Invalid field: $invalidField',
+          type: AppFlashType.error,
+        );
+        return;
+      }
+      final isNew = student == null;
+      final normalizedCategory = categoryController.text.trim().isEmpty
+          ? 'Others'
+          : categoryController.text.trim();
       setState(() {
-        final record = student ??
+        final record =
+            student ??
             StudentRecord(
               admissionNo: generatedAdmissionNo.trim(),
               name: '',
@@ -1040,21 +1375,35 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
         _categoryOptions.add(normalizedCategory);
       });
       await persistNow();
+      if (!drawerContext.mounted) return;
       Navigator.pop(drawerContext);
+      showAppFlashMessage(
+        context,
+        message: isNew
+            ? 'Student created successfully.'
+            : 'Student updated successfully.',
+        type: isNew ? AppFlashType.success : AppFlashType.update,
+      );
     }
 
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
       barrierLabel: 'Close admission form',
-      barrierColor: Colors.black54,
+      barrierColor: Colors.black38,
       transitionDuration: const Duration(milliseconds: 280),
-      transitionBuilder: (context, animation, secondaryAnimation, child) => child,
+      transitionBuilder: (context, animation, secondaryAnimation, child) =>
+          child,
       pageBuilder: (dialogContext, animation, secondaryAnimation) => StatefulBuilder(
         builder: (context, setDialogState) {
           final availableWidth = contentRect.width;
-          final drawerWidth = availableWidth < 900 ? availableWidth : availableWidth * 0.52;
-          final panelAnimation = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic);
+          final drawerWidth = availableWidth < 900
+              ? availableWidth
+              : availableWidth * 0.52;
+          final panelAnimation = CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeOutCubic,
+          );
           return Stack(
             children: [
               Positioned(
@@ -1075,146 +1424,199 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
                       elevation: 24,
                       color: Theme.of(context).scaffoldBackgroundColor,
                       child: Scaffold(
-            appBar: AppBar(
-              automaticallyImplyLeading: false,
-              title: Text(student == null ? 'New Admission' : 'Edit Student'),
-              actions: [
-                IconButton(
-                  tooltip: 'Close',
-                  icon: const Icon(Icons.close),
-                  onPressed: () => Navigator.pop(dialogContext),
-                ),
-              ],
-            ),
-            body: Form(
-              key: formKey,
-              child: ListView(
-                padding: const EdgeInsets.all(24),
-                children: [
-                  Center(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 900),
-                      child: Wrap(
-                        spacing: 20,
-                        runSpacing: 16,
-                        children: [
-                          _formField(
-                            controller: admissionNoController,
-                            label: 'Admission Number',
-                            readOnly: true,
+                        appBar: AppBar(
+                          automaticallyImplyLeading: false,
+                          title: Text(
+                            student == null ? 'New Admission' : 'Edit Student',
                           ),
-                          _formField(
-                            controller: nameController,
-                            label: 'Student Name',
-                            validator: _required('student name'),
+                          actions: [
+                            IconButton(
+                              tooltip: 'Close',
+                              icon: const Icon(Icons.close),
+                              onPressed: () => Navigator.pop(dialogContext),
+                            ),
+                          ],
+                        ),
+                        body: Form(
+                          key: formKey,
+                          child: ListView(
+                            padding: const EdgeInsets.all(24),
+                            children: [
+                              Center(
+                                child: ConstrainedBox(
+                                  constraints: const BoxConstraints(
+                                    maxWidth: 900,
+                                  ),
+                                  child: Wrap(
+                                    spacing: 20,
+                                    runSpacing: 16,
+                                    children: [
+                                      _formField(
+                                        controller: admissionNoController,
+                                        label: 'Admission Number',
+                                        readOnly: true,
+                                      ),
+                                      _formField(
+                                        controller: nameController,
+                                        label: 'Student Name',
+                                        validator: _required('student name'),
+                                      ),
+                                      _dropdownField(
+                                        label: 'Gender',
+                                        value: gender,
+                                        items: _genders,
+                                        onChanged: (value) => setDialogState(
+                                          () => gender = value,
+                                        ),
+                                      ),
+                                      _formField(
+                                        controller: dobController,
+                                        label: 'Date of Birth',
+                                        readOnly: true,
+                                        suffixIcon: const Icon(
+                                          Icons.calendar_today_outlined,
+                                        ),
+                                        validator: _required('date of birth'),
+                                        onTap: () async {
+                                          final selected = await showDatePicker(
+                                            context: context,
+                                            initialDate:
+                                                DateTime.tryParse(
+                                                  dobController.text,
+                                                ) ??
+                                                DateTime(2010),
+                                            firstDate: DateTime(1990),
+                                            lastDate: DateTime.now(),
+                                          );
+                                          if (selected != null) {
+                                            dobController.text = DateFormat(
+                                              'yyyy-MM-dd',
+                                            ).format(selected);
+                                          }
+                                        },
+                                      ),
+                                      _dropdownField(
+                                        label: 'Blood Group',
+                                        value: bloodGroup,
+                                        items: _bloodGroups,
+                                        required: false,
+                                        onChanged: (value) => setDialogState(
+                                          () => bloodGroup = value,
+                                        ),
+                                      ),
+                                      _formField(
+                                        controller: mobileController,
+                                        label: 'Mobile Number',
+                                        fieldKey: const Key('admission_mobile'),
+                                        keyboardType: TextInputType.phone,
+                                        inputFormatters: [
+                                          FilteringTextInputFormatter
+                                              .digitsOnly,
+                                          LengthLimitingTextInputFormatter(10),
+                                        ],
+                                        validator: (value) =>
+                                            RegExp(
+                                              r'^[6-9]\d{9}$',
+                                            ).hasMatch(value ?? '')
+                                            ? null
+                                            : 'Enter a valid 10-digit mobile number',
+                                      ),
+                                      _formField(
+                                        controller: aadhaarController,
+                                        label: 'Aadhaar Number',
+                                        fieldKey: const Key(
+                                          'admission_aadhaar',
+                                        ),
+                                        keyboardType: TextInputType.number,
+                                        inputFormatters: [
+                                          FilteringTextInputFormatter
+                                              .digitsOnly,
+                                          LengthLimitingTextInputFormatter(12),
+                                        ],
+                                        validator: (value) =>
+                                            RegExp(
+                                              r'^\d{12}$',
+                                            ).hasMatch(value ?? '')
+                                            ? null
+                                            : 'Enter a valid 12-digit Aadhaar number',
+                                      ),
+                                      _dropdownField(
+                                        label: 'Class',
+                                        value: currentClass,
+                                        items: _classes,
+                                        onChanged: (value) => setDialogState(
+                                          () => currentClass = value,
+                                        ),
+                                      ),
+                                      _dropdownField(
+                                        label: 'Section',
+                                        value: section,
+                                        items: _sections,
+                                        onChanged: (value) => setDialogState(
+                                          () => section = value,
+                                        ),
+                                      ),
+                                      _categoryField(categoryController),
+                                      _formField(
+                                        controller: religionController,
+                                        label: 'Religion',
+                                        validator: _required('religion'),
+                                      ),
+                                      SizedBox(
+                                        width: 900,
+                                        child: TextFormField(
+                                          controller: addressController,
+                                          maxLines: 3,
+                                          decoration: const InputDecoration(
+                                            labelText: 'Address',
+                                            alignLabelWithHint: true,
+                                          ),
+                                          validator: _required('address'),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                          _dropdownField(
-                            label: 'Gender',
-                            value: gender,
-                            items: _genders,
-                            onChanged: (value) => setDialogState(() => gender = value),
-                          ),
-                          _formField(
-                            controller: dobController,
-                            label: 'Date of Birth',
-                            readOnly: true,
-                            suffixIcon: const Icon(Icons.calendar_today_outlined),
-                            validator: _required('date of birth'),
-                            onTap: () async {
-                              final selected = await showDatePicker(
-                                context: context,
-                                initialDate: DateTime.tryParse(dobController.text) ?? DateTime(2010),
-                                firstDate: DateTime(1990),
-                                lastDate: DateTime.now(),
-                              );
-                              if (selected != null) {
-                                dobController.text = DateFormat('yyyy-MM-dd').format(selected);
-                              }
-                            },
-                          ),
-                          _dropdownField(
-                            label: 'Blood Group',
-                            value: bloodGroup,
-                            items: _bloodGroups,
-                            required: false,
-                            onChanged: (value) => setDialogState(() => bloodGroup = value),
-                          ),
-                          _formField(
-                            controller: mobileController,
-                            label: 'Mobile Number',
-                            fieldKey: const Key('admission_mobile'),
-                            keyboardType: TextInputType.phone,
-                            inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(10)],
-                            validator: (value) => RegExp(r'^[6-9]\d{9}$').hasMatch(value ?? '')
-                                ? null
-                                : 'Enter a valid 10-digit mobile number',
-                          ),
-                          _formField(
-                            controller: aadhaarController,
-                            label: 'Aadhaar Number',
-                            fieldKey: const Key('admission_aadhaar'),
-                            keyboardType: TextInputType.number,
-                            inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(12)],
-                            validator: (value) => RegExp(r'^\d{12}$').hasMatch(value ?? '')
-                                ? null
-                                : 'Enter a valid 12-digit Aadhaar number',
-                          ),
-                          _dropdownField(
-                            label: 'Class',
-                            value: currentClass,
-                            items: _classes,
-                            onChanged: (value) => setDialogState(() => currentClass = value),
-                          ),
-                          _dropdownField(
-                            label: 'Section',
-                            value: section,
-                            items: _sections,
-                            onChanged: (value) => setDialogState(() => section = value),
-                          ),
-                          _categoryField(categoryController),
-                          _formField(controller: religionController, label: 'Religion', validator: _required('religion')),
-                          SizedBox(
-                            width: 900,
-                            child: TextFormField(
-                              controller: addressController,
-                              maxLines: 3,
-                              decoration: const InputDecoration(labelText: 'Address', alignLabelWithHint: true),
-                              validator: _required('address'),
+                        ),
+                        bottomNavigationBar: Material(
+                          elevation: 12,
+                          child: SafeArea(
+                            top: false,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                                vertical: 16,
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  OutlinedButton(
+                                    key: const Key('admission_cancel_button'),
+                                    onPressed: () =>
+                                        Navigator.pop(dialogContext),
+                                    child: const Text('Cancel'),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  ElevatedButton.icon(
+                                    key: const Key('admission_submit_button'),
+                                    onPressed: () => submit(dialogContext),
+                                    icon: Icon(
+                                      student == null
+                                          ? Icons.add
+                                          : Icons.save_outlined,
+                                    ),
+                                    label: Text(
+                                      student == null ? 'Create' : 'Save',
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            bottomNavigationBar: Material(
-              elevation: 12,
-              child: SafeArea(
-                top: false,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      OutlinedButton(
-                        key: const Key('admission_cancel_button'),
-                        onPressed: () => Navigator.pop(dialogContext),
-                        child: const Text('Cancel'),
-                      ),
-                      const SizedBox(width: 12),
-                      ElevatedButton.icon(
-                        key: const Key('admission_submit_button'),
-                        onPressed: () => submit(dialogContext),
-                        icon: Icon(student == null ? Icons.add : Icons.save_outlined),
-                        label: Text(student == null ? 'Create' : 'Save'),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
+                        ),
                       ),
                     ),
                   ),
@@ -1228,7 +1630,8 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
   }
 
   String? Function(String?) _required(String field) {
-    return (value) => value == null || value.trim().isEmpty ? 'Enter $field' : null;
+    return (value) =>
+        value == null || value.trim().isEmpty ? 'Enter $field' : null;
   }
 
   Widget _formField({
@@ -1270,9 +1673,14 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
         initialValue: value,
         isExpanded: true,
         decoration: InputDecoration(labelText: label),
-        items: items.map((item) => DropdownMenuItem(value: item, child: Text(item))).toList(),
+        items: items
+            .map((item) => DropdownMenuItem(value: item, child: Text(item)))
+            .toList(),
         onChanged: onChanged,
-        validator: required ? (selection) => selection == null ? 'Select ${label.toLowerCase()}' : null : null,
+        validator: required
+            ? (selection) =>
+                  selection == null ? 'Select ${label.toLowerCase()}' : null
+            : null,
       ),
     );
   }
@@ -1298,7 +1706,12 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
             icon: const Icon(Icons.arrow_drop_down),
             onSelected: (value) => controller.text = value,
             itemBuilder: (context) => orderedCategories
-                .map((category) => PopupMenuItem<String>(value: category, child: Text(category)))
+                .map(
+                  (category) => PopupMenuItem<String>(
+                    value: category,
+                    child: Text(category),
+                  ),
+                )
                 .toList(),
           ),
         ),
@@ -1308,10 +1721,15 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
 
   void _showDocumentDialog(BuildContext context, {StudentDocument? document}) {
     if (_students.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Add a student before uploading documents.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Add a student before uploading documents.'),
+        ),
+      );
       return;
     }
-    String selectedAdmissionNo = document?.studentAdmissionNo ?? _students.first.admissionNo;
+    String selectedAdmissionNo =
+        document?.studentAdmissionNo ?? _students.first.admissionNo;
     String documentType = document?.documentType ?? 'Birth Certificate';
     String? selectedFileName = document?.fileName;
     String? documentFileData = document?.fileData;
@@ -1323,7 +1741,11 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
         builder: (context, setDialogState) {
           final filteredStudents = _filterStudents(studentSearchQuery);
           final studentOptions = filteredStudents.isEmpty
-              ? _students.where((student) => student.admissionNo == selectedAdmissionNo).toList()
+              ? _students
+                    .where(
+                      (student) => student.admissionNo == selectedAdmissionNo,
+                    )
+                    .toList()
               : filteredStudents;
 
           return AlertDialog(
@@ -1335,7 +1757,8 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
                 children: [
                   TextField(
                     key: const Key('document_student_search_field'),
-                    onChanged: (value) => setDialogState(() => studentSearchQuery = value),
+                    onChanged: (value) =>
+                        setDialogState(() => studentSearchQuery = value),
                     decoration: const InputDecoration(
                       labelText: 'Search student',
                       hintText: 'Search by student name or admission no',
@@ -1344,27 +1767,52 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
                   ),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<String>(
-                    initialValue: studentOptions.any((student) => student.admissionNo == selectedAdmissionNo)
+                    initialValue:
+                        studentOptions.any(
+                          (student) =>
+                              student.admissionNo == selectedAdmissionNo,
+                        )
                         ? selectedAdmissionNo
-                        : (studentOptions.isNotEmpty ? studentOptions.first.admissionNo : null),
+                        : (studentOptions.isNotEmpty
+                              ? studentOptions.first.admissionNo
+                              : null),
                     isExpanded: true,
                     items: studentOptions
-                        .map((student) => DropdownMenuItem(
-                              value: student.admissionNo,
-                              child: Text('${student.name} (${student.admissionNo})'),
-                            ))
+                        .map(
+                          (student) => DropdownMenuItem(
+                            value: student.admissionNo,
+                            child: Text(
+                              '${student.name} (${student.admissionNo})',
+                            ),
+                          ),
+                        )
                         .toList(),
                     decoration: const InputDecoration(labelText: 'Student'),
-                    onChanged: (value) => selectedAdmissionNo = value ?? selectedAdmissionNo,
+                    onChanged: (value) =>
+                        selectedAdmissionNo = value ?? selectedAdmissionNo,
                   ),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<String>(
                     initialValue: documentType,
                     isExpanded: true,
-                    items: const ['Birth Certificate', 'Aadhaar Card', 'Previous Mark Sheet', 'Transfer Certificate', 'Other']
-                        .map((type) => DropdownMenuItem(value: type, child: Text(type)))
-                        .toList(),
-                    decoration: const InputDecoration(labelText: 'Document Type'),
+                    items:
+                        const [
+                              'Birth Certificate',
+                              'Aadhaar Card',
+                              'Previous Mark Sheet',
+                              'Transfer Certificate',
+                              'Other',
+                            ]
+                            .map(
+                              (type) => DropdownMenuItem(
+                                value: type,
+                                child: Text(type),
+                              ),
+                            )
+                            .toList(),
+                    decoration: const InputDecoration(
+                      labelText: 'Document Type',
+                    ),
                     onChanged: (value) => documentType = value ?? documentType,
                   ),
                   const SizedBox(height: 16),
@@ -1389,43 +1837,55 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
                     },
                   ),
                   const SizedBox(height: 8),
-                  const Text('PDF, PNG or JPG', style: TextStyle(color: Colors.black54)),
+                  const Text(
+                    'PDF, PNG or JPG',
+                    style: TextStyle(color: Colors.black54),
+                  ),
                 ],
               ),
             ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Cancel')),
-            ElevatedButton(
-              onPressed: selectedFileName == null
-                  ? null
-                  : () async {
-                      final selectedStudent = _students.firstWhere((s) => s.admissionNo == selectedAdmissionNo);
-                      setState(() {
-                        if (document == null) {
-                          _documents.add(StudentDocument(
-                            id: _documents.isEmpty ? 1 : _documents.last.id + 1,
-                            studentAdmissionNo: selectedAdmissionNo,
-                            studentName: selectedStudent.name,
-                            documentType: documentType,
-                            fileName: selectedFileName!,
-                            fileData: documentFileData,
-                          ));
-                        } else {
-                          document
-                            ..studentAdmissionNo = selectedAdmissionNo
-                            ..studentName = selectedStudent.name
-                            ..documentType = documentType
-                            ..fileName = selectedFileName!
-                            ..fileData = documentFileData;
-                        }
-                      });
-                      await persistNow();
-                      Navigator.pop(dialogContext);
-                    },
-              child: Text(document == null ? 'Upload' : 'Save'),
-            ),
-          ],
-        );
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: selectedFileName == null
+                    ? null
+                    : () async {
+                        final selectedStudent = _students.firstWhere(
+                          (s) => s.admissionNo == selectedAdmissionNo,
+                        );
+                        setState(() {
+                          if (document == null) {
+                            _documents.add(
+                              StudentDocument(
+                                id: _documents.isEmpty
+                                    ? 1
+                                    : _documents.last.id + 1,
+                                studentAdmissionNo: selectedAdmissionNo,
+                                studentName: selectedStudent.name,
+                                documentType: documentType,
+                                fileName: selectedFileName!,
+                                fileData: documentFileData,
+                              ),
+                            );
+                          } else {
+                            document
+                              ..studentAdmissionNo = selectedAdmissionNo
+                              ..studentName = selectedStudent.name
+                              ..documentType = documentType
+                              ..fileName = selectedFileName!
+                              ..fileData = documentFileData;
+                          }
+                        });
+                        await persistNow();
+                        Navigator.pop(dialogContext);
+                      },
+                child: Text(document == null ? 'Upload' : 'Save'),
+              ),
+            ],
+          );
         },
       ),
     );
@@ -1433,10 +1893,15 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
 
   void _showPhotoDialog(BuildContext context, {StudentRecord? student}) {
     if (_students.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Add a student before uploading a photo.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Add a student before uploading a photo.'),
+        ),
+      );
       return;
     }
-    String selectedAdmissionNo = student?.admissionNo ?? _students.first.admissionNo;
+    String selectedAdmissionNo =
+        student?.admissionNo ?? _students.first.admissionNo;
     String? selectedFileName;
     showDialog(
       context: context,
@@ -1453,10 +1918,16 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
                     initialValue: selectedAdmissionNo,
                     isExpanded: true,
                     items: _students
-                        .map((s) => DropdownMenuItem(value: s.admissionNo, child: Text('${s.name} (${s.admissionNo})')))
+                        .map(
+                          (s) => DropdownMenuItem(
+                            value: s.admissionNo,
+                            child: Text('${s.name} (${s.admissionNo})'),
+                          ),
+                        )
                         .toList(),
                     decoration: const InputDecoration(labelText: 'Student'),
-                    onChanged: (value) => selectedAdmissionNo = value ?? selectedAdmissionNo,
+                    onChanged: (value) =>
+                        selectedAdmissionNo = value ?? selectedAdmissionNo,
                   ),
                 const SizedBox(height: 16),
                 const Icon(Icons.add_a_photo_outlined, size: 56),
@@ -1465,9 +1936,13 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
                   icon: const Icon(Icons.image_outlined),
                   label: Text(selectedFileName ?? 'Choose photo'),
                   onPressed: () async {
-                    final result = await FilePicker.platform.pickFiles(type: FileType.image);
+                    final result = await FilePicker.platform.pickFiles(
+                      type: FileType.image,
+                    );
                     if (result != null && result.files.isNotEmpty) {
-                      setDialogState(() => selectedFileName = result.files.single.name);
+                      setDialogState(
+                        () => selectedFileName = result.files.single.name,
+                      );
                     }
                   },
                 ),
@@ -1475,12 +1950,18 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Cancel')),
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel'),
+            ),
             ElevatedButton(
               onPressed: selectedFileName == null
                   ? null
                   : () {
-                      setState(() => _studentPhotos[selectedAdmissionNo] = selectedFileName!);
+                      setState(
+                        () => _studentPhotos[selectedAdmissionNo] =
+                            selectedFileName!,
+                      );
                       Navigator.pop(dialogContext);
                     },
               child: const Text('Upload'),
@@ -1493,17 +1974,34 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
 
   void _showParentDialog(BuildContext context, {StudentRecord? student}) {
     if (_students.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No students available for parent details.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No students available for parent details.'),
+        ),
+      );
       return;
     }
     final formKey = GlobalKey<FormState>();
-    String selectedAdmissionNo = student?.admissionNo ?? _students.first.admissionNo;
-    final fatherNameController = TextEditingController(text: student?.fatherName ?? '');
-    final fatherOccupationController = TextEditingController(text: student?.fatherOccupation ?? '');
-    final fatherPhoneController = TextEditingController(text: student?.fatherPhone ?? '');
-    final motherNameController = TextEditingController(text: student?.motherName ?? '');
-    final motherOccupationController = TextEditingController(text: student?.motherOccupation ?? '');
-    final motherPhoneController = TextEditingController(text: student?.motherPhone ?? '');
+    String selectedAdmissionNo =
+        student?.admissionNo ?? _students.first.admissionNo;
+    final fatherNameController = TextEditingController(
+      text: student?.fatherName ?? '',
+    );
+    final fatherOccupationController = TextEditingController(
+      text: student?.fatherOccupation ?? '',
+    );
+    final fatherPhoneController = TextEditingController(
+      text: student?.fatherPhone ?? '',
+    );
+    final motherNameController = TextEditingController(
+      text: student?.motherName ?? '',
+    );
+    final motherOccupationController = TextEditingController(
+      text: student?.motherOccupation ?? '',
+    );
+    final motherPhoneController = TextEditingController(
+      text: student?.motherPhone ?? '',
+    );
 
     showDialog(
       context: context,
@@ -1521,10 +2019,16 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
                     initialValue: selectedAdmissionNo,
                     isExpanded: true,
                     items: _students
-                        .map((s) => DropdownMenuItem(value: s.admissionNo, child: Text('${s.name} (${s.admissionNo})')))
+                        .map(
+                          (s) => DropdownMenuItem(
+                            value: s.admissionNo,
+                            child: Text('${s.name} (${s.admissionNo})'),
+                          ),
+                        )
                         .toList(),
                     decoration: const InputDecoration(labelText: 'Student'),
-                    onChanged: (value) => selectedAdmissionNo = value ?? selectedAdmissionNo,
+                    onChanged: (value) =>
+                        selectedAdmissionNo = value ?? selectedAdmissionNo,
                   ),
                 TextFormField(
                   controller: fatherNameController,
@@ -1533,15 +2037,23 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
                 ),
                 TextFormField(
                   controller: fatherOccupationController,
-                  decoration: const InputDecoration(labelText: 'Father Occupation'),
+                  decoration: const InputDecoration(
+                    labelText: 'Father Occupation',
+                  ),
                   validator: _required('father occupation'),
                 ),
                 TextFormField(
                   controller: fatherPhoneController,
-                  decoration: const InputDecoration(labelText: 'Father Phone No.'),
+                  decoration: const InputDecoration(
+                    labelText: 'Father Phone No.',
+                  ),
                   keyboardType: TextInputType.phone,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(10)],
-                  validator: (value) => RegExp(r'^[6-9]\d{9}$').hasMatch(value ?? '')
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(10),
+                  ],
+                  validator: (value) =>
+                      RegExp(r'^[6-9]\d{9}$').hasMatch(value ?? '')
                       ? null
                       : 'Enter a valid 10-digit phone number',
                 ),
@@ -1552,15 +2064,23 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
                 ),
                 TextFormField(
                   controller: motherOccupationController,
-                  decoration: const InputDecoration(labelText: 'Mother Occupation'),
+                  decoration: const InputDecoration(
+                    labelText: 'Mother Occupation',
+                  ),
                   validator: _required('mother occupation'),
                 ),
                 TextFormField(
                   controller: motherPhoneController,
-                  decoration: const InputDecoration(labelText: 'Mother Phone No.'),
+                  decoration: const InputDecoration(
+                    labelText: 'Mother Phone No.',
+                  ),
                   keyboardType: TextInputType.phone,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(10)],
-                  validator: (value) => RegExp(r'^[6-9]\d{9}$').hasMatch(value ?? '')
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(10),
+                  ],
+                  validator: (value) =>
+                      RegExp(r'^[6-9]\d{9}$').hasMatch(value ?? '')
                       ? null
                       : 'Enter a valid 10-digit phone number',
                 ),
@@ -1569,11 +2089,18 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
           ElevatedButton(
             onPressed: () {
               if (!(formKey.currentState?.validate() ?? false)) return;
-              final targetStudent = student ?? _students.firstWhere((s) => s.admissionNo == selectedAdmissionNo);
+              final targetStudent =
+                  student ??
+                  _students.firstWhere(
+                    (s) => s.admissionNo == selectedAdmissionNo,
+                  );
               setState(() {
                 targetStudent
                   ..fatherName = fatherNameController.text.trim()
@@ -1592,13 +2119,19 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
     );
   }
 
-  void _showPromotionDialog(BuildContext context, {StudentPromotion? promotion}) {
+  void _showPromotionDialog(
+    BuildContext context, {
+    StudentPromotion? promotion,
+  }) {
     if (_students.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No students available to promote.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No students available to promote.')),
+      );
       return;
     }
     final formKey = GlobalKey<FormState>();
-    String selectedAdmissionNo = promotion?.studentAdmissionNo ?? _students.first.admissionNo;
+    String selectedAdmissionNo =
+        promotion?.studentAdmissionNo ?? _students.first.admissionNo;
     String? toClass = promotion?.toClass;
     String studentSearchQuery = '';
 
@@ -1613,11 +2146,17 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
                 student.admissionNo.toLowerCase().contains(normalizedQuery);
           }).toList();
           final studentOptions = filteredStudents.isEmpty
-              ? _students.where((student) => student.admissionNo == selectedAdmissionNo).toList()
+              ? _students
+                    .where(
+                      (student) => student.admissionNo == selectedAdmissionNo,
+                    )
+                    .toList()
               : filteredStudents;
 
           return AlertDialog(
-            title: Text(promotion == null ? 'Promote Student' : 'Edit Promotion'),
+            title: Text(
+              promotion == null ? 'Promote Student' : 'Edit Promotion',
+            ),
             content: Form(
               key: formKey,
               child: Column(
@@ -1625,7 +2164,8 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
                 children: [
                   TextField(
                     key: const Key('promotion_student_search_field'),
-                    onChanged: (value) => setDialogState(() => studentSearchQuery = value),
+                    onChanged: (value) =>
+                        setDialogState(() => studentSearchQuery = value),
                     decoration: const InputDecoration(
                       labelText: 'Search student',
                       hintText: 'Search by student name or admission no',
@@ -1634,49 +2174,86 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
                   ),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<String>(
-                    initialValue: studentOptions.any((student) => student.admissionNo == selectedAdmissionNo)
+                    initialValue:
+                        studentOptions.any(
+                          (student) =>
+                              student.admissionNo == selectedAdmissionNo,
+                        )
                         ? selectedAdmissionNo
-                        : (studentOptions.isNotEmpty ? studentOptions.first.admissionNo : null),
+                        : (studentOptions.isNotEmpty
+                              ? studentOptions.first.admissionNo
+                              : null),
                     isExpanded: true,
                     items: studentOptions
-                        .map((s) => DropdownMenuItem(value: s.admissionNo, child: Text('${s.name} (${s.admissionNo})')))
+                        .map(
+                          (s) => DropdownMenuItem(
+                            value: s.admissionNo,
+                            child: Text('${s.name} (${s.admissionNo})'),
+                          ),
+                        )
                         .toList(),
                     decoration: const InputDecoration(labelText: 'Student'),
-                    onChanged: promotion == null ? (value) => selectedAdmissionNo = value ?? selectedAdmissionNo : null,
+                    onChanged: promotion == null
+                        ? (value) =>
+                              selectedAdmissionNo = value ?? selectedAdmissionNo
+                        : null,
                   ),
                   DropdownButtonFormField<String>(
                     initialValue: toClass,
                     isExpanded: true,
-                    items: _classes.map((item) => DropdownMenuItem(value: item, child: Text(item))).toList(),
+                    items: _classes
+                        .map(
+                          (item) =>
+                              DropdownMenuItem(value: item, child: Text(item)),
+                        )
+                        .toList(),
                     decoration: const InputDecoration(labelText: 'New Class'),
                     onChanged: (value) => toClass = value,
-                    validator: (value) => value == null ? 'Select the new class' : null,
+                    validator: (value) =>
+                        value == null ? 'Select the new class' : null,
                   ),
                 ],
               ),
             ),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Cancel')),
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const Text('Cancel'),
+              ),
               ElevatedButton(
                 onPressed: () {
                   if (!(formKey.currentState?.validate() ?? false)) return;
-                  final studentIndex = _students.indexWhere((s) => s.admissionNo == selectedAdmissionNo);
-                  final selectedStudent = studentIndex >= 0 ? _students[studentIndex] : null;
-                  if (promotion == null && selectedStudent?.currentClass == toClass) {
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Select a different class.')));
+                  final studentIndex = _students.indexWhere(
+                    (s) => s.admissionNo == selectedAdmissionNo,
+                  );
+                  final selectedStudent = studentIndex >= 0
+                      ? _students[studentIndex]
+                      : null;
+                  if (promotion == null &&
+                      selectedStudent?.currentClass == toClass) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Select a different class.'),
+                      ),
+                    );
                     return;
                   }
                   setState(() {
                     if (promotion == null) {
                       final promotedStudentName = selectedStudent?.name ?? '';
-                      _promotions.add(StudentPromotion(
-                        id: _promotions.isEmpty ? 1 : _promotions.last.id + 1,
-                        studentAdmissionNo: selectedAdmissionNo,
-                        studentName: promotedStudentName,
-                        fromClass: selectedStudent?.currentClass ?? '',
-                        toClass: toClass!,
-                        promotionDate: DateTime.now().toString().split(' ').first,
-                      ));
+                      _promotions.add(
+                        StudentPromotion(
+                          id: _promotions.isEmpty ? 1 : _promotions.last.id + 1,
+                          studentAdmissionNo: selectedAdmissionNo,
+                          studentName: promotedStudentName,
+                          fromClass: selectedStudent?.currentClass ?? '',
+                          toClass: toClass!,
+                          promotionDate: DateTime.now()
+                              .toString()
+                              .split(' ')
+                              .first,
+                        ),
+                      );
                       _promotionSearchQuery = promotedStudentName.isNotEmpty
                           ? promotedStudentName
                           : selectedAdmissionNo;
@@ -1716,19 +2293,30 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('This certifies that ${student.name} (${student.admissionNo}) was enrolled in ${student.currentClass}, Section ${student.section}.'),
+              Text(
+                'This certifies that ${student.name} (${student.admissionNo}) was enrolled in ${student.currentClass}, Section ${student.section}.',
+              ),
               const SizedBox(height: 16),
-              Text('Date issued: ${DateFormat('dd MMM yyyy').format(DateTime.now())}'),
+              Text(
+                'Date issued: ${DateFormat('dd MMM yyyy').format(DateTime.now())}',
+              ),
             ],
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Close')),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Close'),
+          ),
           ElevatedButton.icon(
             onPressed: () {
               Navigator.pop(dialogContext);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Certificate is available in the Transfer Cert tab.')),
+                const SnackBar(
+                  content: Text(
+                    'Certificate is available in the Transfer Cert tab.',
+                  ),
+                ),
               );
             },
             icon: const Icon(Icons.check),
@@ -1742,8 +2330,12 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
   void _showAlumniDialog(BuildContext context, {AlumniRecord? alumni}) {
     final formKey = GlobalKey<FormState>();
     final nameController = TextEditingController(text: alumni?.name ?? '');
-    final yearController = TextEditingController(text: alumni?.graduationYear ?? '');
-    final professionController = TextEditingController(text: alumni?.profession ?? '');
+    final yearController = TextEditingController(
+      text: alumni?.graduationYear ?? '',
+    );
+    final professionController = TextEditingController(
+      text: alumni?.profession ?? '',
+    );
 
     showDialog(
       context: context,
@@ -1763,34 +2355,45 @@ class _StudentManagementPageState extends PersistentModuleState<StudentManagemen
                 controller: yearController,
                 decoration: const InputDecoration(labelText: 'Graduation Year'),
                 keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(4)],
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(4),
+                ],
                 validator: (value) {
                   final year = int.tryParse(value ?? '');
-                  if (year == null || year < 1950 || year > DateTime.now().year) return 'Enter a valid graduation year';
+                  if (year == null || year < 1950 || year > DateTime.now().year)
+                    return 'Enter a valid graduation year';
                   return null;
                 },
               ),
               TextFormField(
                 controller: professionController,
-                decoration: const InputDecoration(labelText: 'Current Profession'),
+                decoration: const InputDecoration(
+                  labelText: 'Current Profession',
+                ),
                 validator: _required('current profession'),
               ),
             ],
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
           ElevatedButton(
             onPressed: () {
               if (!(formKey.currentState?.validate() ?? false)) return;
               setState(() {
                 if (alumni == null) {
-                  _alumni.add(AlumniRecord(
-                    id: _alumni.isEmpty ? 1 : _alumni.last.id + 1,
-                    name: nameController.text.trim(),
-                    graduationYear: yearController.text.trim(),
-                    profession: professionController.text.trim(),
-                  ));
+                  _alumni.add(
+                    AlumniRecord(
+                      id: _alumni.isEmpty ? 1 : _alumni.last.id + 1,
+                      name: nameController.text.trim(),
+                      graduationYear: yearController.text.trim(),
+                      profession: professionController.text.trim(),
+                    ),
+                  );
                 } else {
                   alumni
                     ..name = nameController.text.trim()
@@ -1850,52 +2453,94 @@ class StudentRecord {
   String motherPhone;
 
   Map<String, dynamic> toJson() => {
-        'admissionNo': admissionNo, 'name': name, 'gender': gender, 'dob': dob,
-        'bloodGroup': bloodGroup, 'address': address, 'mobileNumber': mobileNumber,
-        'aadhaarNumber': aadhaarNumber, 'category': category, 'religion': religion,
-        'currentClass': currentClass, 'section': section,
-        'fatherName': fatherName, 'fatherOccupation': fatherOccupation, 'fatherPhone': fatherPhone,
-        'motherName': motherName, 'motherOccupation': motherOccupation, 'motherPhone': motherPhone,
-      };
+    'admissionNo': admissionNo,
+    'name': name,
+    'gender': gender,
+    'dob': dob,
+    'bloodGroup': bloodGroup,
+    'address': address,
+    'mobileNumber': mobileNumber,
+    'aadhaarNumber': aadhaarNumber,
+    'category': category,
+    'religion': religion,
+    'currentClass': currentClass,
+    'section': section,
+    'fatherName': fatherName,
+    'fatherOccupation': fatherOccupation,
+    'fatherPhone': fatherPhone,
+    'motherName': motherName,
+    'motherOccupation': motherOccupation,
+    'motherPhone': motherPhone,
+  };
 
   factory StudentRecord.fromJson(Map<String, dynamic> json) => StudentRecord(
-        admissionNo: json['admissionNo'] as String, name: json['name'] as String,
-        gender: json['gender'] as String, dob: json['dob'] as String,
-        bloodGroup: json['bloodGroup'] as String, address: json['address'] as String,
-        mobileNumber: json['mobileNumber'] as String, aadhaarNumber: json['aadhaarNumber'] as String,
-        category: json['category'] as String, religion: json['religion'] as String,
-        currentClass: json['currentClass'] as String, section: json['section'] as String,
-        fatherName: (json['fatherName'] ?? json['parentName'] ?? '') as String,
-        fatherOccupation: (json['fatherOccupation'] ?? '') as String,
-        fatherPhone: (json['fatherPhone'] ?? json['parentPhone'] ?? '') as String,
-        motherName: (json['motherName'] ?? '') as String,
-        motherOccupation: (json['motherOccupation'] ?? '') as String,
-        motherPhone: (json['motherPhone'] ?? '') as String,
-      );
+    admissionNo: json['admissionNo'] as String,
+    name: json['name'] as String,
+    gender: json['gender'] as String,
+    dob: json['dob'] as String,
+    bloodGroup: json['bloodGroup'] as String,
+    address: json['address'] as String,
+    mobileNumber: json['mobileNumber'] as String,
+    aadhaarNumber: json['aadhaarNumber'] as String,
+    category: json['category'] as String,
+    religion: json['religion'] as String,
+    currentClass: json['currentClass'] as String,
+    section: json['section'] as String,
+    fatherName: (json['fatherName'] ?? json['parentName'] ?? '') as String,
+    fatherOccupation: (json['fatherOccupation'] ?? '') as String,
+    fatherPhone: (json['fatherPhone'] ?? json['parentPhone'] ?? '') as String,
+    motherName: (json['motherName'] ?? '') as String,
+    motherOccupation: (json['motherOccupation'] ?? '') as String,
+    motherPhone: (json['motherPhone'] ?? '') as String,
+  );
 }
 
 class StudentDocument {
-  StudentDocument({required this.id, required this.studentAdmissionNo, required this.studentName, required this.documentType, required this.fileName, this.fileData});
+  StudentDocument({
+    required this.id,
+    required this.studentAdmissionNo,
+    required this.studentName,
+    required this.documentType,
+    required this.fileName,
+    this.fileData,
+  });
 
   final int id;
   String studentAdmissionNo;
   String studentName;
   String documentType;
   String fileName;
-    String? fileData;
+  String? fileData;
 
-    Map<String, dynamic> toJson() => {'id': id, 'studentAdmissionNo': studentAdmissionNo, 'studentName': studentName, 'documentType': documentType, 'fileName': fileName, 'fileData': fileData};
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'studentAdmissionNo': studentAdmissionNo,
+    'studentName': studentName,
+    'documentType': documentType,
+    'fileName': fileName,
+    'fileData': fileData,
+  };
 
-  factory StudentDocument.fromJson(Map<String, dynamic> json) => StudentDocument(
-        id: json['id'] as int, studentAdmissionNo: json['studentAdmissionNo'] as String,
-        studentName: json['studentName'] as String, documentType: json['documentType'] as String,
-      fileName: json['fileName'] as String,
-      fileData: json['fileData'] as String?,
+  factory StudentDocument.fromJson(Map<String, dynamic> json) =>
+      StudentDocument(
+        id: json['id'] as int,
+        studentAdmissionNo: json['studentAdmissionNo'] as String,
+        studentName: json['studentName'] as String,
+        documentType: json['documentType'] as String,
+        fileName: json['fileName'] as String,
+        fileData: json['fileData'] as String?,
       );
 }
 
 class StudentPromotion {
-  StudentPromotion({required this.id, required this.studentAdmissionNo, required this.studentName, required this.fromClass, required this.toClass, required this.promotionDate});
+  StudentPromotion({
+    required this.id,
+    required this.studentAdmissionNo,
+    required this.studentName,
+    required this.fromClass,
+    required this.toClass,
+    required this.promotionDate,
+  });
 
   final int id;
   final String studentAdmissionNo;
@@ -1904,27 +2549,50 @@ class StudentPromotion {
   String toClass;
   final String promotionDate;
 
-  Map<String, dynamic> toJson() => {'id': id, 'studentAdmissionNo': studentAdmissionNo, 'studentName': studentName, 'fromClass': fromClass, 'toClass': toClass, 'promotionDate': promotionDate};
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'studentAdmissionNo': studentAdmissionNo,
+    'studentName': studentName,
+    'fromClass': fromClass,
+    'toClass': toClass,
+    'promotionDate': promotionDate,
+  };
 
-  factory StudentPromotion.fromJson(Map<String, dynamic> json) => StudentPromotion(
-        id: json['id'] as int, studentAdmissionNo: json['studentAdmissionNo'] as String,
-        studentName: json['studentName'] as String, fromClass: json['fromClass'] as String,
-        toClass: json['toClass'] as String, promotionDate: json['promotionDate'] as String,
+  factory StudentPromotion.fromJson(Map<String, dynamic> json) =>
+      StudentPromotion(
+        id: json['id'] as int,
+        studentAdmissionNo: json['studentAdmissionNo'] as String,
+        studentName: json['studentName'] as String,
+        fromClass: json['fromClass'] as String,
+        toClass: json['toClass'] as String,
+        promotionDate: json['promotionDate'] as String,
       );
 }
 
 class AlumniRecord {
-  AlumniRecord({required this.id, required this.name, required this.graduationYear, required this.profession});
+  AlumniRecord({
+    required this.id,
+    required this.name,
+    required this.graduationYear,
+    required this.profession,
+  });
 
   final int id;
   String name;
   String graduationYear;
   String profession;
 
-  Map<String, dynamic> toJson() => {'id': id, 'name': name, 'graduationYear': graduationYear, 'profession': profession};
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'graduationYear': graduationYear,
+    'profession': profession,
+  };
 
   factory AlumniRecord.fromJson(Map<String, dynamic> json) => AlumniRecord(
-        id: json['id'] as int, name: json['name'] as String,
-        graduationYear: json['graduationYear'] as String, profession: json['profession'] as String,
-      );
+    id: json['id'] as int,
+    name: json['name'] as String,
+    graduationYear: json['graduationYear'] as String,
+    profession: json['profession'] as String,
+  );
 }
