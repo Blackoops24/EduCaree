@@ -580,6 +580,12 @@ class _AcademicManagementPageState
     String? section = _sectionOptions.contains(record?.section)
         ? record!.section
         : null;
+    final focus = _focusNodes([
+      'Class Name',
+      'Section',
+      'Class Teacher',
+      'Capacity',
+    ]);
     final isNew = record == null;
 
     showManagementDrawer(
@@ -595,20 +601,30 @@ class _AcademicManagementPageState
       successType: isNew ? AppFlashType.success : AppFlashType.update,
       contentBuilder: (drawerContext, setDrawerState) => Column(
         children: [
-          _field(controller: name, label: 'Class Name'),
+          _field(
+            controller: name,
+            label: 'Class Name',
+            focusNode: focus['Class Name'],
+          ),
           _gap,
           _dropdown(
             label: 'Section',
             value: section,
             items: _sectionOptions,
             onChanged: (value) => setDrawerState(() => section = value),
+            focusNode: focus['Section'],
           ),
           _gap,
-          _field(controller: teacher, label: 'Class Teacher'),
+          _field(
+            controller: teacher,
+            label: 'Class Teacher',
+            focusNode: focus['Class Teacher'],
+          ),
           _gap,
           _field(
             controller: capacity,
             label: 'Capacity',
+            focusNode: focus['Capacity'],
             keyboardType: TextInputType.number,
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           ),
@@ -620,7 +636,7 @@ class _AcademicManagementPageState
           'Section': section,
           'Class Teacher': teacher.text,
           'Capacity': capacity.text,
-        });
+        }, focusNodes: focus);
         if (missing != null) return _missing(drawerContext, missing);
         final parsedCapacity = int.tryParse(capacity.text);
         if (parsedCapacity == null || parsedCapacity <= 0) {
@@ -687,6 +703,7 @@ class _AcademicManagementPageState
     String? section = _sectionOptions.contains(record?.name)
         ? record!.name
         : null;
+    final focus = _focusNodes(['Class', 'Section', 'Class Teacher']);
     final isNew = record == null;
     showManagementDrawer(
       context: context,
@@ -706,6 +723,7 @@ class _AcademicManagementPageState
             value: className,
             items: _classNames,
             onChanged: (value) => setDrawerState(() => className = value),
+            focusNode: focus['Class'],
           ),
           _gap,
           _dropdown(
@@ -713,9 +731,14 @@ class _AcademicManagementPageState
             value: section,
             items: _sectionOptions,
             onChanged: (value) => setDrawerState(() => section = value),
+            focusNode: focus['Section'],
           ),
           _gap,
-          _field(controller: teacher, label: 'Class Teacher'),
+          _field(
+            controller: teacher,
+            label: 'Class Teacher',
+            focusNode: focus['Class Teacher'],
+          ),
         ],
       ),
       onSubmit: (drawerContext) async {
@@ -723,7 +746,7 @@ class _AcademicManagementPageState
           'Class': className,
           'Section': section,
           'Class Teacher': teacher.text,
-        });
+        }, focusNodes: focus);
         if (missing != null) return _missing(drawerContext, missing);
         final duplicate = _sections.any(
           (item) =>
@@ -763,6 +786,11 @@ class _AcademicManagementPageState
     String? className = _classNames.contains(record?.allocatedClass)
         ? record!.allocatedClass
         : _firstOrNull(_classNames);
+    final focus = _focusNodes([
+      'Subject Name',
+      'Subject Code',
+      'Allocate to Class',
+    ]);
     final isNew = record == null;
     showManagementDrawer(
       context: context,
@@ -777,15 +805,24 @@ class _AcademicManagementPageState
       successType: isNew ? AppFlashType.success : AppFlashType.update,
       contentBuilder: (drawerContext, setDrawerState) => Column(
         children: [
-          _field(controller: name, label: 'Subject Name'),
+          _field(
+            controller: name,
+            label: 'Subject Name',
+            focusNode: focus['Subject Name'],
+          ),
           _gap,
-          _field(controller: code, label: 'Subject Code'),
+          _field(
+            controller: code,
+            label: 'Subject Code',
+            focusNode: focus['Subject Code'],
+          ),
           _gap,
           _dropdown(
             label: 'Allocate to Class',
             value: className,
             items: _classNames,
             onChanged: (value) => setDrawerState(() => className = value),
+            focusNode: focus['Allocate to Class'],
           ),
         ],
       ),
@@ -794,7 +831,7 @@ class _AcademicManagementPageState
           'Subject Name': name.text,
           'Subject Code': code.text,
           'Allocate to Class': className,
-        });
+        }, focusNodes: focus);
         if (missing != null) return _missing(drawerContext, missing);
         final duplicate = _subjects.any(
           (item) =>
@@ -848,6 +885,13 @@ class _AcademicManagementPageState
         : _firstOrNull(_subjectNames);
     final teacher = TextEditingController(text: record?.teacher ?? '');
     final period = TextEditingController(text: record?.period ?? '');
+    final focus = _focusNodes([
+      'Class',
+      'Day',
+      'Period / Time',
+      'Subject',
+      'Teacher',
+    ]);
     final isNew = record == null;
     showManagementDrawer(
       context: context,
@@ -866,6 +910,7 @@ class _AcademicManagementPageState
             label: 'Class',
             value: className,
             items: _classNames,
+            focusNode: focus['Class'],
             onChanged: (value) => setDrawerState(() => className = value),
           ),
           _gap,
@@ -873,6 +918,7 @@ class _AcademicManagementPageState
             label: 'Day',
             value: day,
             items: _days,
+            focusNode: focus['Day'],
             onChanged: (value) => setDrawerState(() => day = value ?? day),
           ),
           _gap,
@@ -880,16 +926,22 @@ class _AcademicManagementPageState
             controller: period,
             label: 'Period / Time',
             hintText: '09:00 - 09:45',
+            focusNode: focus['Period / Time'],
           ),
           _gap,
           _dropdown(
             label: 'Subject',
             value: subject,
             items: _subjectNames,
+            focusNode: focus['Subject'],
             onChanged: (value) => setDrawerState(() => subject = value),
           ),
           _gap,
-          _field(controller: teacher, label: 'Teacher'),
+          _field(
+            controller: teacher,
+            label: 'Teacher',
+            focusNode: focus['Teacher'],
+          ),
         ],
       ),
       onSubmit: (drawerContext) async {
@@ -899,7 +951,7 @@ class _AcademicManagementPageState
           'Period / Time': period.text,
           'Subject': subject,
           'Teacher': teacher.text,
-        });
+        }, focusNodes: focus);
         if (missing != null) return _missing(drawerContext, missing);
         final duplicate = _timetables.any(
           (item) =>
@@ -945,6 +997,7 @@ class _AcademicManagementPageState
     final name = TextEditingController(text: record?.name ?? '');
     final startDate = TextEditingController(text: record?.startDate ?? '');
     final totalMarks = TextEditingController(text: record?.totalMarks ?? '');
+    final focus = _focusNodes(['Exam Name', 'Start Date', 'Total Marks']);
     final isNew = record == null;
     showManagementDrawer(
       context: context,
@@ -959,17 +1012,23 @@ class _AcademicManagementPageState
       successType: isNew ? AppFlashType.success : AppFlashType.update,
       contentBuilder: (drawerContext, setDrawerState) => Column(
         children: [
-          _field(controller: name, label: 'Exam Name'),
+          _field(
+            controller: name,
+            label: 'Exam Name',
+            focusNode: focus['Exam Name'],
+          ),
           _gap,
           _dateField(
             context: drawerContext,
             controller: startDate,
             label: 'Start Date',
+            focusNode: focus['Start Date'],
           ),
           _gap,
           _field(
             controller: totalMarks,
             label: 'Total Marks',
+            focusNode: focus['Total Marks'],
             keyboardType: TextInputType.number,
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           ),
@@ -980,7 +1039,7 @@ class _AcademicManagementPageState
           'Exam Name': name.text,
           'Start Date': startDate.text,
           'Total Marks': totalMarks.text,
-        });
+        }, focusNodes: focus);
         if (missing != null) return _missing(drawerContext, missing);
         final parsedTotal = int.tryParse(totalMarks.text);
         if (parsedTotal == null || parsedTotal <= 0) {
@@ -1029,6 +1088,13 @@ class _AcademicManagementPageState
     final total = TextEditingController(
       text: record?.totalMarks ?? _examTotal(examName),
     );
+    final focus = _focusNodes([
+      'Student Name',
+      'Exam',
+      'Subject',
+      'Marks Obtained',
+      'Total Marks',
+    ]);
     final isNew = record == null;
     showManagementDrawer(
       context: context,
@@ -1043,12 +1109,17 @@ class _AcademicManagementPageState
       successType: isNew ? AppFlashType.success : AppFlashType.update,
       contentBuilder: (drawerContext, setDrawerState) => Column(
         children: [
-          _field(controller: student, label: 'Student Name'),
+          _field(
+            controller: student,
+            label: 'Student Name',
+            focusNode: focus['Student Name'],
+          ),
           _gap,
           _dropdown(
             label: 'Exam',
             value: examName,
             items: _examNames,
+            focusNode: focus['Exam'],
             onChanged: (value) {
               setDrawerState(() {
                 examName = value;
@@ -1061,17 +1132,24 @@ class _AcademicManagementPageState
             label: 'Subject',
             value: subject,
             items: _subjectNames,
+            focusNode: focus['Subject'],
             onChanged: (value) => setDrawerState(() => subject = value),
           ),
           _gap,
           _field(
             controller: obtained,
             label: 'Marks Obtained',
+            focusNode: focus['Marks Obtained'],
             keyboardType: TextInputType.number,
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           ),
           _gap,
-          _field(controller: total, label: 'Total Marks', readOnly: true),
+          _field(
+            controller: total,
+            label: 'Total Marks',
+            focusNode: focus['Total Marks'],
+            readOnly: true,
+          ),
         ],
       ),
       onSubmit: (drawerContext) async {
@@ -1081,7 +1159,7 @@ class _AcademicManagementPageState
           'Subject': subject,
           'Marks Obtained': obtained.text,
           'Total Marks': total.text,
-        });
+        }, focusNodes: focus);
         if (missing != null) return _missing(drawerContext, missing);
         final marks = int.tryParse(obtained.text);
         final maximum = int.tryParse(total.text);
@@ -1138,6 +1216,7 @@ class _AcademicManagementPageState
     String semester = _semesters.contains(record?.semester)
         ? record!.semester
         : _semesters.first;
+    final focus = _focusNodes(['Student Name', 'Class', 'Term / Semester']);
     final isNew = record == null;
     showManagementDrawer(
       context: context,
@@ -1152,12 +1231,17 @@ class _AcademicManagementPageState
       successType: isNew ? AppFlashType.success : AppFlashType.update,
       contentBuilder: (drawerContext, setDrawerState) => Column(
         children: [
-          _field(controller: student, label: 'Student Name'),
+          _field(
+            controller: student,
+            label: 'Student Name',
+            focusNode: focus['Student Name'],
+          ),
           _gap,
           _dropdown(
             label: 'Class',
             value: className,
             items: _classNames,
+            focusNode: focus['Class'],
             onChanged: (value) => setDrawerState(() => className = value),
           ),
           _gap,
@@ -1165,6 +1249,7 @@ class _AcademicManagementPageState
             label: 'Term / Semester',
             value: semester,
             items: _semesters,
+            focusNode: focus['Term / Semester'],
             onChanged: (value) =>
                 setDrawerState(() => semester = value ?? semester),
           ),
@@ -1175,7 +1260,7 @@ class _AcademicManagementPageState
           'Student Name': student.text,
           'Class': className,
           'Term / Semester': semester,
-        });
+        }, focusNodes: focus);
         if (missing != null) return _missing(drawerContext, missing);
         setState(() {
           if (record == null) {
@@ -1205,6 +1290,7 @@ class _AcademicManagementPageState
   Widget _field({
     required TextEditingController controller,
     required String label,
+    FocusNode? focusNode,
     bool readOnly = false,
     String? hintText,
     TextInputType? keyboardType,
@@ -1212,6 +1298,7 @@ class _AcademicManagementPageState
   }) {
     return TextField(
       controller: controller,
+      focusNode: focusNode,
       readOnly: readOnly,
       keyboardType: keyboardType,
       inputFormatters: inputFormatters,
@@ -1228,9 +1315,11 @@ class _AcademicManagementPageState
     required String? value,
     required List<String> items,
     required ValueChanged<String?> onChanged,
+    FocusNode? focusNode,
   }) {
     return DropdownButtonFormField<String>(
       initialValue: value,
+      focusNode: focusNode,
       isExpanded: true,
       decoration: InputDecoration(labelText: label),
       items: items
@@ -1244,9 +1333,11 @@ class _AcademicManagementPageState
     required BuildContext context,
     required TextEditingController controller,
     required String label,
+    FocusNode? focusNode,
   }) {
     return TextField(
       controller: controller,
+      focusNode: focusNode,
       readOnly: true,
       decoration: InputDecoration(
         labelText: label,
@@ -1287,10 +1378,20 @@ class _AcademicManagementPageState
     return values.isEmpty ? null : values.first;
   }
 
-  String? _firstMissing(Map<String, Object?> fields) {
+  Map<String, FocusNode> _focusNodes(Iterable<String> labels) {
+    return {for (final label in labels) label: FocusNode()};
+  }
+
+  String? _firstMissing(
+    Map<String, Object?> fields, {
+    Map<String, FocusNode>? focusNodes,
+  }) {
     for (final entry in fields.entries) {
       final value = entry.value;
-      if (value == null || value.toString().trim().isEmpty) return entry.key;
+      if (value == null || value.toString().trim().isEmpty) {
+        focusNodes?[entry.key]?.requestFocus();
+        return entry.key;
+      }
     }
     return null;
   }

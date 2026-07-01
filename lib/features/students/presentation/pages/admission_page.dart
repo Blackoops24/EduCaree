@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:educare/core/providers.dart';
+import 'package:educare/core/widgets/form_validation.dart';
 import 'package:educare/features/students/domain/entities/admission_request.dart';
 import 'package:educare/features/students/presentation/keys/student_keys.dart';
 
@@ -36,7 +37,8 @@ class _AdmissionPageState extends ConsumerState<AdmissionPage> {
   }
 
   void _submit() {
-    if ((_formKey.currentState?.validate() ?? false) && !ref.read(studentViewModelProvider).loading) {
+    if (validateAndFocusFirstInvalid(_formKey) &&
+        !ref.read(studentViewModelProvider).loading) {
       final request = AdmissionRequest(
         firstName: _firstName.text.trim(),
         lastName: _lastName.text.trim(),
@@ -67,23 +69,47 @@ class _AdmissionPageState extends ConsumerState<AdmissionPage> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               if (state.error != null)
-                Text(state.error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                Text(
+                  state.error!,
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
               if (state.admissionSuccess)
-                Text('Admission submitted successfully!', style: TextStyle(color: Theme.of(context).colorScheme.primary)),
+                Text(
+                  'Admission submitted successfully!',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
               const SizedBox(height: 16),
               _buildTextField(_firstName, 'First name', 'firstNameField'),
               _buildTextField(_lastName, 'Last name', 'lastNameField'),
-              _buildTextField(_email, 'Email', 'emailField', keyboardType: TextInputType.emailAddress),
+              _buildTextField(
+                _email,
+                'Email',
+                'emailField',
+                keyboardType: TextInputType.emailAddress,
+              ),
               _buildTextField(_dob, 'Date of birth', 'dobField'),
               _buildTextField(_grade, 'Grade', 'gradeField'),
               _buildTextField(_section, 'Section', 'sectionField'),
-              _buildTextField(_guardianName, 'Guardian name', 'guardianNameField'),
-              _buildTextField(_guardianPhone, 'Guardian phone', 'guardianPhoneField', keyboardType: TextInputType.phone),
+              _buildTextField(
+                _guardianName,
+                'Guardian name',
+                'guardianNameField',
+              ),
+              _buildTextField(
+                _guardianPhone,
+                'Guardian phone',
+                'guardianPhoneField',
+                keyboardType: TextInputType.phone,
+              ),
               const SizedBox(height: 24),
               ElevatedButton(
                 key: StudentKeys.admissionSubmitButton,
                 onPressed: state.loading ? null : _submit,
-                child: state.loading ? const CircularProgressIndicator() : const Text('Submit Admission'),
+                child: state.loading
+                    ? const CircularProgressIndicator()
+                    : const Text('Submit Admission'),
               ),
             ],
           ),
@@ -92,7 +118,12 @@ class _AdmissionPageState extends ConsumerState<AdmissionPage> {
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String label, String fieldKey, {TextInputType keyboardType = TextInputType.text}) {
+  Widget _buildTextField(
+    TextEditingController controller,
+    String label,
+    String fieldKey, {
+    TextInputType keyboardType = TextInputType.text,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: TextFormField(

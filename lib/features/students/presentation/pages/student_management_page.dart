@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:educare/core/utils/browser_download.dart';
 import 'package:educare/core/widgets/app_flash_message.dart';
 import 'package:educare/core/widgets/delete_confirmation_dialog.dart';
+import 'package:educare/core/widgets/form_validation.dart';
 import 'package:educare/core/widgets/persistent_module_state.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -1315,10 +1316,10 @@ class _StudentManagementPageState
           message: 'Missing required field: ${missingFields.first}',
           type: AppFlashType.error,
         );
-        formKey.currentState?.validate();
+        validateAndFocusFirstInvalid(formKey);
         return;
       }
-      if (!(formKey.currentState?.validate() ?? false)) {
+      if (!validateAndFocusFirstInvalid(formKey)) {
         final invalidField =
             !RegExp(r'^[6-9]\d{9}$').hasMatch(mobileController.text)
             ? 'Mobile Number'
@@ -1423,196 +1424,221 @@ class _StudentManagementPageState
                       key: const Key('admission_side_drawer'),
                       elevation: 24,
                       color: Theme.of(context).scaffoldBackgroundColor,
-                      child: Scaffold(
-                        appBar: AppBar(
-                          automaticallyImplyLeading: false,
-                          title: Text(
-                            student == null ? 'New Admission' : 'Edit Student',
-                          ),
-                          actions: [
-                            IconButton(
-                              tooltip: 'Close',
-                              icon: const Icon(Icons.close),
-                              onPressed: () => Navigator.pop(dialogContext),
+                      child: ScaffoldMessenger(
+                        child: Builder(
+                          builder: (drawerContext) => Scaffold(
+                            appBar: AppBar(
+                              automaticallyImplyLeading: false,
+                              title: Text(
+                                student == null
+                                    ? 'New Admission'
+                                    : 'Edit Student',
+                              ),
+                              actions: [
+                                IconButton(
+                                  tooltip: 'Close',
+                                  icon: const Icon(Icons.close),
+                                  onPressed: () => Navigator.pop(dialogContext),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                        body: Form(
-                          key: formKey,
-                          child: ListView(
-                            padding: const EdgeInsets.all(24),
-                            children: [
-                              Center(
-                                child: ConstrainedBox(
-                                  constraints: const BoxConstraints(
-                                    maxWidth: 900,
-                                  ),
-                                  child: Wrap(
-                                    spacing: 20,
-                                    runSpacing: 16,
-                                    children: [
-                                      _formField(
-                                        controller: admissionNoController,
-                                        label: 'Admission Number',
-                                        readOnly: true,
+                            body: Form(
+                              key: formKey,
+                              child: ListView(
+                                padding: const EdgeInsets.all(24),
+                                children: [
+                                  Center(
+                                    child: ConstrainedBox(
+                                      constraints: const BoxConstraints(
+                                        maxWidth: 900,
                                       ),
-                                      _formField(
-                                        controller: nameController,
-                                        label: 'Student Name',
-                                        validator: _required('student name'),
-                                      ),
-                                      _dropdownField(
-                                        label: 'Gender',
-                                        value: gender,
-                                        items: _genders,
-                                        onChanged: (value) => setDialogState(
-                                          () => gender = value,
-                                        ),
-                                      ),
-                                      _formField(
-                                        controller: dobController,
-                                        label: 'Date of Birth',
-                                        readOnly: true,
-                                        suffixIcon: const Icon(
-                                          Icons.calendar_today_outlined,
-                                        ),
-                                        validator: _required('date of birth'),
-                                        onTap: () async {
-                                          final selected = await showDatePicker(
-                                            context: context,
-                                            initialDate:
-                                                DateTime.tryParse(
-                                                  dobController.text,
-                                                ) ??
-                                                DateTime(2010),
-                                            firstDate: DateTime(1990),
-                                            lastDate: DateTime.now(),
-                                          );
-                                          if (selected != null) {
-                                            dobController.text = DateFormat(
-                                              'yyyy-MM-dd',
-                                            ).format(selected);
-                                          }
-                                        },
-                                      ),
-                                      _dropdownField(
-                                        label: 'Blood Group',
-                                        value: bloodGroup,
-                                        items: _bloodGroups,
-                                        required: false,
-                                        onChanged: (value) => setDialogState(
-                                          () => bloodGroup = value,
-                                        ),
-                                      ),
-                                      _formField(
-                                        controller: mobileController,
-                                        label: 'Mobile Number',
-                                        fieldKey: const Key('admission_mobile'),
-                                        keyboardType: TextInputType.phone,
-                                        inputFormatters: [
-                                          FilteringTextInputFormatter
-                                              .digitsOnly,
-                                          LengthLimitingTextInputFormatter(10),
-                                        ],
-                                        validator: (value) =>
-                                            RegExp(
-                                              r'^[6-9]\d{9}$',
-                                            ).hasMatch(value ?? '')
-                                            ? null
-                                            : 'Enter a valid 10-digit mobile number',
-                                      ),
-                                      _formField(
-                                        controller: aadhaarController,
-                                        label: 'Aadhaar Number',
-                                        fieldKey: const Key(
-                                          'admission_aadhaar',
-                                        ),
-                                        keyboardType: TextInputType.number,
-                                        inputFormatters: [
-                                          FilteringTextInputFormatter
-                                              .digitsOnly,
-                                          LengthLimitingTextInputFormatter(12),
-                                        ],
-                                        validator: (value) =>
-                                            RegExp(
-                                              r'^\d{12}$',
-                                            ).hasMatch(value ?? '')
-                                            ? null
-                                            : 'Enter a valid 12-digit Aadhaar number',
-                                      ),
-                                      _dropdownField(
-                                        label: 'Class',
-                                        value: currentClass,
-                                        items: _classes,
-                                        onChanged: (value) => setDialogState(
-                                          () => currentClass = value,
-                                        ),
-                                      ),
-                                      _dropdownField(
-                                        label: 'Section',
-                                        value: section,
-                                        items: _sections,
-                                        onChanged: (value) => setDialogState(
-                                          () => section = value,
-                                        ),
-                                      ),
-                                      _categoryField(categoryController),
-                                      _formField(
-                                        controller: religionController,
-                                        label: 'Religion',
-                                        validator: _required('religion'),
-                                      ),
-                                      SizedBox(
-                                        width: 900,
-                                        child: TextFormField(
-                                          controller: addressController,
-                                          maxLines: 3,
-                                          decoration: const InputDecoration(
-                                            labelText: 'Address',
-                                            alignLabelWithHint: true,
+                                      child: Wrap(
+                                        spacing: 20,
+                                        runSpacing: 16,
+                                        children: [
+                                          _formField(
+                                            controller: admissionNoController,
+                                            label: 'Admission Number',
+                                            readOnly: true,
                                           ),
-                                          validator: _required('address'),
+                                          _formField(
+                                            controller: nameController,
+                                            label: 'Student Name',
+                                            validator: _required(
+                                              'student name',
+                                            ),
+                                          ),
+                                          _dropdownField(
+                                            label: 'Gender',
+                                            value: gender,
+                                            items: _genders,
+                                            onChanged: (value) =>
+                                                setDialogState(
+                                                  () => gender = value,
+                                                ),
+                                          ),
+                                          _formField(
+                                            controller: dobController,
+                                            label: 'Date of Birth',
+                                            readOnly: true,
+                                            suffixIcon: const Icon(
+                                              Icons.calendar_today_outlined,
+                                            ),
+                                            validator: _required(
+                                              'date of birth',
+                                            ),
+                                            onTap: () async {
+                                              final selected =
+                                                  await showDatePicker(
+                                                    context: context,
+                                                    initialDate:
+                                                        DateTime.tryParse(
+                                                          dobController.text,
+                                                        ) ??
+                                                        DateTime(2010),
+                                                    firstDate: DateTime(1990),
+                                                    lastDate: DateTime.now(),
+                                                  );
+                                              if (selected != null) {
+                                                dobController.text = DateFormat(
+                                                  'yyyy-MM-dd',
+                                                ).format(selected);
+                                              }
+                                            },
+                                          ),
+                                          _dropdownField(
+                                            label: 'Blood Group',
+                                            value: bloodGroup,
+                                            items: _bloodGroups,
+                                            required: false,
+                                            onChanged: (value) =>
+                                                setDialogState(
+                                                  () => bloodGroup = value,
+                                                ),
+                                          ),
+                                          _formField(
+                                            controller: mobileController,
+                                            label: 'Mobile Number',
+                                            fieldKey: const Key(
+                                              'admission_mobile',
+                                            ),
+                                            keyboardType: TextInputType.phone,
+                                            inputFormatters: [
+                                              FilteringTextInputFormatter
+                                                  .digitsOnly,
+                                              LengthLimitingTextInputFormatter(
+                                                10,
+                                              ),
+                                            ],
+                                            validator: (value) =>
+                                                RegExp(
+                                                  r'^[6-9]\d{9}$',
+                                                ).hasMatch(value ?? '')
+                                                ? null
+                                                : 'Enter a valid 10-digit mobile number',
+                                          ),
+                                          _formField(
+                                            controller: aadhaarController,
+                                            label: 'Aadhaar Number',
+                                            fieldKey: const Key(
+                                              'admission_aadhaar',
+                                            ),
+                                            keyboardType: TextInputType.number,
+                                            inputFormatters: [
+                                              FilteringTextInputFormatter
+                                                  .digitsOnly,
+                                              LengthLimitingTextInputFormatter(
+                                                12,
+                                              ),
+                                            ],
+                                            validator: (value) =>
+                                                RegExp(
+                                                  r'^\d{12}$',
+                                                ).hasMatch(value ?? '')
+                                                ? null
+                                                : 'Enter a valid 12-digit Aadhaar number',
+                                          ),
+                                          _dropdownField(
+                                            label: 'Class',
+                                            value: currentClass,
+                                            items: _classes,
+                                            onChanged: (value) =>
+                                                setDialogState(
+                                                  () => currentClass = value,
+                                                ),
+                                          ),
+                                          _dropdownField(
+                                            label: 'Section',
+                                            value: section,
+                                            items: _sections,
+                                            onChanged: (value) =>
+                                                setDialogState(
+                                                  () => section = value,
+                                                ),
+                                          ),
+                                          _categoryField(categoryController),
+                                          _formField(
+                                            controller: religionController,
+                                            label: 'Religion',
+                                            validator: _required('religion'),
+                                          ),
+                                          SizedBox(
+                                            width: 900,
+                                            child: TextFormField(
+                                              controller: addressController,
+                                              maxLines: 3,
+                                              decoration: const InputDecoration(
+                                                labelText: 'Address',
+                                                alignLabelWithHint: true,
+                                              ),
+                                              validator: _required('address'),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            bottomNavigationBar: Material(
+                              elevation: 12,
+                              child: SafeArea(
+                                top: false,
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 24,
+                                    vertical: 16,
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children: [
+                                      OutlinedButton(
+                                        key: const Key(
+                                          'admission_cancel_button',
+                                        ),
+                                        onPressed: () =>
+                                            Navigator.pop(dialogContext),
+                                        child: const Text('Cancel'),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      ElevatedButton.icon(
+                                        key: const Key(
+                                          'admission_submit_button',
+                                        ),
+                                        onPressed: () => submit(drawerContext),
+                                        icon: Icon(
+                                          student == null
+                                              ? Icons.add
+                                              : Icons.save_outlined,
+                                        ),
+                                        label: Text(
+                                          student == null ? 'Create' : 'Save',
                                         ),
                                       ),
                                     ],
                                   ),
                                 ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        bottomNavigationBar: Material(
-                          elevation: 12,
-                          child: SafeArea(
-                            top: false,
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 24,
-                                vertical: 16,
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: [
-                                  OutlinedButton(
-                                    key: const Key('admission_cancel_button'),
-                                    onPressed: () =>
-                                        Navigator.pop(dialogContext),
-                                    child: const Text('Cancel'),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  ElevatedButton.icon(
-                                    key: const Key('admission_submit_button'),
-                                    onPressed: () => submit(dialogContext),
-                                    icon: Icon(
-                                      student == null
-                                          ? Icons.add
-                                          : Icons.save_outlined,
-                                    ),
-                                    label: Text(
-                                      student == null ? 'Create' : 'Save',
-                                    ),
-                                  ),
-                                ],
                               ),
                             ),
                           ),
@@ -2095,7 +2121,7 @@ class _StudentManagementPageState
           ),
           ElevatedButton(
             onPressed: () {
-              if (!(formKey.currentState?.validate() ?? false)) return;
+              if (!validateAndFocusFirstInvalid(formKey)) return;
               final targetStudent =
                   student ??
                   _students.firstWhere(
@@ -2222,7 +2248,7 @@ class _StudentManagementPageState
               ),
               ElevatedButton(
                 onPressed: () {
-                  if (!(formKey.currentState?.validate() ?? false)) return;
+                  if (!validateAndFocusFirstInvalid(formKey)) return;
                   final studentIndex = _students.indexWhere(
                     (s) => s.admissionNo == selectedAdmissionNo,
                   );
@@ -2383,7 +2409,7 @@ class _StudentManagementPageState
           ),
           ElevatedButton(
             onPressed: () {
-              if (!(formKey.currentState?.validate() ?? false)) return;
+              if (!validateAndFocusFirstInvalid(formKey)) return;
               setState(() {
                 if (alumni == null) {
                   _alumni.add(

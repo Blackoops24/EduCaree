@@ -1,5 +1,6 @@
 import 'package:educare/core/providers.dart';
 import 'package:educare/core/services/module_persistence_service.dart';
+import 'package:educare/core/widgets/form_validation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -33,7 +34,9 @@ class _AccountPageState extends ConsumerState<AccountPage> {
 
   Future<void> _loadSettings() async {
     try {
-      final data = await ModulePersistenceService.instance.load('account-settings');
+      final data = await ModulePersistenceService.instance.load(
+        'account-settings',
+      );
       if (data == null || !mounted) return;
       setState(() {
         _emailNotifications = data['emailNotifications'] as bool? ?? true;
@@ -61,7 +64,9 @@ class _AccountPageState extends ConsumerState<AccountPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(_settingsSelected ? 'Settings' : 'My Profile')),
+      appBar: AppBar(
+        title: Text(_settingsSelected ? 'Settings' : 'My Profile'),
+      ),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 760),
@@ -70,14 +75,26 @@ class _AccountPageState extends ConsumerState<AccountPage> {
             children: [
               SegmentedButton<bool>(
                 segments: const [
-                  ButtonSegment(value: false, icon: Icon(Icons.person_outline), label: Text('My Profile')),
-                  ButtonSegment(value: true, icon: Icon(Icons.settings_outlined), label: Text('Settings')),
+                  ButtonSegment(
+                    value: false,
+                    icon: Icon(Icons.person_outline),
+                    label: Text('My Profile'),
+                  ),
+                  ButtonSegment(
+                    value: true,
+                    icon: Icon(Icons.settings_outlined),
+                    label: Text('Settings'),
+                  ),
                 ],
                 selected: {_settingsSelected},
-                onSelectionChanged: (value) => setState(() => _settingsSelected = value.single),
+                onSelectionChanged: (value) =>
+                    setState(() => _settingsSelected = value.single),
               ),
               const SizedBox(height: 24),
-              if (_settingsSelected) _buildSettings(context) else _buildProfile(context),
+              if (_settingsSelected)
+                _buildSettings(context)
+              else
+                _buildProfile(context),
             ],
           ),
         ),
@@ -94,19 +111,25 @@ class _AccountPageState extends ConsumerState<AccountPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const CircleAvatar(radius: 42, child: Icon(Icons.person_outline, size: 42)),
+              const CircleAvatar(
+                radius: 42,
+                child: Icon(Icons.person_outline, size: 42),
+              ),
               const SizedBox(height: 24),
               TextFormField(
                 controller: _nameController,
                 decoration: const InputDecoration(labelText: 'Display Name'),
-                validator: (value) => value == null || value.trim().isEmpty ? 'Enter a display name' : null,
+                validator: (value) => value == null || value.trim().isEmpty
+                    ? 'Enter a display name'
+                    : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _emailController,
                 decoration: const InputDecoration(labelText: 'Email'),
                 keyboardType: TextInputType.emailAddress,
-                validator: (value) => RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(value ?? '')
+                validator: (value) =>
+                    RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(value ?? '')
                     ? null
                     : 'Enter a valid email address',
               ),
@@ -115,13 +138,17 @@ class _AccountPageState extends ConsumerState<AccountPage> {
                 alignment: Alignment.centerRight,
                 child: ElevatedButton.icon(
                   onPressed: () async {
-                    if (!(_formKey.currentState?.validate() ?? false)) return;
-                    await ref.read(authViewModelProvider.notifier).updateProfile(
+                    if (!validateAndFocusFirstInvalid(_formKey)) return;
+                    await ref
+                        .read(authViewModelProvider.notifier)
+                        .updateProfile(
                           name: _nameController.text.trim(),
                           email: _emailController.text.trim(),
                         );
                     if (!context.mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profile saved.')));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Profile saved.')),
+                    );
                   },
                   icon: const Icon(Icons.save_outlined),
                   label: const Text('Save Profile'),
@@ -165,10 +192,14 @@ class _AccountPageState extends ConsumerState<AccountPage> {
                   try {
                     await _saveSettings();
                     if (!context.mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Settings saved.')));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Settings saved.')),
+                    );
                   } catch (_) {
                     if (!context.mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Unable to save settings.')));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Unable to save settings.')),
+                    );
                   }
                 },
                 child: const Text('Save Settings'),

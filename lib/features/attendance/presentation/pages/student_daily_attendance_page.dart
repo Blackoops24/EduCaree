@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:educare/core/widgets/form_validation.dart';
 import 'package:educare/core/widgets/persistent_module_state.dart';
 
 class StudentDailyAttendancePage extends StatefulWidget {
   const StudentDailyAttendancePage({super.key});
 
   @override
-  State<StudentDailyAttendancePage> createState() => _StudentDailyAttendancePageState();
+  State<StudentDailyAttendancePage> createState() =>
+      _StudentDailyAttendancePageState();
 }
 
-class _StudentDailyAttendancePageState extends PersistentModuleState<StudentDailyAttendancePage> {
+class _StudentDailyAttendancePageState
+    extends PersistentModuleState<StudentDailyAttendancePage> {
   final _classController = TextEditingController();
   DateTime _date = DateTime.now();
   final List<StudentAttendanceEntry> _records = [];
@@ -16,12 +19,24 @@ class _StudentDailyAttendancePageState extends PersistentModuleState<StudentDail
   @override
   String get moduleKey => 'student-daily-attendance';
   @override
-  Map<String, dynamic> exportState() => {'className': _classController.text, 'date': _date.toIso8601String(), 'records': _records.map((item) => item.toJson()).toList()};
+  Map<String, dynamic> exportState() => {
+    'className': _classController.text,
+    'date': _date.toIso8601String(),
+    'records': _records.map((item) => item.toJson()).toList(),
+  };
   @override
   void importState(Map<String, dynamic> data) {
     _classController.text = data['className'] as String? ?? '';
     _date = DateTime.tryParse(data['date'] as String? ?? '') ?? DateTime.now();
-    _records..clear()..addAll((data['records'] as List? ?? []).map((item) => StudentAttendanceEntry.fromJson(Map<String, dynamic>.from(item as Map))));
+    _records
+      ..clear()
+      ..addAll(
+        (data['records'] as List? ?? []).map(
+          (item) => StudentAttendanceEntry.fromJson(
+            Map<String, dynamic>.from(item as Map),
+          ),
+        ),
+      );
   }
 
   @override
@@ -40,22 +55,44 @@ class _StudentDailyAttendancePageState extends PersistentModuleState<StudentDail
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextField(controller: nameController, decoration: const InputDecoration(labelText: 'Student Name')),
+            TextField(
+              controller: nameController,
+              decoration: const InputDecoration(labelText: 'Student Name'),
+            ),
             DropdownButtonFormField<String>(
               initialValue: status,
-              items: ['Present', 'Absent', 'Leave'].map((value) => DropdownMenuItem(value: value, child: Text(value))).toList(),
+              items: ['Present', 'Absent', 'Leave']
+                  .map(
+                    (value) =>
+                        DropdownMenuItem(value: value, child: Text(value)),
+                  )
+                  .toList(),
               onChanged: (value) => status = value ?? status,
             ),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
           ElevatedButton(
             onPressed: () {
-              if (nameController.text.trim().isEmpty) return;
+              if (nameController.text.trim().isEmpty) {
+                focusAndRevealController(context, nameController);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Student name is required.')),
+                );
+                return;
+              }
               setState(() {
                 if (record == null) {
-                  _records.add(StudentAttendanceEntry(student: nameController.text.trim(), status: status));
+                  _records.add(
+                    StudentAttendanceEntry(
+                      student: nameController.text.trim(),
+                      status: status,
+                    ),
+                  );
                 } else {
                   record
                     ..student = nameController.text.trim()
@@ -81,7 +118,10 @@ class _StudentDailyAttendancePageState extends PersistentModuleState<StudentDail
           TextField(
             controller: _classController,
             onChanged: (_) => setState(() {}),
-            decoration: const InputDecoration(labelText: 'Class', prefixIcon: Icon(Icons.school)),
+            decoration: const InputDecoration(
+              labelText: 'Class',
+              prefixIcon: Icon(Icons.school),
+            ),
           ),
           const SizedBox(height: 12),
           ListTile(
@@ -89,12 +129,19 @@ class _StudentDailyAttendancePageState extends PersistentModuleState<StudentDail
             subtitle: Text(_date.toString().split(' ').first),
             trailing: const Icon(Icons.calendar_today),
             onTap: () async {
-              final selected = await showDatePicker(context: context, initialDate: _date, firstDate: DateTime(2020), lastDate: DateTime.now());
+              final selected = await showDatePicker(
+                context: context,
+                initialDate: _date,
+                firstDate: DateTime(2020),
+                lastDate: DateTime.now(),
+              );
               if (selected != null) setState(() => _date = selected);
             },
           ),
           ElevatedButton.icon(
-            onPressed: _classController.text.trim().isEmpty ? null : () => _addRecord(),
+            onPressed: _classController.text.trim().isEmpty
+                ? null
+                : () => _addRecord(),
             icon: const Icon(Icons.add),
             label: const Text('Add Attendance'),
           ),
@@ -108,8 +155,14 @@ class _StudentDailyAttendancePageState extends PersistentModuleState<StudentDail
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    IconButton(icon: const Icon(Icons.edit), onPressed: () => _addRecord(record: record)),
-                    IconButton(icon: const Icon(Icons.delete), onPressed: () => setState(() => _records.removeAt(index))),
+                    IconButton(
+                      icon: const Icon(Icons.edit),
+                      onPressed: () => _addRecord(record: record),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.delete),
+                      onPressed: () => setState(() => _records.removeAt(index)),
+                    ),
                   ],
                 ),
               ),
@@ -127,5 +180,9 @@ class StudentAttendanceEntry {
   String student;
   String status;
   Map<String, dynamic> toJson() => {'student': student, 'status': status};
-  factory StudentAttendanceEntry.fromJson(Map<String, dynamic> json) => StudentAttendanceEntry(student: json['student'] as String, status: json['status'] as String);
+  factory StudentAttendanceEntry.fromJson(Map<String, dynamic> json) =>
+      StudentAttendanceEntry(
+        student: json['student'] as String,
+        status: json['status'] as String,
+      );
 }

@@ -1,4 +1,5 @@
 import 'package:educare/core/widgets/delete_confirmation_dialog.dart';
+import 'package:educare/core/widgets/form_validation.dart';
 import 'package:educare/core/widgets/persistent_module_state.dart';
 import 'package:flutter/material.dart';
 
@@ -6,29 +7,80 @@ class TransportManagementPage extends StatefulWidget {
   const TransportManagementPage({super.key});
 
   @override
-  State<TransportManagementPage> createState() => _TransportManagementPageState();
+  State<TransportManagementPage> createState() =>
+      _TransportManagementPageState();
 }
 
-class _TransportManagementPageState extends PersistentModuleState<TransportManagementPage> {
+class _TransportManagementPageState
+    extends PersistentModuleState<TransportManagementPage> {
   final List<Vehicle> _vehicles = [
-    Vehicle(id: 1, name: 'Bus A1', registration: 'KA01AB1234', capacity: 40, assignedRoute: 'Route 1'),
-    Vehicle(id: 2, name: 'Van V2', registration: 'KA05CD5678', capacity: 18, assignedRoute: 'Route 3'),
+    Vehicle(
+      id: 1,
+      name: 'Bus A1',
+      registration: 'KA01AB1234',
+      capacity: 40,
+      assignedRoute: 'Route 1',
+    ),
+    Vehicle(
+      id: 2,
+      name: 'Van V2',
+      registration: 'KA05CD5678',
+      capacity: 18,
+      assignedRoute: 'Route 3',
+    ),
   ];
 
   final List<Driver> _drivers = [
-    Driver(id: 1, name: 'Ramesh Kumar', license: 'DL-123456789', phone: '9876543210', assignedVehicle: 'Bus A1'),
-    Driver(id: 2, name: 'Sonal Patel', license: 'DL-987654321', phone: '9123456780', assignedVehicle: 'Van V2'),
+    Driver(
+      id: 1,
+      name: 'Ramesh Kumar',
+      license: 'DL-123456789',
+      phone: '9876543210',
+      assignedVehicle: 'Bus A1',
+    ),
+    Driver(
+      id: 2,
+      name: 'Sonal Patel',
+      license: 'DL-987654321',
+      phone: '9123456780',
+      assignedVehicle: 'Van V2',
+    ),
   ];
 
   final List<TransportRoute> _routes = [
-    TransportRoute(id: 1, name: 'Route 1', stops: 'Main Gate → Block A → Block B → Lake View', distance: '12 km'),
-    TransportRoute(id: 2, name: 'Route 2', stops: 'Main Gate → Science Park → North Colony', distance: '9 km'),
-    TransportRoute(id: 3, name: 'Route 3', stops: 'Main Gate → East Market → Riverside', distance: '15 km'),
+    TransportRoute(
+      id: 1,
+      name: 'Route 1',
+      stops: 'Main Gate → Block A → Block B → Lake View',
+      distance: '12 km',
+    ),
+    TransportRoute(
+      id: 2,
+      name: 'Route 2',
+      stops: 'Main Gate → Science Park → North Colony',
+      distance: '9 km',
+    ),
+    TransportRoute(
+      id: 3,
+      name: 'Route 3',
+      stops: 'Main Gate → East Market → Riverside',
+      distance: '15 km',
+    ),
   ];
 
   final List<StudentAssignment> _assignments = [
-    StudentAssignment(id: 1, studentName: 'Anika Shah', vehicle: 'Bus A1', route: 'Route 1'),
-    StudentAssignment(id: 2, studentName: 'Rohan Iyer', vehicle: 'Van V2', route: 'Route 3'),
+    StudentAssignment(
+      id: 1,
+      studentName: 'Anika Shah',
+      vehicle: 'Bus A1',
+      route: 'Route 1',
+    ),
+    StudentAssignment(
+      id: 2,
+      studentName: 'Rohan Iyer',
+      vehicle: 'Van V2',
+      route: 'Route 3',
+    ),
   ];
 
   @override
@@ -44,10 +96,35 @@ class _TransportManagementPageState extends PersistentModuleState<TransportManag
 
   @override
   void importState(Map<String, dynamic> data) {
-    _vehicles..clear()..addAll((data['vehicles'] as List? ?? []).map((e) => Vehicle.fromJson(Map<String, dynamic>.from(e as Map))));
-    _drivers..clear()..addAll((data['drivers'] as List? ?? []).map((e) => Driver.fromJson(Map<String, dynamic>.from(e as Map))));
-    _routes..clear()..addAll((data['routes'] as List? ?? []).map((e) => TransportRoute.fromJson(Map<String, dynamic>.from(e as Map))));
-    _assignments..clear()..addAll((data['assignments'] as List? ?? []).map((e) => StudentAssignment.fromJson(Map<String, dynamic>.from(e as Map))));
+    _vehicles
+      ..clear()
+      ..addAll(
+        (data['vehicles'] as List? ?? []).map(
+          (e) => Vehicle.fromJson(Map<String, dynamic>.from(e as Map)),
+        ),
+      );
+    _drivers
+      ..clear()
+      ..addAll(
+        (data['drivers'] as List? ?? []).map(
+          (e) => Driver.fromJson(Map<String, dynamic>.from(e as Map)),
+        ),
+      );
+    _routes
+      ..clear()
+      ..addAll(
+        (data['routes'] as List? ?? []).map(
+          (e) => TransportRoute.fromJson(Map<String, dynamic>.from(e as Map)),
+        ),
+      );
+    _assignments
+      ..clear()
+      ..addAll(
+        (data['assignments'] as List? ?? []).map(
+          (e) =>
+              StudentAssignment.fromJson(Map<String, dynamic>.from(e as Map)),
+        ),
+      );
   }
 
   @override
@@ -83,7 +160,12 @@ class _TransportManagementPageState extends PersistentModuleState<TransportManag
     );
   }
 
-  Widget _buildSectionHeader(String title, String subtitle, {VoidCallback? action, String? actionLabel}) {
+  Widget _buildSectionHeader(
+    String title,
+    String subtitle, {
+    VoidCallback? action,
+    String? actionLabel,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       child: Row(
@@ -92,7 +174,13 @@ class _TransportManagementPageState extends PersistentModuleState<TransportManag
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 const SizedBox(height: 4),
                 Text(subtitle, style: const TextStyle(color: Colors.black54)),
               ],
@@ -109,7 +197,12 @@ class _TransportManagementPageState extends PersistentModuleState<TransportManag
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionHeader('Vehicle Management', 'Add, edit and manage fleet details.', action: () => _showVehicleDialog(context), actionLabel: 'Add Vehicle'),
+        _buildSectionHeader(
+          'Vehicle Management',
+          'Add, edit and manage fleet details.',
+          action: () => _showVehicleDialog(context),
+          actionLabel: 'Add Vehicle',
+        ),
         Expanded(
           child: _vehicles.isEmpty
               ? const Center(child: Text('No vehicles registered yet.'))
@@ -121,22 +214,32 @@ class _TransportManagementPageState extends PersistentModuleState<TransportManag
                     final vehicle = _vehicles[index];
                     return Card(
                       elevation: 1,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       child: ListTile(
                         title: Text(vehicle.name),
-                        subtitle: Text('${vehicle.registration} • Capacity ${vehicle.capacity} • ${vehicle.assignedRoute}'),
+                        subtitle: Text(
+                          '${vehicle.registration} • Capacity ${vehicle.capacity} • ${vehicle.assignedRoute}',
+                        ),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            IconButton(icon: const Icon(Icons.edit), onPressed: () => _showVehicleDialog(context, vehicle: vehicle)),
+                            IconButton(
+                              icon: const Icon(Icons.edit),
+                              onPressed: () =>
+                                  _showVehicleDialog(context, vehicle: vehicle),
+                            ),
                             IconButton(
                               icon: const Icon(Icons.delete),
                               onPressed: () async {
-                                final confirmed = await showDeleteConfirmationDialog(
-                                  context,
-                                  title: 'Delete vehicle?',
-                                  message: 'This will remove ${vehicle.name} from transport vehicles.',
-                                );
+                                final confirmed =
+                                    await showDeleteConfirmationDialog(
+                                      context,
+                                      title: 'Delete vehicle?',
+                                      message:
+                                          'This will remove ${vehicle.name} from transport vehicles.',
+                                    );
                                 if (!confirmed) return;
                                 setState(() => _vehicles.removeAt(index));
                               },
@@ -156,7 +259,12 @@ class _TransportManagementPageState extends PersistentModuleState<TransportManag
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionHeader('Driver Management', 'Keep driver records and assignments.', action: () => _showDriverDialog(context), actionLabel: 'Add Driver'),
+        _buildSectionHeader(
+          'Driver Management',
+          'Keep driver records and assignments.',
+          action: () => _showDriverDialog(context),
+          actionLabel: 'Add Driver',
+        ),
         Expanded(
           child: _drivers.isEmpty
               ? const Center(child: Text('No drivers registered yet.'))
@@ -168,22 +276,32 @@ class _TransportManagementPageState extends PersistentModuleState<TransportManag
                     final driver = _drivers[index];
                     return Card(
                       elevation: 1,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       child: ListTile(
                         title: Text(driver.name),
-                        subtitle: Text('${driver.license} • ${driver.phone} • ${driver.assignedVehicle}'),
+                        subtitle: Text(
+                          '${driver.license} • ${driver.phone} • ${driver.assignedVehicle}',
+                        ),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            IconButton(icon: const Icon(Icons.edit), onPressed: () => _showDriverDialog(context, driver: driver)),
+                            IconButton(
+                              icon: const Icon(Icons.edit),
+                              onPressed: () =>
+                                  _showDriverDialog(context, driver: driver),
+                            ),
                             IconButton(
                               icon: const Icon(Icons.delete),
                               onPressed: () async {
-                                final confirmed = await showDeleteConfirmationDialog(
-                                  context,
-                                  title: 'Delete driver?',
-                                  message: 'This will remove ${driver.name} from driver records.',
-                                );
+                                final confirmed =
+                                    await showDeleteConfirmationDialog(
+                                      context,
+                                      title: 'Delete driver?',
+                                      message:
+                                          'This will remove ${driver.name} from driver records.',
+                                    );
                                 if (!confirmed) return;
                                 setState(() => _drivers.removeAt(index));
                               },
@@ -203,7 +321,12 @@ class _TransportManagementPageState extends PersistentModuleState<TransportManag
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionHeader('Route Management', 'Manage transport routes and stops.', action: () => _showRouteDialog(context), actionLabel: 'Add Route'),
+        _buildSectionHeader(
+          'Route Management',
+          'Manage transport routes and stops.',
+          action: () => _showRouteDialog(context),
+          actionLabel: 'Add Route',
+        ),
         Expanded(
           child: _routes.isEmpty
               ? const Center(child: Text('No routes have been defined yet.'))
@@ -215,22 +338,30 @@ class _TransportManagementPageState extends PersistentModuleState<TransportManag
                     final route = _routes[index];
                     return Card(
                       elevation: 1,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       child: ListTile(
                         title: Text(route.name),
                         subtitle: Text('${route.stops} • ${route.distance}'),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            IconButton(icon: const Icon(Icons.edit), onPressed: () => _showRouteDialog(context, route: route)),
+                            IconButton(
+                              icon: const Icon(Icons.edit),
+                              onPressed: () =>
+                                  _showRouteDialog(context, route: route),
+                            ),
                             IconButton(
                               icon: const Icon(Icons.delete),
                               onPressed: () async {
-                                final confirmed = await showDeleteConfirmationDialog(
-                                  context,
-                                  title: 'Delete route?',
-                                  message: 'This will remove ${route.name} from transport routes.',
-                                );
+                                final confirmed =
+                                    await showDeleteConfirmationDialog(
+                                      context,
+                                      title: 'Delete route?',
+                                      message:
+                                          'This will remove ${route.name} from transport routes.',
+                                    );
                                 if (!confirmed) return;
                                 setState(() => _routes.removeAt(index));
                               },
@@ -250,7 +381,12 @@ class _TransportManagementPageState extends PersistentModuleState<TransportManag
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionHeader('Student Allocation', 'Assign students to vehicles and routes.', action: () => _showAllocationDialog(context), actionLabel: 'Allocate Student'),
+        _buildSectionHeader(
+          'Student Allocation',
+          'Assign students to vehicles and routes.',
+          action: () => _showAllocationDialog(context),
+          actionLabel: 'Allocate Student',
+        ),
         Expanded(
           child: _assignments.isEmpty
               ? const Center(child: Text('No student allocations created yet.'))
@@ -262,24 +398,36 @@ class _TransportManagementPageState extends PersistentModuleState<TransportManag
                     final assignment = _assignments[index];
                     return Card(
                       elevation: 1,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       child: ListTile(
                         title: Text(assignment.studentName),
-                        subtitle: Text('${assignment.vehicle} • ${assignment.route}'),
+                        subtitle: Text(
+                          '${assignment.vehicle} • ${assignment.route}',
+                        ),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            IconButton(icon: const Icon(Icons.edit), onPressed: () => _showAllocationDialog(context, assignment: assignment)),
+                            IconButton(
+                              icon: const Icon(Icons.edit),
+                              onPressed: () => _showAllocationDialog(
+                                context,
+                                assignment: assignment,
+                              ),
+                            ),
                             IconButton(
                               icon: const Icon(Icons.delete),
                               onPressed: () async {
-                            final confirmed = await showDeleteConfirmationDialog(
-                              context,
-                              title: 'Delete allocation?',
-                              message: 'This will remove the transport allocation for ${assignment.studentName}.',
-                            );
-                            if (!confirmed) return;
-                            setState(() => _assignments.removeAt(index));
+                                final confirmed =
+                                    await showDeleteConfirmationDialog(
+                                      context,
+                                      title: 'Delete allocation?',
+                                      message:
+                                          'This will remove the transport allocation for ${assignment.studentName}.',
+                                    );
+                                if (!confirmed) return;
+                                setState(() => _assignments.removeAt(index));
                               },
                             ),
                           ],
@@ -299,10 +447,15 @@ class _TransportManagementPageState extends PersistentModuleState<TransportManag
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionHeader('GPS Tracking', 'Live vehicle tracking and route monitoring.'),
+          _buildSectionHeader(
+            'GPS Tracking',
+            'Live vehicle tracking and route monitoring.',
+          ),
           const SizedBox(height: 12),
           Card(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
             child: Container(
               height: 260,
               decoration: BoxDecoration(
@@ -310,31 +463,44 @@ class _TransportManagementPageState extends PersistentModuleState<TransportManag
                 color: Colors.blueGrey.shade50,
               ),
               child: const Center(
-                child: Text('Google Maps integration placeholder for live GPS tracking', textAlign: TextAlign.center, style: TextStyle(fontSize: 16, color: Colors.black54)),
+                child: Text(
+                  'Google Maps integration placeholder for live GPS tracking',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 16, color: Colors.black54),
+                ),
               ),
             ),
           ),
           const SizedBox(height: 20),
           Card(
             elevation: 1,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Route Monitoring', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const Text(
+                    'Route Monitoring',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
                   const SizedBox(height: 10),
-                  const Text('Track active routes and vehicle positions on the map in real time.'),
+                  const Text(
+                    'Track active routes and vehicle positions on the map in real time.',
+                  ),
                   const SizedBox(height: 16),
                   Wrap(
                     spacing: 12,
                     runSpacing: 12,
                     children: _routes
-                        .map((route) => Chip(
-                              label: Text(route.name),
-                              avatar: const Icon(Icons.map, size: 18),
-                            ))
+                        .map(
+                          (route) => Chip(
+                            label: Text(route.name),
+                            avatar: const Icon(Icons.map, size: 18),
+                          ),
+                        )
                         .toList(),
                   ),
                 ],
@@ -357,7 +523,10 @@ class _TransportManagementPageState extends PersistentModuleState<TransportManag
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionHeader('Transport Reports', 'View status of vehicles, drivers, routes and allocations.'),
+          _buildSectionHeader(
+            'Transport Reports',
+            'View status of vehicles, drivers, routes and allocations.',
+          ),
           const SizedBox(height: 16),
           Wrap(
             spacing: 12,
@@ -370,26 +539,40 @@ class _TransportManagementPageState extends PersistentModuleState<TransportManag
             ],
           ),
           const SizedBox(height: 24),
-          const Text('Active Routes', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          const Text(
+            'Active Routes',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 8),
-          ..._routes.map((route) => Card(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                child: ListTile(
-                  title: Text(route.name),
-                  subtitle: Text(route.stops),
-                  trailing: Text(route.distance),
-                ),
-              )),
+          ..._routes.map(
+            (route) => Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: ListTile(
+                title: Text(route.name),
+                subtitle: Text(route.stops),
+                trailing: Text(route.distance),
+              ),
+            ),
+          ),
           const SizedBox(height: 24),
-          const Text('Student Allocations', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          const Text(
+            'Student Allocations',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 8),
-          ..._assignments.map((allocation) => Card(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                child: ListTile(
-                  title: Text(allocation.studentName),
-                  subtitle: Text('${allocation.vehicle} • ${allocation.route}'),
-                ),
-              )),
+          ..._assignments.map(
+            (allocation) => Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: ListTile(
+                title: Text(allocation.studentName),
+                subtitle: Text('${allocation.vehicle} • ${allocation.route}'),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -397,9 +580,15 @@ class _TransportManagementPageState extends PersistentModuleState<TransportManag
 
   void _showVehicleDialog(BuildContext context, {Vehicle? vehicle}) {
     final nameController = TextEditingController(text: vehicle?.name ?? '');
-    final registrationController = TextEditingController(text: vehicle?.registration ?? '');
-    final capacityController = TextEditingController(text: vehicle?.capacity.toString() ?? '');
-    String selectedRoute = vehicle?.assignedRoute ?? (_routes.isNotEmpty ? _routes.first.name : '');
+    final registrationController = TextEditingController(
+      text: vehicle?.registration ?? '',
+    );
+    final capacityController = TextEditingController(
+      text: vehicle?.capacity.toString() ?? '',
+    );
+    String selectedRoute =
+        vehicle?.assignedRoute ??
+        (_routes.isNotEmpty ? _routes.first.name : '');
 
     showDialog(
       context: context,
@@ -409,28 +598,61 @@ class _TransportManagementPageState extends PersistentModuleState<TransportManag
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(controller: nameController, decoration: const InputDecoration(labelText: 'Vehicle Name')),
-              TextField(controller: registrationController, decoration: const InputDecoration(labelText: 'Registration Number')),
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(labelText: 'Vehicle Name'),
+              ),
+              TextField(
+                controller: registrationController,
+                decoration: const InputDecoration(
+                  labelText: 'Registration Number',
+                ),
+              ),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
                 initialValue: selectedRoute.isNotEmpty ? selectedRoute : null,
-                items: _routes.map((route) => DropdownMenuItem(value: route.name, child: Text(route.name))).toList(),
+                items: _routes
+                    .map(
+                      (route) => DropdownMenuItem(
+                        value: route.name,
+                        child: Text(route.name),
+                      ),
+                    )
+                    .toList(),
                 decoration: const InputDecoration(labelText: 'Assigned Route'),
                 onChanged: (value) => selectedRoute = value ?? selectedRoute,
               ),
-              TextField(controller: capacityController, decoration: const InputDecoration(labelText: 'Capacity'), keyboardType: TextInputType.number),
+              TextField(
+                controller: capacityController,
+                decoration: const InputDecoration(labelText: 'Capacity'),
+                keyboardType: TextInputType.number,
+              ),
             ],
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
           ElevatedButton(
             onPressed: () {
               final name = nameController.text.trim();
               final registration = registrationController.text.trim();
-              final capacity = int.tryParse(capacityController.text.trim()) ?? 0;
+              final capacity =
+                  int.tryParse(capacityController.text.trim()) ?? 0;
               if (name.isEmpty || registration.isEmpty || capacity <= 0) {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Enter valid vehicle details.')));
+                focusAndRevealController(
+                  context,
+                  name.isEmpty
+                      ? nameController
+                      : registration.isEmpty
+                      ? registrationController
+                      : capacityController,
+                );
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Enter valid vehicle details.')),
+                );
                 return;
               }
               setState(() {
@@ -440,13 +662,15 @@ class _TransportManagementPageState extends PersistentModuleState<TransportManag
                   vehicle.capacity = capacity;
                   vehicle.assignedRoute = selectedRoute;
                 } else {
-                  _vehicles.add(Vehicle(
-                    id: _vehicles.isEmpty ? 1 : _vehicles.last.id + 1,
-                    name: name,
-                    registration: registration,
-                    capacity: capacity,
-                    assignedRoute: selectedRoute,
-                  ));
+                  _vehicles.add(
+                    Vehicle(
+                      id: _vehicles.isEmpty ? 1 : _vehicles.last.id + 1,
+                      name: name,
+                      registration: registration,
+                      capacity: capacity,
+                      assignedRoute: selectedRoute,
+                    ),
+                  );
                 }
               });
               Navigator.pop(context);
@@ -460,9 +684,13 @@ class _TransportManagementPageState extends PersistentModuleState<TransportManag
 
   void _showDriverDialog(BuildContext context, {Driver? driver}) {
     final nameController = TextEditingController(text: driver?.name ?? '');
-    final licenseController = TextEditingController(text: driver?.license ?? '');
+    final licenseController = TextEditingController(
+      text: driver?.license ?? '',
+    );
     final phoneController = TextEditingController(text: driver?.phone ?? '');
-    String assignedVehicle = driver?.assignedVehicle ?? (_vehicles.isNotEmpty ? _vehicles.first.name : '');
+    String assignedVehicle =
+        driver?.assignedVehicle ??
+        (_vehicles.isNotEmpty ? _vehicles.first.name : '');
 
     showDialog(
       context: context,
@@ -472,28 +700,63 @@ class _TransportManagementPageState extends PersistentModuleState<TransportManag
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(controller: nameController, decoration: const InputDecoration(labelText: 'Driver Name')),
-              TextField(controller: licenseController, decoration: const InputDecoration(labelText: 'License Number')),
-              TextField(controller: phoneController, decoration: const InputDecoration(labelText: 'Phone Number'), keyboardType: TextInputType.phone),
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(labelText: 'Driver Name'),
+              ),
+              TextField(
+                controller: licenseController,
+                decoration: const InputDecoration(labelText: 'License Number'),
+              ),
+              TextField(
+                controller: phoneController,
+                decoration: const InputDecoration(labelText: 'Phone Number'),
+                keyboardType: TextInputType.phone,
+              ),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
-                initialValue: assignedVehicle.isNotEmpty ? assignedVehicle : null,
-                items: _vehicles.map((vehicle) => DropdownMenuItem(value: vehicle.name, child: Text(vehicle.name))).toList(),
-                decoration: const InputDecoration(labelText: 'Assigned Vehicle'),
-                onChanged: (value) => assignedVehicle = value ?? assignedVehicle,
+                initialValue: assignedVehicle.isNotEmpty
+                    ? assignedVehicle
+                    : null,
+                items: _vehicles
+                    .map(
+                      (vehicle) => DropdownMenuItem(
+                        value: vehicle.name,
+                        child: Text(vehicle.name),
+                      ),
+                    )
+                    .toList(),
+                decoration: const InputDecoration(
+                  labelText: 'Assigned Vehicle',
+                ),
+                onChanged: (value) =>
+                    assignedVehicle = value ?? assignedVehicle,
               ),
             ],
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
           ElevatedButton(
             onPressed: () {
               final name = nameController.text.trim();
               final license = licenseController.text.trim();
               final phone = phoneController.text.trim();
               if (name.isEmpty || license.isEmpty || phone.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Enter valid driver details.')));
+                focusAndRevealController(
+                  context,
+                  name.isEmpty
+                      ? nameController
+                      : license.isEmpty
+                      ? licenseController
+                      : phoneController,
+                );
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Enter valid driver details.')),
+                );
                 return;
               }
               setState(() {
@@ -503,13 +766,15 @@ class _TransportManagementPageState extends PersistentModuleState<TransportManag
                   driver.phone = phone;
                   driver.assignedVehicle = assignedVehicle;
                 } else {
-                  _drivers.add(Driver(
-                    id: _drivers.isEmpty ? 1 : _drivers.last.id + 1,
-                    name: name,
-                    license: license,
-                    phone: phone,
-                    assignedVehicle: assignedVehicle,
-                  ));
+                  _drivers.add(
+                    Driver(
+                      id: _drivers.isEmpty ? 1 : _drivers.last.id + 1,
+                      name: name,
+                      license: license,
+                      phone: phone,
+                      assignedVehicle: assignedVehicle,
+                    ),
+                  );
                 }
               });
               Navigator.pop(context);
@@ -524,7 +789,9 @@ class _TransportManagementPageState extends PersistentModuleState<TransportManag
   void _showRouteDialog(BuildContext context, {TransportRoute? route}) {
     final nameController = TextEditingController(text: route?.name ?? '');
     final stopsController = TextEditingController(text: route?.stops ?? '');
-    final distanceController = TextEditingController(text: route?.distance ?? '');
+    final distanceController = TextEditingController(
+      text: route?.distance ?? '',
+    );
 
     showDialog(
       context: context,
@@ -534,21 +801,43 @@ class _TransportManagementPageState extends PersistentModuleState<TransportManag
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(controller: nameController, decoration: const InputDecoration(labelText: 'Route Name')),
-              TextField(controller: stopsController, decoration: const InputDecoration(labelText: 'Stops')), 
-              TextField(controller: distanceController, decoration: const InputDecoration(labelText: 'Distance')),
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(labelText: 'Route Name'),
+              ),
+              TextField(
+                controller: stopsController,
+                decoration: const InputDecoration(labelText: 'Stops'),
+              ),
+              TextField(
+                controller: distanceController,
+                decoration: const InputDecoration(labelText: 'Distance'),
+              ),
             ],
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
           ElevatedButton(
             onPressed: () {
               final name = nameController.text.trim();
               final stops = stopsController.text.trim();
               final distance = distanceController.text.trim();
               if (name.isEmpty || stops.isEmpty || distance.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Enter valid route details.')));
+                focusAndRevealController(
+                  context,
+                  name.isEmpty
+                      ? nameController
+                      : stops.isEmpty
+                      ? stopsController
+                      : distanceController,
+                );
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Enter valid route details.')),
+                );
                 return;
               }
               setState(() {
@@ -557,12 +846,14 @@ class _TransportManagementPageState extends PersistentModuleState<TransportManag
                   route.stops = stops;
                   route.distance = distance;
                 } else {
-                  _routes.add(TransportRoute(
-                    id: _routes.isEmpty ? 1 : _routes.last.id + 1,
-                    name: name,
-                    stops: stops,
-                    distance: distance,
-                  ));
+                  _routes.add(
+                    TransportRoute(
+                      id: _routes.isEmpty ? 1 : _routes.last.id + 1,
+                      name: name,
+                      stops: stops,
+                      distance: distance,
+                    ),
+                  );
                 }
               });
               Navigator.pop(context);
@@ -574,31 +865,61 @@ class _TransportManagementPageState extends PersistentModuleState<TransportManag
     );
   }
 
-  void _showAllocationDialog(BuildContext context, {StudentAssignment? assignment}) {
-    final studentController = TextEditingController(text: assignment?.studentName ?? '');
-    String selectedVehicle = assignment?.vehicle ?? (_vehicles.isNotEmpty ? _vehicles.first.name : '');
-    String selectedRoute = assignment?.route ?? (_routes.isNotEmpty ? _routes.first.name : '');
+  void _showAllocationDialog(
+    BuildContext context, {
+    StudentAssignment? assignment,
+  }) {
+    final studentController = TextEditingController(
+      text: assignment?.studentName ?? '',
+    );
+    String selectedVehicle =
+        assignment?.vehicle ??
+        (_vehicles.isNotEmpty ? _vehicles.first.name : '');
+    String selectedRoute =
+        assignment?.route ?? (_routes.isNotEmpty ? _routes.first.name : '');
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(assignment == null ? 'Allocate Student' : 'Edit Student Allocation'),
+        title: Text(
+          assignment == null ? 'Allocate Student' : 'Edit Student Allocation',
+        ),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(controller: studentController, decoration: const InputDecoration(labelText: 'Student Name')),
+              TextField(
+                controller: studentController,
+                decoration: const InputDecoration(labelText: 'Student Name'),
+              ),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
-                initialValue: selectedVehicle.isNotEmpty ? selectedVehicle : null,
-                items: _vehicles.map((vehicle) => DropdownMenuItem(value: vehicle.name, child: Text(vehicle.name))).toList(),
+                initialValue: selectedVehicle.isNotEmpty
+                    ? selectedVehicle
+                    : null,
+                items: _vehicles
+                    .map(
+                      (vehicle) => DropdownMenuItem(
+                        value: vehicle.name,
+                        child: Text(vehicle.name),
+                      ),
+                    )
+                    .toList(),
                 decoration: const InputDecoration(labelText: 'Vehicle'),
-                onChanged: (value) => selectedVehicle = value ?? selectedVehicle,
+                onChanged: (value) =>
+                    selectedVehicle = value ?? selectedVehicle,
               ),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
                 initialValue: selectedRoute.isNotEmpty ? selectedRoute : null,
-                items: _routes.map((route) => DropdownMenuItem(value: route.name, child: Text(route.name))).toList(),
+                items: _routes
+                    .map(
+                      (route) => DropdownMenuItem(
+                        value: route.name,
+                        child: Text(route.name),
+                      ),
+                    )
+                    .toList(),
                 decoration: const InputDecoration(labelText: 'Route'),
                 onChanged: (value) => selectedRoute = value ?? selectedRoute,
               ),
@@ -606,22 +927,34 @@ class _TransportManagementPageState extends PersistentModuleState<TransportManag
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
           ElevatedButton(
             onPressed: () {
               final studentName = studentController.text.trim();
-              if (studentName.isEmpty || selectedVehicle.isEmpty || selectedRoute.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Enter valid allocation details.')));
+              if (studentName.isEmpty ||
+                  selectedVehicle.isEmpty ||
+                  selectedRoute.isEmpty) {
+                focusAndRevealController(context, studentController);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Enter valid allocation details.'),
+                  ),
+                );
                 return;
               }
               setState(() {
                 if (assignment == null) {
-                  _assignments.add(StudentAssignment(
-                    id: _assignments.isEmpty ? 1 : _assignments.last.id + 1,
-                    studentName: studentName,
-                    vehicle: selectedVehicle,
-                    route: selectedRoute,
-                  ));
+                  _assignments.add(
+                    StudentAssignment(
+                      id: _assignments.isEmpty ? 1 : _assignments.last.id + 1,
+                      studentName: studentName,
+                      vehicle: selectedVehicle,
+                      route: selectedRoute,
+                    ),
+                  );
                 } else {
                   assignment
                     ..studentName = studentName
@@ -640,49 +973,116 @@ class _TransportManagementPageState extends PersistentModuleState<TransportManag
 }
 
 class Vehicle {
-  Vehicle({required this.id, required this.name, required this.registration, required this.capacity, required this.assignedRoute});
+  Vehicle({
+    required this.id,
+    required this.name,
+    required this.registration,
+    required this.capacity,
+    required this.assignedRoute,
+  });
 
   final int id;
   String name;
   String registration;
   int capacity;
   String assignedRoute;
-  Map<String, dynamic> toJson() => {'id': id, 'name': name, 'registration': registration, 'capacity': capacity, 'assignedRoute': assignedRoute};
-  factory Vehicle.fromJson(Map<String, dynamic> j) => Vehicle(id: j['id'] as int, name: j['name'] as String, registration: j['registration'] as String, capacity: j['capacity'] as int, assignedRoute: j['assignedRoute'] as String);
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'registration': registration,
+    'capacity': capacity,
+    'assignedRoute': assignedRoute,
+  };
+  factory Vehicle.fromJson(Map<String, dynamic> j) => Vehicle(
+    id: j['id'] as int,
+    name: j['name'] as String,
+    registration: j['registration'] as String,
+    capacity: j['capacity'] as int,
+    assignedRoute: j['assignedRoute'] as String,
+  );
 }
 
 class Driver {
-  Driver({required this.id, required this.name, required this.license, required this.phone, required this.assignedVehicle});
+  Driver({
+    required this.id,
+    required this.name,
+    required this.license,
+    required this.phone,
+    required this.assignedVehicle,
+  });
 
   final int id;
   String name;
   String license;
   String phone;
   String assignedVehicle;
-  Map<String, dynamic> toJson() => {'id': id, 'name': name, 'license': license, 'phone': phone, 'assignedVehicle': assignedVehicle};
-  factory Driver.fromJson(Map<String, dynamic> j) => Driver(id: j['id'] as int, name: j['name'] as String, license: j['license'] as String, phone: j['phone'] as String, assignedVehicle: j['assignedVehicle'] as String);
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'license': license,
+    'phone': phone,
+    'assignedVehicle': assignedVehicle,
+  };
+  factory Driver.fromJson(Map<String, dynamic> j) => Driver(
+    id: j['id'] as int,
+    name: j['name'] as String,
+    license: j['license'] as String,
+    phone: j['phone'] as String,
+    assignedVehicle: j['assignedVehicle'] as String,
+  );
 }
 
 class TransportRoute {
-  TransportRoute({required this.id, required this.name, required this.stops, required this.distance});
+  TransportRoute({
+    required this.id,
+    required this.name,
+    required this.stops,
+    required this.distance,
+  });
 
   final int id;
   String name;
   String stops;
   String distance;
-  Map<String, dynamic> toJson() => {'id': id, 'name': name, 'stops': stops, 'distance': distance};
-  factory TransportRoute.fromJson(Map<String, dynamic> j) => TransportRoute(id: j['id'] as int, name: j['name'] as String, stops: j['stops'] as String, distance: j['distance'] as String);
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'stops': stops,
+    'distance': distance,
+  };
+  factory TransportRoute.fromJson(Map<String, dynamic> j) => TransportRoute(
+    id: j['id'] as int,
+    name: j['name'] as String,
+    stops: j['stops'] as String,
+    distance: j['distance'] as String,
+  );
 }
 
 class StudentAssignment {
-  StudentAssignment({required this.id, required this.studentName, required this.vehicle, required this.route});
+  StudentAssignment({
+    required this.id,
+    required this.studentName,
+    required this.vehicle,
+    required this.route,
+  });
 
   final int id;
   String studentName;
   String vehicle;
   String route;
-  Map<String, dynamic> toJson() => {'id': id, 'studentName': studentName, 'vehicle': vehicle, 'route': route};
-  factory StudentAssignment.fromJson(Map<String, dynamic> j) => StudentAssignment(id: j['id'] as int, studentName: j['studentName'] as String, vehicle: j['vehicle'] as String, route: j['route'] as String);
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'studentName': studentName,
+    'vehicle': vehicle,
+    'route': route,
+  };
+  factory StudentAssignment.fromJson(Map<String, dynamic> j) =>
+      StudentAssignment(
+        id: j['id'] as int,
+        studentName: j['studentName'] as String,
+        vehicle: j['vehicle'] as String,
+        route: j['route'] as String,
+      );
 }
 
 class _ReportCard extends StatelessWidget {
@@ -703,9 +1103,18 @@ class _ReportCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: const TextStyle(fontSize: 14, color: Colors.black54)),
+              Text(
+                title,
+                style: const TextStyle(fontSize: 14, color: Colors.black54),
+              ),
               const SizedBox(height: 12),
-              Text(value, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ],
           ),
         ),

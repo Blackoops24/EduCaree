@@ -1,5 +1,6 @@
 import 'package:educare/core/widgets/app_flash_message.dart';
 import 'package:educare/core/widgets/delete_confirmation_dialog.dart';
+import 'package:educare/core/widgets/form_validation.dart';
 import 'package:educare/core/widgets/persistent_module_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -920,10 +921,10 @@ class _StaffManagementPageState
           drawerContext,
           'Missing required field: $missingField',
         );
-        formKey.currentState?.validate();
+        validateAndFocusFirstInvalid(formKey);
         return;
       }
-      if (!(formKey.currentState?.validate() ?? false)) {
+      if (!validateAndFocusFirstInvalid(formKey)) {
         final invalidField =
             !RegExp(
               r'^[^@\s]+@[^@\s]+\.[^@\s]+$',
@@ -1081,196 +1082,222 @@ class _StaffManagementPageState
                           key: const Key('staff_side_drawer'),
                           elevation: 24,
                           color: Theme.of(context).scaffoldBackgroundColor,
-                          child: Scaffold(
-                            appBar: AppBar(
-                              automaticallyImplyLeading: false,
-                              title: Text(
-                                staff == null
-                                    ? 'New Employee'
-                                    : 'Edit Employee',
-                              ),
-                              actions: [
-                                IconButton(
-                                  tooltip: 'Close',
-                                  onPressed: () => Navigator.pop(dialogContext),
-                                  icon: const Icon(Icons.close),
+                          child: ScaffoldMessenger(
+                            child: Builder(
+                              builder: (drawerContext) => Scaffold(
+                                appBar: AppBar(
+                                  automaticallyImplyLeading: false,
+                                  title: Text(
+                                    staff == null
+                                        ? 'New Employee'
+                                        : 'Edit Employee',
+                                  ),
+                                  actions: [
+                                    IconButton(
+                                      tooltip: 'Close',
+                                      onPressed: () =>
+                                          Navigator.pop(dialogContext),
+                                      icon: const Icon(Icons.close),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
-                            body: Form(
-                              key: formKey,
-                              child: ListView(
-                                padding: const EdgeInsets.all(24),
-                                children: [
-                                  Wrap(
-                                    spacing: 20,
-                                    runSpacing: 16,
+                                body: Form(
+                                  key: formKey,
+                                  child: ListView(
+                                    padding: const EdgeInsets.all(24),
                                     children: [
-                                      _staffTextField(
-                                        controller: employeeIdController,
-                                        label: 'Employee ID',
-                                        readOnly: true,
-                                      ),
-                                      _staffTextField(
-                                        controller: nameController,
-                                        label: 'Full Name',
-                                        validator: _required('full name'),
-                                      ),
-                                      _staffDropdown(
-                                        label: 'Gender',
-                                        value: gender,
-                                        items: _genders,
-                                        onChanged: (value) => setDrawerState(
-                                          () => gender = value,
-                                        ),
-                                      ),
-                                      _staffTextField(
-                                        controller: emailController,
-                                        label: 'Email',
-                                        keyboardType:
-                                            TextInputType.emailAddress,
-                                        validator: (value) =>
-                                            RegExp(
-                                              r'^[^@\s]+@[^@\s]+\.[^@\s]+$',
-                                            ).hasMatch(value ?? '')
-                                            ? null
-                                            : 'Enter a valid email',
-                                      ),
-                                      _staffTextField(
-                                        controller: phoneController,
-                                        label: 'Mobile Number',
-                                        keyboardType: TextInputType.phone,
-                                        inputFormatters: [
-                                          FilteringTextInputFormatter
-                                              .digitsOnly,
-                                          LengthLimitingTextInputFormatter(10),
+                                      Wrap(
+                                        spacing: 20,
+                                        runSpacing: 16,
+                                        children: [
+                                          _staffTextField(
+                                            controller: employeeIdController,
+                                            label: 'Employee ID',
+                                            readOnly: true,
+                                          ),
+                                          _staffTextField(
+                                            controller: nameController,
+                                            label: 'Full Name',
+                                            validator: _required('full name'),
+                                          ),
+                                          _staffDropdown(
+                                            label: 'Gender',
+                                            value: gender,
+                                            items: _genders,
+                                            onChanged: (value) =>
+                                                setDrawerState(
+                                                  () => gender = value,
+                                                ),
+                                          ),
+                                          _staffTextField(
+                                            controller: emailController,
+                                            label: 'Email',
+                                            keyboardType:
+                                                TextInputType.emailAddress,
+                                            validator: (value) =>
+                                                RegExp(
+                                                  r'^[^@\s]+@[^@\s]+\.[^@\s]+$',
+                                                ).hasMatch(value ?? '')
+                                                ? null
+                                                : 'Enter a valid email',
+                                          ),
+                                          _staffTextField(
+                                            controller: phoneController,
+                                            label: 'Mobile Number',
+                                            keyboardType: TextInputType.phone,
+                                            inputFormatters: [
+                                              FilteringTextInputFormatter
+                                                  .digitsOnly,
+                                              LengthLimitingTextInputFormatter(
+                                                10,
+                                              ),
+                                            ],
+                                            validator: (value) =>
+                                                RegExp(
+                                                  r'^[6-9]\d{9}$',
+                                                ).hasMatch(value ?? '')
+                                                ? null
+                                                : 'Enter a valid 10-digit mobile number',
+                                          ),
+                                          _staffDropdown(
+                                            label: 'Designation',
+                                            value: designation,
+                                            items: _designations,
+                                            onChanged: (value) =>
+                                                setDrawerState(
+                                                  () => designation = value,
+                                                ),
+                                          ),
+                                          _staffDropdown(
+                                            label: 'Department',
+                                            value: department,
+                                            items: _departments,
+                                            onChanged: (value) =>
+                                                setDrawerState(
+                                                  () => department = value,
+                                                ),
+                                          ),
+                                          _staffDropdown(
+                                            label: 'Employment Type',
+                                            value: employmentType,
+                                            items: _employmentTypes,
+                                            onChanged: (value) =>
+                                                setDrawerState(
+                                                  () => employmentType =
+                                                      value ?? employmentType,
+                                                ),
+                                          ),
+                                          _staffTextField(
+                                            controller: qualificationController,
+                                            label: 'Qualification',
+                                            validator: _required(
+                                              'qualification',
+                                            ),
+                                          ),
+                                          _staffTextField(
+                                            controller: joiningDateController,
+                                            label: 'Joining Date',
+                                            readOnly: true,
+                                            suffixIcon: const Icon(
+                                              Icons.calendar_today_outlined,
+                                            ),
+                                            validator: _required(
+                                              'joining date',
+                                            ),
+                                            onTap: () async {
+                                              final selected =
+                                                  await showDatePicker(
+                                                    context: context,
+                                                    initialDate:
+                                                        DateTime.tryParse(
+                                                          joiningDateController
+                                                              .text,
+                                                        ) ??
+                                                        DateTime.now(),
+                                                    firstDate: DateTime(1980),
+                                                    lastDate: DateTime.now(),
+                                                  );
+                                              if (selected != null) {
+                                                joiningDateController.text =
+                                                    DateFormat(
+                                                      'yyyy-MM-dd',
+                                                    ).format(selected);
+                                              }
+                                            },
+                                          ),
+                                          _staffTextField(
+                                            controller: salaryController,
+                                            label: 'Monthly Salary',
+                                            keyboardType: TextInputType.number,
+                                            inputFormatters: [
+                                              FilteringTextInputFormatter
+                                                  .digitsOnly,
+                                            ],
+                                            validator: (value) {
+                                              final amount = double.tryParse(
+                                                value ?? '',
+                                              );
+                                              return amount == null ||
+                                                      amount <= 0
+                                                  ? 'Enter a valid salary'
+                                                  : null;
+                                            },
+                                          ),
+                                          _staffDropdown(
+                                            label: 'Status',
+                                            value: status,
+                                            items: _statuses,
+                                            onChanged: (value) =>
+                                                setDrawerState(
+                                                  () =>
+                                                      status = value ?? status,
+                                                ),
+                                          ),
                                         ],
-                                        validator: (value) =>
-                                            RegExp(
-                                              r'^[6-9]\d{9}$',
-                                            ).hasMatch(value ?? '')
-                                            ? null
-                                            : 'Enter a valid 10-digit mobile number',
-                                      ),
-                                      _staffDropdown(
-                                        label: 'Designation',
-                                        value: designation,
-                                        items: _designations,
-                                        onChanged: (value) => setDrawerState(
-                                          () => designation = value,
-                                        ),
-                                      ),
-                                      _staffDropdown(
-                                        label: 'Department',
-                                        value: department,
-                                        items: _departments,
-                                        onChanged: (value) => setDrawerState(
-                                          () => department = value,
-                                        ),
-                                      ),
-                                      _staffDropdown(
-                                        label: 'Employment Type',
-                                        value: employmentType,
-                                        items: _employmentTypes,
-                                        onChanged: (value) => setDrawerState(
-                                          () => employmentType =
-                                              value ?? employmentType,
-                                        ),
-                                      ),
-                                      _staffTextField(
-                                        controller: qualificationController,
-                                        label: 'Qualification',
-                                        validator: _required('qualification'),
-                                      ),
-                                      _staffTextField(
-                                        controller: joiningDateController,
-                                        label: 'Joining Date',
-                                        readOnly: true,
-                                        suffixIcon: const Icon(
-                                          Icons.calendar_today_outlined,
-                                        ),
-                                        validator: _required('joining date'),
-                                        onTap: () async {
-                                          final selected = await showDatePicker(
-                                            context: context,
-                                            initialDate:
-                                                DateTime.tryParse(
-                                                  joiningDateController.text,
-                                                ) ??
-                                                DateTime.now(),
-                                            firstDate: DateTime(1980),
-                                            lastDate: DateTime.now(),
-                                          );
-                                          if (selected != null) {
-                                            joiningDateController.text =
-                                                DateFormat(
-                                                  'yyyy-MM-dd',
-                                                ).format(selected);
-                                          }
-                                        },
-                                      ),
-                                      _staffTextField(
-                                        controller: salaryController,
-                                        label: 'Monthly Salary',
-                                        keyboardType: TextInputType.number,
-                                        inputFormatters: [
-                                          FilteringTextInputFormatter
-                                              .digitsOnly,
-                                        ],
-                                        validator: (value) {
-                                          final amount = double.tryParse(
-                                            value ?? '',
-                                          );
-                                          return amount == null || amount <= 0
-                                              ? 'Enter a valid salary'
-                                              : null;
-                                        },
-                                      ),
-                                      _staffDropdown(
-                                        label: 'Status',
-                                        value: status,
-                                        items: _statuses,
-                                        onChanged: (value) => setDrawerState(
-                                          () => status = value ?? status,
-                                        ),
                                       ),
                                     ],
                                   ),
-                                ],
-                              ),
-                            ),
-                            bottomNavigationBar: Material(
-                              elevation: 12,
-                              child: SafeArea(
-                                top: false,
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 24,
-                                    vertical: 16,
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.end,
-                                    children: [
-                                      OutlinedButton(
-                                        key: const Key('staff_cancel_button'),
-                                        onPressed: () =>
-                                            Navigator.pop(dialogContext),
-                                        child: const Text('Cancel'),
+                                ),
+                                bottomNavigationBar: Material(
+                                  elevation: 12,
+                                  child: SafeArea(
+                                    top: false,
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 24,
+                                        vertical: 16,
                                       ),
-                                      const SizedBox(width: 12),
-                                      ElevatedButton.icon(
-                                        key: const Key('staff_submit_button'),
-                                        onPressed: () => submit(dialogContext),
-                                        icon: Icon(
-                                          staff == null
-                                              ? Icons.add
-                                              : Icons.save_outlined,
-                                        ),
-                                        label: Text(
-                                          staff == null ? 'Create' : 'Save',
-                                        ),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.end,
+                                        children: [
+                                          OutlinedButton(
+                                            key: const Key(
+                                              'staff_cancel_button',
+                                            ),
+                                            onPressed: () =>
+                                                Navigator.pop(dialogContext),
+                                            child: const Text('Cancel'),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          ElevatedButton.icon(
+                                            key: const Key(
+                                              'staff_submit_button',
+                                            ),
+                                            onPressed: () =>
+                                                submit(drawerContext),
+                                            icon: Icon(
+                                              staff == null
+                                                  ? Icons.add
+                                                  : Icons.save_outlined,
+                                            ),
+                                            label: Text(
+                                              staff == null ? 'Create' : 'Save',
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                    ],
+                                    ),
                                   ),
                                 ),
                               ),
@@ -1468,61 +1495,75 @@ class _StaffManagementPageState
                           key: Key(drawerKey),
                           elevation: 24,
                           color: Theme.of(context).scaffoldBackgroundColor,
-                          child: Scaffold(
-                            appBar: AppBar(
-                              automaticallyImplyLeading: false,
-                              title: Text(title),
-                              actions: [
-                                IconButton(
-                                  tooltip: 'Close',
-                                  onPressed: () => Navigator.pop(dialogContext),
-                                  icon: const Icon(Icons.close),
+                          child: ScaffoldMessenger(
+                            child: Builder(
+                              builder: (drawerContext) => Scaffold(
+                                appBar: AppBar(
+                                  automaticallyImplyLeading: false,
+                                  title: Text(title),
+                                  actions: [
+                                    IconButton(
+                                      tooltip: 'Close',
+                                      onPressed: () =>
+                                          Navigator.pop(dialogContext),
+                                      icon: const Icon(Icons.close),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
-                            body: ListView(
-                              padding: const EdgeInsets.all(24),
-                              children: [
-                                contentBuilder(context, setDrawerState),
-                              ],
-                            ),
-                            bottomNavigationBar: Material(
-                              elevation: 12,
-                              child: SafeArea(
-                                top: false,
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 24,
-                                    vertical: 16,
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.end,
-                                    children: [
-                                      OutlinedButton(
-                                        onPressed: () =>
-                                            Navigator.pop(dialogContext),
-                                        child: const Text('Cancel'),
+                                body: ListView(
+                                  padding: const EdgeInsets.all(24),
+                                  children: [
+                                    contentBuilder(
+                                      drawerContext,
+                                      setDrawerState,
+                                    ),
+                                  ],
+                                ),
+                                bottomNavigationBar: Material(
+                                  elevation: 12,
+                                  child: SafeArea(
+                                    top: false,
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 24,
+                                        vertical: 16,
                                       ),
-                                      const SizedBox(width: 12),
-                                      ElevatedButton.icon(
-                                        onPressed: () async {
-                                          if (!await onSubmit(dialogContext)) {
-                                            return;
-                                          }
-                                          if (!dialogContext.mounted) return;
-                                          Navigator.pop(dialogContext);
-                                          _showFlashMessage(
-                                            context,
-                                            successMessage,
-                                            type: submitLabel == 'Create'
-                                                ? AppFlashType.success
-                                                : AppFlashType.update,
-                                          );
-                                        },
-                                        icon: const Icon(Icons.save_outlined),
-                                        label: Text(submitLabel),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.end,
+                                        children: [
+                                          OutlinedButton(
+                                            onPressed: () =>
+                                                Navigator.pop(dialogContext),
+                                            child: const Text('Cancel'),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          ElevatedButton.icon(
+                                            onPressed: () async {
+                                              if (!await onSubmit(
+                                                drawerContext,
+                                              )) {
+                                                return;
+                                              }
+                                              if (!dialogContext.mounted)
+                                                return;
+                                              Navigator.pop(dialogContext);
+                                              _showFlashMessage(
+                                                context,
+                                                successMessage,
+                                                type: submitLabel == 'Create'
+                                                    ? AppFlashType.success
+                                                    : AppFlashType.update,
+                                              );
+                                            },
+                                            icon: const Icon(
+                                              Icons.save_outlined,
+                                            ),
+                                            label: Text(submitLabel),
+                                          ),
+                                        ],
                                       ),
-                                    ],
+                                    ),
                                   ),
                                 ),
                               ),
@@ -1619,10 +1660,17 @@ class _StaffManagementPageState
           'Reason': reasonController.text.trim().isNotEmpty,
         }.entries.where((entry) => !entry.value).map((entry) => entry.key);
         if (missingField.isNotEmpty) {
-          _showFlashMessage(
-            drawerContext,
-            'Missing required field: ${missingField.first}',
-          );
+          final field = missingField.first;
+          final controller = switch (field) {
+            'From Date' => fromDateController,
+            'To Date' => toDateController,
+            'Reason' => reasonController,
+            _ => null,
+          };
+          if (controller != null) {
+            focusAndRevealController(drawerContext, controller);
+          }
+          _showFlashMessage(drawerContext, 'Missing required field: $field');
           return false;
         }
         final fromDate = DateTime.parse(fromDateController.text);
@@ -1728,6 +1776,7 @@ class _StaffManagementPageState
           return false;
         }
         if (dateController.text.isEmpty) {
+          focusAndRevealController(drawerContext, dateController);
           _showFlashMessage(
             drawerContext,
             'Missing required field: Attendance Date',
@@ -1840,15 +1889,18 @@ class _StaffManagementPageState
           return false;
         }
         if (ratingController.text.trim().isEmpty) {
+          focusAndRevealController(drawerContext, ratingController);
           _showFlashMessage(drawerContext, 'Missing required field: Rating');
           return false;
         }
         if (commentsController.text.trim().isEmpty) {
+          focusAndRevealController(drawerContext, commentsController);
           _showFlashMessage(drawerContext, 'Missing required field: Comments');
           return false;
         }
         final rating = int.tryParse(ratingController.text);
         if (rating == null || rating < 1 || rating > 10) {
+          focusAndRevealController(drawerContext, ratingController);
           _showFlashMessage(drawerContext, 'Rating must be between 1 and 10.');
           return false;
         }
@@ -1947,6 +1999,7 @@ class _StaffManagementPageState
           return false;
         }
         if (amountController.text.trim().isEmpty) {
+          focusAndRevealController(drawerContext, amountController);
           _showFlashMessage(
             drawerContext,
             'Missing required field: Base Salary',
@@ -1955,6 +2008,7 @@ class _StaffManagementPageState
         }
         final amount = double.tryParse(amountController.text);
         if (amount == null || amount <= 0) {
+          focusAndRevealController(drawerContext, amountController);
           _showFlashMessage(drawerContext, 'Enter a valid base salary.');
           return false;
         }

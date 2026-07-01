@@ -52,12 +52,31 @@ void main() {
     await tester.enterText(fieldWithLabel('Email'), 'invalid');
     await tester.enterText(fieldWithLabel('Mobile Number'), '1234');
     await tester.tap(find.byKey(const Key('staff_submit_button')));
-    await tester.pump();
+    await tester.pumpAndSettle();
 
-    expect(find.text('Missing required field: Full Name'), findsWidgets);
+    expect(find.text('Missing required field: Full Name'), findsOneWidget);
+    expect(find.byType(SnackBar), findsOneWidget);
+    final drawerRect = tester.getRect(
+      find.byKey(const Key('staff_side_drawer')),
+    );
+    final alertRect = tester.getRect(find.byType(SnackBar));
+    expect(alertRect.left, greaterThanOrEqualTo(drawerRect.left));
+    expect(alertRect.right, lessThanOrEqualTo(drawerRect.right));
+    expect(
+      tester
+          .widget<EditableText>(
+            find.descendant(
+              of: fieldWithLabel('Full Name'),
+              matching: find.byType(EditableText),
+            ),
+          )
+          .focusNode
+          .hasFocus,
+      isTrue,
+    );
     expect(find.text('Enter a valid email'), findsOneWidget);
     expect(find.text('Enter a valid 10-digit mobile number'), findsOneWidget);
-    final validationFlash = tester.widget<SnackBar>(find.byType(SnackBar).last);
+    final validationFlash = tester.widget<SnackBar>(find.byType(SnackBar));
     expect(validationFlash.behavior, SnackBarBehavior.floating);
     expect(validationFlash.backgroundColor, Colors.red.shade700);
   });

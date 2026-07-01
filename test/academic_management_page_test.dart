@@ -33,10 +33,24 @@ void main() {
     expect(find.text('Total records: 2'), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('academic_class_drawer_submit')));
-    await tester.pump();
-    expect(find.text('Missing required field: Class Name'), findsWidgets);
+    await tester.pumpAndSettle();
+    expect(find.text('Missing required field: Class Name'), findsOneWidget);
+    expect(find.byType(SnackBar), findsOneWidget);
+    final drawerRect = tester.getRect(
+      find.byKey(const Key('academic_class_drawer')),
+    );
+    final alertRect = tester.getRect(find.byType(SnackBar));
+    expect(alertRect.left, greaterThanOrEqualTo(drawerRect.left));
+    expect(alertRect.right, lessThanOrEqualTo(drawerRect.right));
     expect(
-      tester.widget<SnackBar>(find.byType(SnackBar).last).backgroundColor,
+      tester
+          .widget<TextField>(textFieldWithLabel('Class Name'))
+          .focusNode
+          ?.hasFocus,
+      isTrue,
+    );
+    expect(
+      tester.widget<SnackBar>(find.byType(SnackBar)).backgroundColor,
       Colors.red.shade700,
     );
 
@@ -45,8 +59,19 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('C').last);
     await tester.pumpAndSettle();
-    await tester.enterText(textFieldWithLabel('Class Teacher'), 'Test Teacher');
     await tester.enterText(textFieldWithLabel('Capacity'), '35');
+    await tester.tap(find.byKey(const Key('academic_class_drawer_submit')));
+    await tester.pumpAndSettle();
+    expect(find.text('Missing required field: Class Teacher'), findsOneWidget);
+    expect(
+      tester
+          .widget<TextField>(textFieldWithLabel('Class Teacher'))
+          .focusNode
+          ?.hasFocus,
+      isTrue,
+    );
+
+    await tester.enterText(textFieldWithLabel('Class Teacher'), 'Test Teacher');
     await tester.tap(find.byKey(const Key('academic_class_drawer_submit')));
     await tester.pumpAndSettle();
 
