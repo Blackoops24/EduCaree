@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:educare/core/constants/app_constants.dart';
 import 'package:educare/core/services/api_service.dart';
+import 'package:educare/core/widgets/form_validation.dart';
 
 class RegistrationPage extends StatefulWidget {
   const RegistrationPage({super.key});
@@ -36,7 +37,13 @@ class _RegistrationPageState extends State<RegistrationPage> {
       setState(() {
         _createdUsers
           ..clear()
-          ..addAll((response.data as List).map((item) => RegisteredUser.fromJson(Map<String, dynamic>.from(item as Map))));
+          ..addAll(
+            (response.data as List).map(
+              (item) => RegisteredUser.fromJson(
+                Map<String, dynamic>.from(item as Map),
+              ),
+            ),
+          );
       });
     } catch (_) {}
   }
@@ -65,7 +72,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
   }
 
   Future<void> _submit() async {
-    if (!(_formKey.currentState?.validate() ?? false)) return;
+    if (!validateAndFocusFirstInvalid(_formKey)) return;
 
     try {
       final payload = {
@@ -75,20 +82,31 @@ class _RegistrationPageState extends State<RegistrationPage> {
         'role': _selectedRole,
       };
       if (_editingUser == null) {
-        final response = await _api.post('/auth/register', data: {
-          ...payload,
-          'password': _passwordController.text,
-        });
-        _createdUsers.add(RegisteredUser.fromJson(Map<String, dynamic>.from(response.data as Map)));
+        final response = await _api.post(
+          '/auth/register',
+          data: {...payload, 'password': _passwordController.text},
+        );
+        _createdUsers.add(
+          RegisteredUser.fromJson(
+            Map<String, dynamic>.from(response.data as Map),
+          ),
+        );
       } else {
-        final response = await _api.put('/auth/users/${_editingUser!.id}', data: payload);
-        final saved = RegisteredUser.fromJson(Map<String, dynamic>.from(response.data as Map));
+        final response = await _api.put(
+          '/auth/users/${_editingUser!.id}',
+          data: payload,
+        );
+        final saved = RegisteredUser.fromJson(
+          Map<String, dynamic>.from(response.data as Map),
+        );
         final index = _createdUsers.indexWhere((item) => item.id == saved.id);
         _createdUsers[index] = saved;
       }
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Unable to save user to the backend.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Unable to save user to the backend.')),
+      );
       return;
     }
     setState(() {
@@ -101,7 +119,9 @@ class _RegistrationPageState extends State<RegistrationPage> {
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('User saved successfully with assigned role.')),
+      const SnackBar(
+        content: Text('User saved successfully with assigned role.'),
+      ),
     );
   }
 
@@ -111,7 +131,11 @@ class _RegistrationPageState extends State<RegistrationPage> {
       if (mounted) setState(() => _createdUsers.remove(user));
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Unable to delete user from the backend.')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Unable to delete user from the backend.'),
+          ),
+        );
       }
     }
   }
@@ -141,14 +165,13 @@ class _RegistrationPageState extends State<RegistrationPage> {
   @override
   Widget build(BuildContext context) {
     final roles = _getRolesForCategory(_selectedCategory);
-    if (!_selectedRole.contains(_selectedCategory) && !roles.contains(_selectedRole)) {
+    if (!_selectedRole.contains(_selectedCategory) &&
+        !roles.contains(_selectedRole)) {
       _selectedRole = roles.first;
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('User Registration'),
-      ),
+      appBar: AppBar(title: const Text('User Registration')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -167,7 +190,9 @@ class _RegistrationPageState extends State<RegistrationPage> {
                   TextFormField(
                     controller: _nameController,
                     decoration: const InputDecoration(labelText: 'Full Name'),
-                    validator: (value) => value?.trim().isEmpty ?? true ? 'Enter full name' : null,
+                    validator: (value) => value?.trim().isEmpty ?? true
+                        ? 'Enter full name'
+                        : null,
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
@@ -178,7 +203,9 @@ class _RegistrationPageState extends State<RegistrationPage> {
                       if (value == null || value.trim().isEmpty) {
                         return 'Enter email';
                       }
-                      if (!RegExp(r'^[^@]+@[^@]+\.[^@]+$').hasMatch(value.trim())) {
+                      if (!RegExp(
+                        r'^[^@]+@[^@]+\.[^@]+$',
+                      ).hasMatch(value.trim())) {
                         return 'Enter a valid email address';
                       }
                       return null;
@@ -203,7 +230,14 @@ class _RegistrationPageState extends State<RegistrationPage> {
                   DropdownButtonFormField<String>(
                     initialValue: _selectedCategory,
                     decoration: const InputDecoration(labelText: 'Category'),
-                    items: _categories.map((category) => DropdownMenuItem(value: category, child: Text(category))).toList(),
+                    items: _categories
+                        .map(
+                          (category) => DropdownMenuItem(
+                            value: category,
+                            child: Text(category),
+                          ),
+                        )
+                        .toList(),
                     onChanged: (value) {
                       if (value == null) return;
                       setState(() {
@@ -216,7 +250,12 @@ class _RegistrationPageState extends State<RegistrationPage> {
                   DropdownButtonFormField<String>(
                     initialValue: _selectedRole,
                     decoration: const InputDecoration(labelText: 'Role'),
-                    items: roles.map((role) => DropdownMenuItem(value: role, child: Text(role))).toList(),
+                    items: roles
+                        .map(
+                          (role) =>
+                              DropdownMenuItem(value: role, child: Text(role)),
+                        )
+                        .toList(),
                     onChanged: (value) {
                       if (value == null) return;
                       setState(() => _selectedRole = value);
@@ -228,10 +267,15 @@ class _RegistrationPageState extends State<RegistrationPage> {
                     spacing: 8,
                     children: [
                       if (_editingUser != null)
-                        TextButton(onPressed: _cancelEdit, child: const Text('Cancel Edit')),
+                        TextButton(
+                          onPressed: _cancelEdit,
+                          child: const Text('Cancel Edit'),
+                        ),
                       ElevatedButton(
                         onPressed: _submit,
-                        child: Text(_editingUser == null ? 'Create User' : 'Save User'),
+                        child: Text(
+                          _editingUser == null ? 'Create User' : 'Save User',
+                        ),
                       ),
                     ],
                   ),
@@ -240,7 +284,10 @@ class _RegistrationPageState extends State<RegistrationPage> {
             ),
             const SizedBox(height: 24),
             if (_createdUsers.isNotEmpty) ...[
-              const Text('Created users', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const Text(
+                'Created users',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 12),
               ListView.separated(
                 shrinkWrap: true,
@@ -251,15 +298,26 @@ class _RegistrationPageState extends State<RegistrationPage> {
                   final user = _createdUsers[index];
                   return Card(
                     elevation: 1,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     child: Padding(
                       padding: const EdgeInsets.all(16),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(user.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                          Text(
+                            user.name,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
                           const SizedBox(height: 4),
-                          Text(user.email, style: const TextStyle(color: Colors.black54)),
+                          Text(
+                            user.email,
+                            style: const TextStyle(color: Colors.black54),
+                          ),
                           const SizedBox(height: 8),
                           Text('Category: ${user.category}'),
                           Text('Role: ${user.role}'),
@@ -314,10 +372,10 @@ class RegisteredUser {
   String role;
 
   factory RegisteredUser.fromJson(Map<String, dynamic> json) => RegisteredUser(
-        id: json['id'] as int,
-        name: json['name'] as String,
-        email: json['email'] as String,
-        category: json['category'] as String,
-        role: json['role'] as String,
-      );
+    id: json['id'] as int,
+    name: json['name'] as String,
+    email: json['email'] as String,
+    category: json['category'] as String,
+    role: json['role'] as String,
+  );
 }

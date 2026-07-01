@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:educare/core/providers.dart';
+import 'package:educare/core/widgets/form_validation.dart';
 import 'package:educare/features/students/presentation/keys/student_keys.dart';
 
 class TransferCertificatePage extends ConsumerStatefulWidget {
@@ -9,10 +10,12 @@ class TransferCertificatePage extends ConsumerStatefulWidget {
   const TransferCertificatePage({super.key, required this.studentId});
 
   @override
-  ConsumerState<TransferCertificatePage> createState() => _TransferCertificatePageState();
+  ConsumerState<TransferCertificatePage> createState() =>
+      _TransferCertificatePageState();
 }
 
-class _TransferCertificatePageState extends ConsumerState<TransferCertificatePage> {
+class _TransferCertificatePageState
+    extends ConsumerState<TransferCertificatePage> {
   final _formKey = GlobalKey<FormState>(debugLabel: 'transferFormKey');
   final _toSchool = TextEditingController();
   final _reason = TextEditingController();
@@ -25,8 +28,15 @@ class _TransferCertificatePageState extends ConsumerState<TransferCertificatePag
   }
 
   void _submit() {
-    if ((_formKey.currentState?.validate() ?? false) && !ref.read(studentViewModelProvider).loading) {
-      ref.read(studentViewModelProvider.notifier).requestTransferCertificate(widget.studentId, _toSchool.text.trim(), _reason.text.trim());
+    if (validateAndFocusFirstInvalid(_formKey) &&
+        !ref.read(studentViewModelProvider).loading) {
+      ref
+          .read(studentViewModelProvider.notifier)
+          .requestTransferCertificate(
+            widget.studentId,
+            _toSchool.text.trim(),
+            _reason.text.trim(),
+          );
     }
   }
 
@@ -45,15 +55,27 @@ class _TransferCertificatePageState extends ConsumerState<TransferCertificatePag
             key: StudentKeys.transferForm,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              if (state.error != null) Text(state.error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+              if (state.error != null)
+                Text(
+                  state.error!,
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
               if (state.transferCertificate != null)
-                Text('Transfer certificate requested for ${state.transferCertificate!.studentName}', style: TextStyle(color: Theme.of(context).colorScheme.primary)),
+                Text(
+                  'Transfer certificate requested for ${state.transferCertificate!.studentName}',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
               const SizedBox(height: 16),
               TextFormField(
                 key: const Key('transferToSchoolField'),
                 controller: _toSchool,
-                decoration: const InputDecoration(labelText: 'Receiving School'),
-                validator: (value) => (value?.isEmpty ?? true) ? 'Enter receiving school' : null,
+                decoration: const InputDecoration(
+                  labelText: 'Receiving School',
+                ),
+                validator: (value) =>
+                    (value?.isEmpty ?? true) ? 'Enter receiving school' : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
@@ -61,13 +83,17 @@ class _TransferCertificatePageState extends ConsumerState<TransferCertificatePag
                 controller: _reason,
                 decoration: const InputDecoration(labelText: 'Reason'),
                 maxLines: 4,
-                validator: (value) => (value?.isEmpty ?? true) ? 'Enter reason for transfer' : null,
+                validator: (value) => (value?.isEmpty ?? true)
+                    ? 'Enter reason for transfer'
+                    : null,
               ),
               const SizedBox(height: 24),
               ElevatedButton(
                 key: const Key('transferSubmitButton'),
                 onPressed: state.loading ? null : _submit,
-                child: state.loading ? const CircularProgressIndicator() : const Text('Request Certificate'),
+                child: state.loading
+                    ? const CircularProgressIndicator()
+                    : const Text('Request Certificate'),
               ),
             ],
           ),

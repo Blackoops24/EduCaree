@@ -1,4 +1,5 @@
 import 'package:educare/core/widgets/delete_confirmation_dialog.dart';
+import 'package:educare/core/widgets/form_validation.dart';
 import 'package:educare/core/widgets/persistent_module_state.dart';
 import 'package:flutter/material.dart';
 
@@ -11,20 +12,56 @@ class FeeManagementPage extends StatefulWidget {
 
 class _FeeManagementPageState extends PersistentModuleState<FeeManagementPage> {
   final List<FeeStructure> _structures = [
-    FeeStructure(id: 1, name: 'Annual Tuition', amount: 65000, description: 'Standard academic year tuition fee'),
-    FeeStructure(id: 2, name: 'Transport Fee', amount: 12000, description: 'Bus transport fee per academic year'),
+    FeeStructure(
+      id: 1,
+      name: 'Annual Tuition',
+      amount: 65000,
+      description: 'Standard academic year tuition fee',
+    ),
+    FeeStructure(
+      id: 2,
+      name: 'Transport Fee',
+      amount: 12000,
+      description: 'Bus transport fee per academic year',
+    ),
   ];
 
   final List<FeeCategory> _categories = [
-    FeeCategory(id: 1, name: 'Tuition', description: 'Classroom instruction charges'),
+    FeeCategory(
+      id: 1,
+      name: 'Tuition',
+      description: 'Classroom instruction charges',
+    ),
     FeeCategory(id: 2, name: 'Transport', description: 'Bus and van services'),
-    FeeCategory(id: 3, name: 'Library', description: 'Library and resource access'),
+    FeeCategory(
+      id: 3,
+      name: 'Library',
+      description: 'Library and resource access',
+    ),
   ];
 
   final List<InstallmentPlan> _installments = [
-    InstallmentPlan(id: 1, name: 'Term 1', dueDate: '2026-07-10', amount: 22000, paid: false),
-    InstallmentPlan(id: 2, name: 'Term 2', dueDate: '2026-09-10', amount: 22000, paid: false),
-    InstallmentPlan(id: 3, name: 'Term 3', dueDate: '2026-11-10', amount: 21000, paid: true),
+    InstallmentPlan(
+      id: 1,
+      name: 'Term 1',
+      dueDate: '2026-07-10',
+      amount: 22000,
+      paid: false,
+    ),
+    InstallmentPlan(
+      id: 2,
+      name: 'Term 2',
+      dueDate: '2026-09-10',
+      amount: 22000,
+      paid: false,
+    ),
+    InstallmentPlan(
+      id: 3,
+      name: 'Term 3',
+      dueDate: '2026-11-10',
+      amount: 21000,
+      paid: true,
+    ),
   ];
 
   final List<FeeCollection> _collections = [
@@ -59,11 +96,41 @@ class _FeeManagementPageState extends PersistentModuleState<FeeManagementPage> {
 
   @override
   void importState(Map<String, dynamic> data) {
-    _structures..clear()..addAll((data['structures'] as List? ?? []).map((e) => FeeStructure.fromJson(Map<String, dynamic>.from(e as Map))));
-    _categories..clear()..addAll((data['categories'] as List? ?? []).map((e) => FeeCategory.fromJson(Map<String, dynamic>.from(e as Map))));
-    _installments..clear()..addAll((data['installments'] as List? ?? []).map((e) => InstallmentPlan.fromJson(Map<String, dynamic>.from(e as Map))));
-    _collections..clear()..addAll((data['collections'] as List? ?? []).map((e) => FeeCollection.fromJson(Map<String, dynamic>.from(e as Map))));
-    _gateways..clear()..addAll((data['gateways'] as List? ?? []).map((e) => PaymentGateway.fromJson(Map<String, dynamic>.from(e as Map))));
+    _structures
+      ..clear()
+      ..addAll(
+        (data['structures'] as List? ?? []).map(
+          (e) => FeeStructure.fromJson(Map<String, dynamic>.from(e as Map)),
+        ),
+      );
+    _categories
+      ..clear()
+      ..addAll(
+        (data['categories'] as List? ?? []).map(
+          (e) => FeeCategory.fromJson(Map<String, dynamic>.from(e as Map)),
+        ),
+      );
+    _installments
+      ..clear()
+      ..addAll(
+        (data['installments'] as List? ?? []).map(
+          (e) => InstallmentPlan.fromJson(Map<String, dynamic>.from(e as Map)),
+        ),
+      );
+    _collections
+      ..clear()
+      ..addAll(
+        (data['collections'] as List? ?? []).map(
+          (e) => FeeCollection.fromJson(Map<String, dynamic>.from(e as Map)),
+        ),
+      );
+    _gateways
+      ..clear()
+      ..addAll(
+        (data['gateways'] as List? ?? []).map(
+          (e) => PaymentGateway.fromJson(Map<String, dynamic>.from(e as Map)),
+        ),
+      );
   }
 
   @override
@@ -100,7 +167,12 @@ class _FeeManagementPageState extends PersistentModuleState<FeeManagementPage> {
     );
   }
 
-  Widget _buildSectionHeader(String title, String subtitle, {VoidCallback? action, String? actionLabel}) {
+  Widget _buildSectionHeader(
+    String title,
+    String subtitle, {
+    VoidCallback? action,
+    String? actionLabel,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       child: Row(
@@ -109,7 +181,13 @@ class _FeeManagementPageState extends PersistentModuleState<FeeManagementPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 const SizedBox(height: 4),
                 Text(subtitle, style: const TextStyle(color: Colors.black54)),
               ],
@@ -126,10 +204,17 @@ class _FeeManagementPageState extends PersistentModuleState<FeeManagementPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionHeader('Fee Structure', 'Create and manage fee heads for your school.', action: () => _showStructureDialog(context), actionLabel: 'Add Structure'),
+        _buildSectionHeader(
+          'Fee Structure',
+          'Create and manage fee heads for your school.',
+          action: () => _showStructureDialog(context),
+          actionLabel: 'Add Structure',
+        ),
         Expanded(
           child: _structures.isEmpty
-              ? const Center(child: Text('No fee structures have been added yet.'))
+              ? const Center(
+                  child: Text('No fee structures have been added yet.'),
+                )
               : ListView.separated(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   itemCount: _structures.length,
@@ -138,26 +223,38 @@ class _FeeManagementPageState extends PersistentModuleState<FeeManagementPage> {
                     final structure = _structures[index];
                     return Card(
                       elevation: 1,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       child: ListTile(
-                        title: Text(structure.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Text('${structure.description}\nAmount: ₹${structure.amount.toStringAsFixed(0)}'),
+                        title: Text(
+                          structure.name,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Text(
+                          '${structure.description}\nAmount: ₹${structure.amount.toStringAsFixed(0)}',
+                        ),
                         isThreeLine: true,
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(
                               icon: const Icon(Icons.edit),
-                              onPressed: () => _showStructureDialog(context, structure: structure),
+                              onPressed: () => _showStructureDialog(
+                                context,
+                                structure: structure,
+                              ),
                             ),
                             IconButton(
                               icon: const Icon(Icons.delete),
                               onPressed: () async {
-                                final confirmed = await showDeleteConfirmationDialog(
-                                  context,
-                                  title: 'Delete fee structure?',
-                                  message: 'This will remove ${structure.name} from fee structures.',
-                                );
+                                final confirmed =
+                                    await showDeleteConfirmationDialog(
+                                      context,
+                                      title: 'Delete fee structure?',
+                                      message:
+                                          'This will remove ${structure.name} from fee structures.',
+                                    );
                                 if (!confirmed) return;
                                 setState(() => _structures.removeAt(index));
                               },
@@ -177,7 +274,12 @@ class _FeeManagementPageState extends PersistentModuleState<FeeManagementPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionHeader('Fee Categories', 'Organize fees by distinct categories.', action: () => _showCategoryDialog(context), actionLabel: 'Add Category'),
+        _buildSectionHeader(
+          'Fee Categories',
+          'Organize fees by distinct categories.',
+          action: () => _showCategoryDialog(context),
+          actionLabel: 'Add Category',
+        ),
         Expanded(
           child: _categories.isEmpty
               ? const Center(child: Text('No categories defined yet.'))
@@ -189,25 +291,35 @@ class _FeeManagementPageState extends PersistentModuleState<FeeManagementPage> {
                     final category = _categories[index];
                     return Card(
                       elevation: 1,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       child: ListTile(
-                        title: Text(category.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                        title: Text(
+                          category.name,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
                         subtitle: Text(category.description),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(
                               icon: const Icon(Icons.edit),
-                              onPressed: () => _showCategoryDialog(context, category: category),
+                              onPressed: () => _showCategoryDialog(
+                                context,
+                                category: category,
+                              ),
                             ),
                             IconButton(
                               icon: const Icon(Icons.delete),
                               onPressed: () async {
-                                final confirmed = await showDeleteConfirmationDialog(
-                                  context,
-                                  title: 'Delete fee category?',
-                                  message: 'This will remove ${category.name} from fee categories.',
-                                );
+                                final confirmed =
+                                    await showDeleteConfirmationDialog(
+                                      context,
+                                      title: 'Delete fee category?',
+                                      message:
+                                          'This will remove ${category.name} from fee categories.',
+                                    );
                                 if (!confirmed) return;
                                 setState(() => _categories.removeAt(index));
                               },
@@ -227,7 +339,12 @@ class _FeeManagementPageState extends PersistentModuleState<FeeManagementPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionHeader('Installments', 'Manage fee installment schedules and payment status.', action: () => _showInstallmentDialog(context), actionLabel: 'Add Installment'),
+        _buildSectionHeader(
+          'Installments',
+          'Manage fee installment schedules and payment status.',
+          action: () => _showInstallmentDialog(context),
+          actionLabel: 'Add Installment',
+        ),
         Expanded(
           child: _installments.isEmpty
               ? const Center(child: Text('No installments created yet.'))
@@ -239,29 +356,50 @@ class _FeeManagementPageState extends PersistentModuleState<FeeManagementPage> {
                     final installment = _installments[index];
                     return Card(
                       elevation: 1,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       child: ListTile(
-                        title: Text(installment.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Text('Due: ${installment.dueDate} • Amount: ₹${installment.amount.toStringAsFixed(0)}'),
+                        title: Text(
+                          installment.name,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Text(
+                          'Due: ${installment.dueDate} • Amount: ₹${installment.amount.toStringAsFixed(0)}',
+                        ),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(
-                              icon: Icon(installment.paid ? Icons.check_circle : Icons.pending, color: installment.paid ? Colors.green : Colors.orange),
-                              onPressed: () => setState(() => installment.paid = !installment.paid),
+                              icon: Icon(
+                                installment.paid
+                                    ? Icons.check_circle
+                                    : Icons.pending,
+                                color: installment.paid
+                                    ? Colors.green
+                                    : Colors.orange,
+                              ),
+                              onPressed: () => setState(
+                                () => installment.paid = !installment.paid,
+                              ),
                             ),
                             IconButton(
                               icon: const Icon(Icons.edit),
-                              onPressed: () => _showInstallmentDialog(context, installment: installment),
+                              onPressed: () => _showInstallmentDialog(
+                                context,
+                                installment: installment,
+                              ),
                             ),
                             IconButton(
                               icon: const Icon(Icons.delete),
                               onPressed: () async {
-                                final confirmed = await showDeleteConfirmationDialog(
-                                  context,
-                                  title: 'Delete installment?',
-                                  message: 'This will remove the installment ${installment.name}.',
-                                );
+                                final confirmed =
+                                    await showDeleteConfirmationDialog(
+                                      context,
+                                      title: 'Delete installment?',
+                                      message:
+                                          'This will remove the installment ${installment.name}.',
+                                    );
                                 if (!confirmed) return;
                                 setState(() => _installments.removeAt(index));
                               },
@@ -281,7 +419,12 @@ class _FeeManagementPageState extends PersistentModuleState<FeeManagementPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionHeader('Fee Collection', 'Record collections and track payment status.', action: () => _showCollectionDialog(context), actionLabel: 'Collect Fee'),
+        _buildSectionHeader(
+          'Fee Collection',
+          'Record collections and track payment status.',
+          action: () => _showCollectionDialog(context),
+          actionLabel: 'Collect Fee',
+        ),
         Expanded(
           child: _collections.isEmpty
               ? const Center(child: Text('No fee collections recorded yet.'))
@@ -293,33 +436,50 @@ class _FeeManagementPageState extends PersistentModuleState<FeeManagementPage> {
                     final collection = _collections[index];
                     return Card(
                       elevation: 1,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       child: ListTile(
-                        title: Text('${collection.studentName} • ₹${collection.amount.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Text('${collection.category} • ${collection.paymentMethod} • Paid on ${collection.paidOn}'),
+                        title: Text(
+                          '${collection.studentName} • ₹${collection.amount.toStringAsFixed(0)}',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Text(
+                          '${collection.category} • ${collection.paymentMethod} • Paid on ${collection.paidOn}',
+                        ),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(
                               icon: const Icon(Icons.edit),
-                              onPressed: () => _showCollectionDialog(context, collection: collection),
+                              onPressed: () => _showCollectionDialog(
+                                context,
+                                collection: collection,
+                              ),
                             ),
                             IconButton(
                               icon: const Icon(Icons.download),
                               onPressed: collection.receiptId != null
-                                  ? () => ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text('Downloading receipt ${collection.receiptId}...')),
-                                      )
+                                  ? () => ScaffoldMessenger.of(context)
+                                        .showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              'Downloading receipt ${collection.receiptId}...',
+                                            ),
+                                          ),
+                                        )
                                   : null,
                             ),
                             IconButton(
                               icon: const Icon(Icons.delete),
                               onPressed: () async {
-                                final confirmed = await showDeleteConfirmationDialog(
-                                  context,
-                                  title: 'Delete fee collection?',
-                                  message: 'This will remove the collection record for ${collection.studentName}.',
-                                );
+                                final confirmed =
+                                    await showDeleteConfirmationDialog(
+                                      context,
+                                      title: 'Delete fee collection?',
+                                      message:
+                                          'This will remove the collection record for ${collection.studentName}.',
+                                    );
                                 if (!confirmed) return;
                                 setState(() => _collections.removeAt(index));
                               },
@@ -341,54 +501,87 @@ class _FeeManagementPageState extends PersistentModuleState<FeeManagementPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionHeader('Online Payments', 'Enable and configure payment gateways.'),
+          _buildSectionHeader(
+            'Online Payments',
+            'Enable and configure payment gateways.',
+          ),
           const SizedBox(height: 12),
           Column(
             children: _gateways
-                .map((gateway) => SwitchListTile(
-                      value: gateway.enabled,
-                      title: Text(gateway.name),
-                      subtitle: const Text('Enable to accept payments using this gateway.'),
-                      onChanged: (value) => setState(() => gateway.enabled = value),
-                    ))
+                .map(
+                  (gateway) => SwitchListTile(
+                    value: gateway.enabled,
+                    title: Text(gateway.name),
+                    subtitle: const Text(
+                      'Enable to accept payments using this gateway.',
+                    ),
+                    onChanged: (value) =>
+                        setState(() => gateway.enabled = value),
+                  ),
+                )
                 .toList(),
           ),
           const SizedBox(height: 16),
-          const Text('Gateway Status', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          const Text(
+            'Gateway Status',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 8),
           Wrap(
             spacing: 12,
             runSpacing: 12,
             children: _gateways
-                .map((gateway) => Chip(
-                      label: Text(gateway.name),
-                      avatar: Icon(gateway.enabled ? Icons.check_circle : Icons.offline_bolt, color: gateway.enabled ? Colors.green : Colors.red),
-                    ))
+                .map(
+                  (gateway) => Chip(
+                    label: Text(gateway.name),
+                    avatar: Icon(
+                      gateway.enabled ? Icons.check_circle : Icons.offline_bolt,
+                      color: gateway.enabled ? Colors.green : Colors.red,
+                    ),
+                  ),
+                )
                 .toList(),
           ),
           const SizedBox(height: 24),
           Card(
             elevation: 1,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Payments Quick Actions', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const Text(
+                    'Payments Quick Actions',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
                   const SizedBox(height: 12),
                   ElevatedButton(
-                    onPressed: () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Razorpay test payment initiated.'))),
+                    onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Razorpay test payment initiated.'),
+                      ),
+                    ),
                     child: const Text('Test Razorpay Payment'),
                   ),
                   const SizedBox(height: 10),
                   ElevatedButton(
-                    onPressed: () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('PhonePe test payment initiated.'))),
+                    onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('PhonePe test payment initiated.'),
+                      ),
+                    ),
                     child: const Text('Test PhonePe Payment'),
                   ),
                   const SizedBox(height: 10),
                   ElevatedButton(
-                    onPressed: () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Stripe test payment initiated.'))),
+                    onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Stripe test payment initiated.'),
+                      ),
+                    ),
                     child: const Text('Test Stripe Payment'),
                   ),
                 ],
@@ -401,86 +594,144 @@ class _FeeManagementPageState extends PersistentModuleState<FeeManagementPage> {
   }
 
   Widget _buildReportsTab(BuildContext context) {
-    final totalCollected = _collections.fold<double>(0, (sum, item) => sum + item.amount);
+    final totalCollected = _collections.fold<double>(
+      0,
+      (sum, item) => sum + item.amount,
+    );
     final defaulters = _installments.where((plan) => !plan.paid).toList();
     final pendingCount = defaulters.length;
-    final pendingAmount = defaulters.fold<double>(0, (sum, item) => sum + item.amount);
+    final pendingAmount = defaulters.fold<double>(
+      0,
+      (sum, item) => sum + item.amount,
+    );
 
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionHeader('Fee Reports', 'View the latest collection and defaulter reports.'),
+          _buildSectionHeader(
+            'Fee Reports',
+            'View the latest collection and defaulter reports.',
+          ),
           const SizedBox(height: 16),
           Wrap(
             spacing: 12,
             runSpacing: 12,
             children: [
-              _ReportCard(title: 'Total Collected', value: '₹${totalCollected.toStringAsFixed(0)}'),
-              _ReportCard(title: 'Pending Installments', value: pendingCount.toString()),
-              _ReportCard(title: 'Pending Amount', value: '₹${pendingAmount.toStringAsFixed(0)}'),
+              _ReportCard(
+                title: 'Total Collected',
+                value: '₹${totalCollected.toStringAsFixed(0)}',
+              ),
+              _ReportCard(
+                title: 'Pending Installments',
+                value: pendingCount.toString(),
+              ),
+              _ReportCard(
+                title: 'Pending Amount',
+                value: '₹${pendingAmount.toStringAsFixed(0)}',
+              ),
             ],
           ),
           const SizedBox(height: 22),
-          const Text('Fee Collection Report', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          const Text(
+            'Fee Collection Report',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 8),
           _collections.isEmpty
               ? const Text('No collections available.')
               : Column(
                   children: _collections
-                      .map((collection) => Card(
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            child: ListTile(
-                              title: Text('${collection.studentName} • ₹${collection.amount.toStringAsFixed(0)}'),
-                              subtitle: Text('${collection.category} • ${collection.paymentMethod} • ${collection.paidOn}'),
-                              trailing: Text(collection.receiptId ?? 'No Receipt', style: const TextStyle(fontSize: 12)),
+                      .map(
+                        (collection) => Card(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: ListTile(
+                            title: Text(
+                              '${collection.studentName} • ₹${collection.amount.toStringAsFixed(0)}',
                             ),
-                          ))
+                            subtitle: Text(
+                              '${collection.category} • ${collection.paymentMethod} • ${collection.paidOn}',
+                            ),
+                            trailing: Text(
+                              collection.receiptId ?? 'No Receipt',
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                          ),
+                        ),
+                      )
                       .toList(),
                 ),
           const SizedBox(height: 22),
-          const Text('Defaulter Report', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          const Text(
+            'Defaulter Report',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 8),
           defaulters.isEmpty
               ? const Text('No defaulters at the moment.')
               : Column(
                   children: defaulters
-                      .map((item) => Card(
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            child: ListTile(
-                              title: Text(item.name),
-                              subtitle: Text('Due ${item.dueDate} • ₹${item.amount.toStringAsFixed(0)}'),
+                      .map(
+                        (item) => Card(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: ListTile(
+                            title: Text(item.name),
+                            subtitle: Text(
+                              'Due ${item.dueDate} • ₹${item.amount.toStringAsFixed(0)}',
                             ),
-                          ))
+                          ),
+                        ),
+                      )
                       .toList(),
                 ),
           const SizedBox(height: 22),
-          const Text('Generate / Download Receipts', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          const Text(
+            'Generate / Download Receipts',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 8),
           _collections.isEmpty
               ? const Text('No receipts available yet.')
               : Column(
                   children: _collections.map((collection) {
-                    final receiptLabel = collection.receiptId ?? 'Generate Receipt';
+                    final receiptLabel =
+                        collection.receiptId ?? 'Generate Receipt';
                     return Card(
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       child: ListTile(
                         title: Text(collection.studentName),
-                        subtitle: Text('₹${collection.amount.toStringAsFixed(0)} • ${collection.paymentMethod}'),
+                        subtitle: Text(
+                          '₹${collection.amount.toStringAsFixed(0)} • ${collection.paymentMethod}',
+                        ),
                         trailing: ElevatedButton(
                           onPressed: () {
                             if (collection.receiptId != null) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Downloading receipt ${collection.receiptId}...')),
+                                SnackBar(
+                                  content: Text(
+                                    'Downloading receipt ${collection.receiptId}...',
+                                  ),
+                                ),
                               );
                               return;
                             }
                             setState(() {
-                              collection.receiptId = 'RCPT-${1000 + collection.id}';
+                              collection.receiptId =
+                                  'RCPT-${1000 + collection.id}';
                             });
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('PDF receipt generated successfully.')),
+                              const SnackBar(
+                                content: Text(
+                                  'PDF receipt generated successfully.',
+                                ),
+                              ),
                             );
                           },
                           child: Text(receiptLabel),
@@ -496,31 +747,56 @@ class _FeeManagementPageState extends PersistentModuleState<FeeManagementPage> {
 
   void _showStructureDialog(BuildContext context, {FeeStructure? structure}) {
     final nameController = TextEditingController(text: structure?.name ?? '');
-    final amountController = TextEditingController(text: structure?.amount.toString() ?? '');
-    final descriptionController = TextEditingController(text: structure?.description ?? '');
+    final amountController = TextEditingController(
+      text: structure?.amount.toString() ?? '',
+    );
+    final descriptionController = TextEditingController(
+      text: structure?.description ?? '',
+    );
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(structure == null ? 'New Fee Structure' : 'Edit Fee Structure'),
+        title: Text(
+          structure == null ? 'New Fee Structure' : 'Edit Fee Structure',
+        ),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(controller: nameController, decoration: const InputDecoration(labelText: 'Structure name')),
-              TextField(controller: amountController, decoration: const InputDecoration(labelText: 'Amount'), keyboardType: TextInputType.number),
-              TextField(controller: descriptionController, decoration: const InputDecoration(labelText: 'Description')),
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(labelText: 'Structure name'),
+              ),
+              TextField(
+                controller: amountController,
+                decoration: const InputDecoration(labelText: 'Amount'),
+                keyboardType: TextInputType.number,
+              ),
+              TextField(
+                controller: descriptionController,
+                decoration: const InputDecoration(labelText: 'Description'),
+              ),
             ],
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
           ElevatedButton(
             onPressed: () {
               final name = nameController.text.trim();
               final amount = double.tryParse(amountController.text.trim()) ?? 0;
               if (name.isEmpty || amount <= 0) {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Enter valid details')));
+                focusAndRevealController(
+                  context,
+                  name.isEmpty ? nameController : amountController,
+                );
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Enter valid details')),
+                );
                 return;
               }
               setState(() {
@@ -529,12 +805,14 @@ class _FeeManagementPageState extends PersistentModuleState<FeeManagementPage> {
                   structure.amount = amount;
                   structure.description = descriptionController.text.trim();
                 } else {
-                  _structures.add(FeeStructure(
-                    id: _structures.isEmpty ? 1 : _structures.last.id + 1,
-                    name: name,
-                    amount: amount,
-                    description: descriptionController.text.trim(),
-                  ));
+                  _structures.add(
+                    FeeStructure(
+                      id: _structures.isEmpty ? 1 : _structures.last.id + 1,
+                      name: name,
+                      amount: amount,
+                      description: descriptionController.text.trim(),
+                    ),
+                  );
                 }
               });
               Navigator.pop(context);
@@ -548,28 +826,44 @@ class _FeeManagementPageState extends PersistentModuleState<FeeManagementPage> {
 
   void _showCategoryDialog(BuildContext context, {FeeCategory? category}) {
     final nameController = TextEditingController(text: category?.name ?? '');
-    final descriptionController = TextEditingController(text: category?.description ?? '');
+    final descriptionController = TextEditingController(
+      text: category?.description ?? '',
+    );
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(category == null ? 'New Fee Category' : 'Edit Fee Category'),
+        title: Text(
+          category == null ? 'New Fee Category' : 'Edit Fee Category',
+        ),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(controller: nameController, decoration: const InputDecoration(labelText: 'Category name')),
-              TextField(controller: descriptionController, decoration: const InputDecoration(labelText: 'Description')),
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(labelText: 'Category name'),
+              ),
+              TextField(
+                controller: descriptionController,
+                decoration: const InputDecoration(labelText: 'Description'),
+              ),
             ],
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
           ElevatedButton(
             onPressed: () {
               final name = nameController.text.trim();
               if (name.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Enter a category name')));
+                focusAndRevealController(context, nameController);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Enter a category name')),
+                );
                 return;
               }
               setState(() {
@@ -577,11 +871,13 @@ class _FeeManagementPageState extends PersistentModuleState<FeeManagementPage> {
                   category.name = name;
                   category.description = descriptionController.text.trim();
                 } else {
-                  _categories.add(FeeCategory(
-                    id: _categories.isEmpty ? 1 : _categories.last.id + 1,
-                    name: name,
-                    description: descriptionController.text.trim(),
-                  ));
+                  _categories.add(
+                    FeeCategory(
+                      id: _categories.isEmpty ? 1 : _categories.last.id + 1,
+                      name: name,
+                      description: descriptionController.text.trim(),
+                    ),
+                  );
                 }
               });
               Navigator.pop(context);
@@ -593,34 +889,70 @@ class _FeeManagementPageState extends PersistentModuleState<FeeManagementPage> {
     );
   }
 
-  void _showInstallmentDialog(BuildContext context, {InstallmentPlan? installment}) {
+  void _showInstallmentDialog(
+    BuildContext context, {
+    InstallmentPlan? installment,
+  }) {
     final nameController = TextEditingController(text: installment?.name ?? '');
-    final dueDateController = TextEditingController(text: installment?.dueDate ?? '');
-    final amountController = TextEditingController(text: installment?.amount.toString() ?? '');
+    final dueDateController = TextEditingController(
+      text: installment?.dueDate ?? '',
+    );
+    final amountController = TextEditingController(
+      text: installment?.amount.toString() ?? '',
+    );
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(installment == null ? 'New Installment' : 'Edit Installment'),
+        title: Text(
+          installment == null ? 'New Installment' : 'Edit Installment',
+        ),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(controller: nameController, decoration: const InputDecoration(labelText: 'Installment name')),
-              TextField(controller: dueDateController, decoration: const InputDecoration(labelText: 'Due date')), 
-              TextField(controller: amountController, decoration: const InputDecoration(labelText: 'Amount'), keyboardType: TextInputType.number),
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(
+                  labelText: 'Installment name',
+                ),
+              ),
+              TextField(
+                controller: dueDateController,
+                decoration: const InputDecoration(labelText: 'Due date'),
+              ),
+              TextField(
+                controller: amountController,
+                decoration: const InputDecoration(labelText: 'Amount'),
+                keyboardType: TextInputType.number,
+              ),
             ],
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
           ElevatedButton(
             onPressed: () {
               final name = nameController.text.trim();
               final dueDate = dueDateController.text.trim();
               final amount = double.tryParse(amountController.text.trim()) ?? 0;
               if (name.isEmpty || dueDate.isEmpty || amount <= 0) {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Enter valid installment details')));
+                focusAndRevealController(
+                  context,
+                  name.isEmpty
+                      ? nameController
+                      : dueDate.isEmpty
+                      ? dueDateController
+                      : amountController,
+                );
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Enter valid installment details'),
+                  ),
+                );
                 return;
               }
               setState(() {
@@ -629,13 +961,15 @@ class _FeeManagementPageState extends PersistentModuleState<FeeManagementPage> {
                   installment.dueDate = dueDate;
                   installment.amount = amount;
                 } else {
-                  _installments.add(InstallmentPlan(
-                    id: _installments.isEmpty ? 1 : _installments.last.id + 1,
-                    name: name,
-                    dueDate: dueDate,
-                    amount: amount,
-                    paid: false,
-                  ));
+                  _installments.add(
+                    InstallmentPlan(
+                      id: _installments.isEmpty ? 1 : _installments.last.id + 1,
+                      name: name,
+                      dueDate: dueDate,
+                      amount: amount,
+                      paid: false,
+                    ),
+                  );
                 }
               });
               Navigator.pop(context);
@@ -647,34 +981,69 @@ class _FeeManagementPageState extends PersistentModuleState<FeeManagementPage> {
     );
   }
 
-  void _showCollectionDialog(BuildContext context, {FeeCollection? collection}) {
-    final studentController = TextEditingController(text: collection?.studentName ?? '');
-    final amountController = TextEditingController(text: collection?.amount.toString() ?? '');
-    String selectedCategory = collection?.category ?? (_categories.isNotEmpty ? _categories.first.name : '');
+  void _showCollectionDialog(
+    BuildContext context, {
+    FeeCollection? collection,
+  }) {
+    final studentController = TextEditingController(
+      text: collection?.studentName ?? '',
+    );
+    final amountController = TextEditingController(
+      text: collection?.amount.toString() ?? '',
+    );
+    String selectedCategory =
+        collection?.category ??
+        (_categories.isNotEmpty ? _categories.first.name : '');
     String selectedMethod = collection?.paymentMethod ?? _gateways.first.name;
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(collection == null ? 'New Fee Collection' : 'Edit Fee Collection'),
+        title: Text(
+          collection == null ? 'New Fee Collection' : 'Edit Fee Collection',
+        ),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(controller: studentController, decoration: const InputDecoration(labelText: 'Student Name')),
-              const SizedBox(height: 8),
-              DropdownButtonFormField<String>(
-                initialValue: selectedCategory.isNotEmpty ? selectedCategory : null,
-                items: _categories.map((category) => DropdownMenuItem(value: category.name, child: Text(category.name))).toList(),
-                decoration: const InputDecoration(labelText: 'Category'),
-                onChanged: (value) => selectedCategory = value ?? selectedCategory,
+              TextField(
+                controller: studentController,
+                decoration: const InputDecoration(labelText: 'Student Name'),
               ),
               const SizedBox(height: 8),
-              TextField(controller: amountController, decoration: const InputDecoration(labelText: 'Amount'), keyboardType: TextInputType.number),
+              DropdownButtonFormField<String>(
+                initialValue: selectedCategory.isNotEmpty
+                    ? selectedCategory
+                    : null,
+                items: _categories
+                    .map(
+                      (category) => DropdownMenuItem(
+                        value: category.name,
+                        child: Text(category.name),
+                      ),
+                    )
+                    .toList(),
+                decoration: const InputDecoration(labelText: 'Category'),
+                onChanged: (value) =>
+                    selectedCategory = value ?? selectedCategory,
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: amountController,
+                decoration: const InputDecoration(labelText: 'Amount'),
+                keyboardType: TextInputType.number,
+              ),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
                 initialValue: selectedMethod,
-                items: _gateways.map((gateway) => DropdownMenuItem(value: gateway.name, child: Text(gateway.name))).toList(),
+                items: _gateways
+                    .map(
+                      (gateway) => DropdownMenuItem(
+                        value: gateway.name,
+                        child: Text(gateway.name),
+                      ),
+                    )
+                    .toList(),
                 decoration: const InputDecoration(labelText: 'Payment Method'),
                 onChanged: (value) => selectedMethod = value ?? selectedMethod,
               ),
@@ -682,32 +1051,55 @@ class _FeeManagementPageState extends PersistentModuleState<FeeManagementPage> {
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
           ElevatedButton(
             onPressed: () {
               final studentName = studentController.text.trim();
               final amount = double.tryParse(amountController.text.trim()) ?? 0;
               if (studentName.isEmpty || amount <= 0) {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Enter valid student and amount.')));
+                focusAndRevealController(
+                  context,
+                  studentName.isEmpty ? studentController : amountController,
+                );
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Enter valid student and amount.'),
+                  ),
+                );
                 return;
               }
-              final gateway = _gateways.firstWhere((gate) => gate.name == selectedMethod);
+              final gateway = _gateways.firstWhere(
+                (gate) => gate.name == selectedMethod,
+              );
               if (!gateway.enabled) {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${gateway.name} is disabled. Enable it in Payments tab.')));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      '${gateway.name} is disabled. Enable it in Payments tab.',
+                    ),
+                  ),
+                );
                 return;
               }
               setState(() {
                 if (collection == null) {
-                  final newId = _collections.isEmpty ? 1 : _collections.last.id + 1;
-                  _collections.add(FeeCollection(
-                    id: newId,
-                    studentName: studentName,
-                    category: selectedCategory,
-                    amount: amount,
-                    paidOn: DateTime.now().toString().split(' ').first,
-                    paymentMethod: selectedMethod,
-                    receiptId: 'RCPT-${1000 + newId}',
-                  ));
+                  final newId = _collections.isEmpty
+                      ? 1
+                      : _collections.last.id + 1;
+                  _collections.add(
+                    FeeCollection(
+                      id: newId,
+                      studentName: studentName,
+                      category: selectedCategory,
+                      amount: amount,
+                      paidOn: DateTime.now().toString().split(' ').first,
+                      paymentMethod: selectedMethod,
+                      receiptId: 'RCPT-${1000 + newId}',
+                    ),
+                  );
                 } else {
                   collection
                     ..studentName = studentName
@@ -727,40 +1119,93 @@ class _FeeManagementPageState extends PersistentModuleState<FeeManagementPage> {
 }
 
 class FeeStructure {
-  FeeStructure({required this.id, required this.name, required this.amount, required this.description});
+  FeeStructure({
+    required this.id,
+    required this.name,
+    required this.amount,
+    required this.description,
+  });
 
   final int id;
   String name;
   double amount;
   String description;
-  Map<String, dynamic> toJson() => {'id': id, 'name': name, 'amount': amount, 'description': description};
-  factory FeeStructure.fromJson(Map<String, dynamic> j) => FeeStructure(id: j['id'] as int, name: j['name'] as String, amount: (j['amount'] as num).toDouble(), description: j['description'] as String);
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'amount': amount,
+    'description': description,
+  };
+  factory FeeStructure.fromJson(Map<String, dynamic> j) => FeeStructure(
+    id: j['id'] as int,
+    name: j['name'] as String,
+    amount: (j['amount'] as num).toDouble(),
+    description: j['description'] as String,
+  );
 }
 
 class FeeCategory {
-  FeeCategory({required this.id, required this.name, required this.description});
+  FeeCategory({
+    required this.id,
+    required this.name,
+    required this.description,
+  });
 
   final int id;
   String name;
   String description;
-  Map<String, dynamic> toJson() => {'id': id, 'name': name, 'description': description};
-  factory FeeCategory.fromJson(Map<String, dynamic> j) => FeeCategory(id: j['id'] as int, name: j['name'] as String, description: j['description'] as String);
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'description': description,
+  };
+  factory FeeCategory.fromJson(Map<String, dynamic> j) => FeeCategory(
+    id: j['id'] as int,
+    name: j['name'] as String,
+    description: j['description'] as String,
+  );
 }
 
 class InstallmentPlan {
-  InstallmentPlan({required this.id, required this.name, required this.dueDate, required this.amount, required this.paid});
+  InstallmentPlan({
+    required this.id,
+    required this.name,
+    required this.dueDate,
+    required this.amount,
+    required this.paid,
+  });
 
   final int id;
   String name;
   String dueDate;
   double amount;
   bool paid;
-  Map<String, dynamic> toJson() => {'id': id, 'name': name, 'dueDate': dueDate, 'amount': amount, 'paid': paid};
-  factory InstallmentPlan.fromJson(Map<String, dynamic> j) => InstallmentPlan(id: j['id'] as int, name: j['name'] as String, dueDate: j['dueDate'] as String, amount: (j['amount'] as num).toDouble(), paid: j['paid'] as bool);
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'dueDate': dueDate,
+    'amount': amount,
+    'paid': paid,
+  };
+  factory InstallmentPlan.fromJson(Map<String, dynamic> j) => InstallmentPlan(
+    id: j['id'] as int,
+    name: j['name'] as String,
+    dueDate: j['dueDate'] as String,
+    amount: (j['amount'] as num).toDouble(),
+    paid: j['paid'] as bool,
+  );
 }
 
 class FeeCollection {
-  FeeCollection({required this.id, required this.studentName, required this.category, required this.amount, required this.paidOn, required this.paymentMethod, this.receiptId});
+  FeeCollection({
+    required this.id,
+    required this.studentName,
+    required this.category,
+    required this.amount,
+    required this.paidOn,
+    required this.paymentMethod,
+    this.receiptId,
+  });
 
   final int id;
   String studentName;
@@ -769,8 +1214,24 @@ class FeeCollection {
   final String paidOn;
   String paymentMethod;
   String? receiptId;
-  Map<String, dynamic> toJson() => {'id': id, 'studentName': studentName, 'category': category, 'amount': amount, 'paidOn': paidOn, 'paymentMethod': paymentMethod, 'receiptId': receiptId};
-  factory FeeCollection.fromJson(Map<String, dynamic> j) => FeeCollection(id: j['id'] as int, studentName: j['studentName'] as String, category: j['category'] as String, amount: (j['amount'] as num).toDouble(), paidOn: j['paidOn'] as String, paymentMethod: j['paymentMethod'] as String, receiptId: j['receiptId'] as String?);
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'studentName': studentName,
+    'category': category,
+    'amount': amount,
+    'paidOn': paidOn,
+    'paymentMethod': paymentMethod,
+    'receiptId': receiptId,
+  };
+  factory FeeCollection.fromJson(Map<String, dynamic> j) => FeeCollection(
+    id: j['id'] as int,
+    studentName: j['studentName'] as String,
+    category: j['category'] as String,
+    amount: (j['amount'] as num).toDouble(),
+    paidOn: j['paidOn'] as String,
+    paymentMethod: j['paymentMethod'] as String,
+    receiptId: j['receiptId'] as String?,
+  );
 }
 
 class PaymentGateway {
@@ -779,11 +1240,16 @@ class PaymentGateway {
   final String name;
   bool enabled;
   Map<String, dynamic> toJson() => {'name': name, 'enabled': enabled};
-  factory PaymentGateway.fromJson(Map<String, dynamic> j) => PaymentGateway(name: j['name'] as String, enabled: j['enabled'] as bool);
+  factory PaymentGateway.fromJson(Map<String, dynamic> j) =>
+      PaymentGateway(name: j['name'] as String, enabled: j['enabled'] as bool);
 }
 
 class Receipt {
-  Receipt({required this.id, required this.collectionId, required this.fileName});
+  Receipt({
+    required this.id,
+    required this.collectionId,
+    required this.fileName,
+  });
 
   final int id;
   final int collectionId;
@@ -808,9 +1274,18 @@ class _ReportCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: const TextStyle(fontSize: 14, color: Colors.black54)),
+              Text(
+                title,
+                style: const TextStyle(fontSize: 14, color: Colors.black54),
+              ),
               const SizedBox(height: 12),
-              Text(value, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ],
           ),
         ),

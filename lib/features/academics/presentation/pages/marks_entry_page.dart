@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:educare/core/widgets/form_validation.dart';
 import 'package:educare/core/widgets/persistent_module_state.dart';
 
 class MarksEntryPage extends StatefulWidget {
-  const MarksEntryPage({super.key, required this.examId, required this.sectionId});
+  const MarksEntryPage({
+    super.key,
+    required this.examId,
+    required this.sectionId,
+  });
 
   final int examId;
   final int sectionId;
@@ -20,15 +25,24 @@ class _MarksEntryPageState extends PersistentModuleState<MarksEntryPage> {
   @override
   String get moduleKey => 'marks-${widget.examId}-${widget.sectionId}';
   @override
-  Map<String, dynamic> exportState() => {'records': _records.map((item) => {'student': item.student, 'marks': item.marks}).toList()};
+  Map<String, dynamic> exportState() => {
+    'records': _records
+        .map((item) => {'student': item.student, 'marks': item.marks})
+        .toList(),
+  };
   @override
   void importState(Map<String, dynamic> data) {
     _records
       ..clear()
-      ..addAll((data['records'] as List? ?? []).map((item) {
-        final map = Map<String, dynamic>.from(item as Map);
-        return (student: map['student'] as String, marks: map['marks'] as int);
-      }));
+      ..addAll(
+        (data['records'] as List? ?? []).map((item) {
+          final map = Map<String, dynamic>.from(item as Map);
+          return (
+            student: map['student'] as String,
+            marks: map['marks'] as int,
+          );
+        }),
+      );
   }
 
   @override
@@ -42,7 +56,15 @@ class _MarksEntryPageState extends PersistentModuleState<MarksEntryPage> {
     final student = _studentController.text.trim();
     final marks = int.tryParse(_marksController.text);
     if (student.isEmpty || marks == null || marks < 0 || marks > 100) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Enter a student and marks between 0 and 100.')));
+      focusAndRevealController(
+        context,
+        student.isEmpty ? _studentController : _marksController,
+      );
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Enter a student and marks between 0 and 100.'),
+        ),
+      );
       return;
     }
     setState(() {
@@ -65,13 +87,26 @@ class _MarksEntryPageState extends PersistentModuleState<MarksEntryPage> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Text('Exam ${widget.examId} • Section ${widget.sectionId}', style: const TextStyle(fontWeight: FontWeight.bold)),
+          Text(
+            'Exam ${widget.examId} • Section ${widget.sectionId}',
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 16),
-          TextField(controller: _studentController, decoration: const InputDecoration(labelText: 'Student Name')),
+          TextField(
+            controller: _studentController,
+            decoration: const InputDecoration(labelText: 'Student Name'),
+          ),
           const SizedBox(height: 12),
-          TextField(controller: _marksController, decoration: const InputDecoration(labelText: 'Obtained Marks'), keyboardType: TextInputType.number),
+          TextField(
+            controller: _marksController,
+            decoration: const InputDecoration(labelText: 'Obtained Marks'),
+            keyboardType: TextInputType.number,
+          ),
           const SizedBox(height: 12),
-          ElevatedButton(onPressed: _save, child: Text(_editingIndex == null ? 'Save Marks' : 'Update Marks')),
+          ElevatedButton(
+            onPressed: _save,
+            child: Text(_editingIndex == null ? 'Save Marks' : 'Update Marks'),
+          ),
           const SizedBox(height: 20),
           ...List.generate(_records.length, (index) {
             final record = _records[index];
@@ -90,7 +125,10 @@ class _MarksEntryPageState extends PersistentModuleState<MarksEntryPage> {
                         _marksController.text = record.marks.toString();
                       }),
                     ),
-                    IconButton(icon: const Icon(Icons.delete), onPressed: () => setState(() => _records.removeAt(index))),
+                    IconButton(
+                      icon: const Icon(Icons.delete),
+                      onPressed: () => setState(() => _records.removeAt(index)),
+                    ),
                   ],
                 ),
               ),

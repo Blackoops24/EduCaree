@@ -1,4 +1,5 @@
 import 'package:educare/core/widgets/delete_confirmation_dialog.dart';
+import 'package:educare/core/widgets/form_validation.dart';
 import 'package:educare/core/widgets/persistent_module_state.dart';
 import 'package:flutter/material.dart';
 
@@ -6,14 +7,34 @@ class InventoryManagementPage extends StatefulWidget {
   const InventoryManagementPage({super.key});
 
   @override
-  State<InventoryManagementPage> createState() => _InventoryManagementPageState();
+  State<InventoryManagementPage> createState() =>
+      _InventoryManagementPageState();
 }
 
-class _InventoryManagementPageState extends PersistentModuleState<InventoryManagementPage> {
+class _InventoryManagementPageState
+    extends PersistentModuleState<InventoryManagementPage> {
   final List<AssetItem> _assets = [
-    AssetItem(id: 1, name: 'Projector', type: 'Lab Equipment', condition: 'Good', quantity: 3),
-    AssetItem(id: 2, name: 'Football', type: 'Sports Equipment', condition: 'Good', quantity: 20),
-    AssetItem(id: 3, name: 'Microscope', type: 'Lab Equipment', condition: 'Needs Repair', quantity: 2),
+    AssetItem(
+      id: 1,
+      name: 'Projector',
+      type: 'Lab Equipment',
+      condition: 'Good',
+      quantity: 3,
+    ),
+    AssetItem(
+      id: 2,
+      name: 'Football',
+      type: 'Sports Equipment',
+      condition: 'Good',
+      quantity: 20,
+    ),
+    AssetItem(
+      id: 3,
+      name: 'Microscope',
+      type: 'Lab Equipment',
+      condition: 'Needs Repair',
+      quantity: 2,
+    ),
   ];
 
   final List<AssetItem> _labEquipment = [];
@@ -31,17 +52,37 @@ class _InventoryManagementPageState extends PersistentModuleState<InventoryManag
 
   @override
   void importState(Map<String, dynamic> data) {
-    _assets..clear()..addAll((data['assets'] as List? ?? []).map((e) => AssetItem.fromJson(Map<String, dynamic>.from(e as Map))));
-    _labEquipment..clear()..addAll(_assets.where((e) => e.type == 'Lab Equipment'));
-    _sportsEquipment..clear()..addAll(_assets.where((e) => e.type == 'Sports Equipment'));
-    _stockHistory..clear()..addAll((data['stock'] as List? ?? []).map((e) => AssetStock.fromJson(Map<String, dynamic>.from(e as Map))));
+    _assets
+      ..clear()
+      ..addAll(
+        (data['assets'] as List? ?? []).map(
+          (e) => AssetItem.fromJson(Map<String, dynamic>.from(e as Map)),
+        ),
+      );
+    _labEquipment
+      ..clear()
+      ..addAll(_assets.where((e) => e.type == 'Lab Equipment'));
+    _sportsEquipment
+      ..clear()
+      ..addAll(_assets.where((e) => e.type == 'Sports Equipment'));
+    _stockHistory
+      ..clear()
+      ..addAll(
+        (data['stock'] as List? ?? []).map(
+          (e) => AssetStock.fromJson(Map<String, dynamic>.from(e as Map)),
+        ),
+      );
   }
 
   @override
   void initState() {
     super.initState();
-    _labEquipment.addAll(_assets.where((asset) => asset.type == 'Lab Equipment'));
-    _sportsEquipment.addAll(_assets.where((asset) => asset.type == 'Sports Equipment'));
+    _labEquipment.addAll(
+      _assets.where((asset) => asset.type == 'Lab Equipment'),
+    );
+    _sportsEquipment.addAll(
+      _assets.where((asset) => asset.type == 'Sports Equipment'),
+    );
   }
 
   @override
@@ -75,7 +116,12 @@ class _InventoryManagementPageState extends PersistentModuleState<InventoryManag
     );
   }
 
-  Widget _buildSectionHeader(String title, String subtitle, {VoidCallback? action, String? actionLabel}) {
+  Widget _buildSectionHeader(
+    String title,
+    String subtitle, {
+    VoidCallback? action,
+    String? actionLabel,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       child: Row(
@@ -84,7 +130,13 @@ class _InventoryManagementPageState extends PersistentModuleState<InventoryManag
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 const SizedBox(height: 4),
                 Text(subtitle, style: const TextStyle(color: Colors.black54)),
               ],
@@ -101,7 +153,12 @@ class _InventoryManagementPageState extends PersistentModuleState<InventoryManag
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionHeader('Asset Management', 'Add and manage all school assets.', action: () => _showAssetDialog(context), actionLabel: 'Add Asset'),
+        _buildSectionHeader(
+          'Asset Management',
+          'Add and manage all school assets.',
+          action: () => _showAssetDialog(context),
+          actionLabel: 'Add Asset',
+        ),
         Expanded(
           child: _assets.isEmpty
               ? const Center(child: Text('No assets available yet.'))
@@ -112,22 +169,32 @@ class _InventoryManagementPageState extends PersistentModuleState<InventoryManag
                   itemBuilder: (context, index) {
                     final asset = _assets[index];
                     return Card(
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       child: ListTile(
                         title: Text(asset.name),
-                        subtitle: Text('${asset.type} • ${asset.condition} • Qty: ${asset.quantity}'),
+                        subtitle: Text(
+                          '${asset.type} • ${asset.condition} • Qty: ${asset.quantity}',
+                        ),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            IconButton(icon: const Icon(Icons.edit), onPressed: () => _showAssetDialog(context, asset: asset)),
+                            IconButton(
+                              icon: const Icon(Icons.edit),
+                              onPressed: () =>
+                                  _showAssetDialog(context, asset: asset),
+                            ),
                             IconButton(
                               icon: const Icon(Icons.delete),
                               onPressed: () async {
-                                final confirmed = await showDeleteConfirmationDialog(
-                                  context,
-                                  title: 'Delete asset?',
-                                  message: 'This will remove ${asset.name} from inventory.',
-                                );
+                                final confirmed =
+                                    await showDeleteConfirmationDialog(
+                                      context,
+                                      title: 'Delete asset?',
+                                      message:
+                                          'This will remove ${asset.name} from inventory.',
+                                    );
                                 if (!confirmed) return;
                                 setState(() => _deleteAsset(asset));
                               },
@@ -147,7 +214,12 @@ class _InventoryManagementPageState extends PersistentModuleState<InventoryManag
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionHeader('Lab Equipment', 'Track lab supplies and devices.', action: () => _showAssetDialog(context, category: 'Lab Equipment'), actionLabel: 'Add Lab Item'),
+        _buildSectionHeader(
+          'Lab Equipment',
+          'Track lab supplies and devices.',
+          action: () => _showAssetDialog(context, category: 'Lab Equipment'),
+          actionLabel: 'Add Lab Item',
+        ),
         Expanded(
           child: _labEquipment.isEmpty
               ? const Center(child: Text('No lab equipment recorded.'))
@@ -158,22 +230,32 @@ class _InventoryManagementPageState extends PersistentModuleState<InventoryManag
                   itemBuilder: (context, index) {
                     final asset = _labEquipment[index];
                     return Card(
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       child: ListTile(
                         title: Text(asset.name),
-                        subtitle: Text('${asset.condition} • Qty: ${asset.quantity}'),
+                        subtitle: Text(
+                          '${asset.condition} • Qty: ${asset.quantity}',
+                        ),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            IconButton(icon: const Icon(Icons.edit), onPressed: () => _showAssetDialog(context, asset: asset)),
+                            IconButton(
+                              icon: const Icon(Icons.edit),
+                              onPressed: () =>
+                                  _showAssetDialog(context, asset: asset),
+                            ),
                             IconButton(
                               icon: const Icon(Icons.delete),
                               onPressed: () async {
-                                final confirmed = await showDeleteConfirmationDialog(
-                                  context,
-                                  title: 'Delete lab item?',
-                                  message: 'This will remove ${asset.name} from lab equipment.',
-                                );
+                                final confirmed =
+                                    await showDeleteConfirmationDialog(
+                                      context,
+                                      title: 'Delete lab item?',
+                                      message:
+                                          'This will remove ${asset.name} from lab equipment.',
+                                    );
                                 if (!confirmed) return;
                                 setState(() => _deleteAsset(asset));
                               },
@@ -193,7 +275,12 @@ class _InventoryManagementPageState extends PersistentModuleState<InventoryManag
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionHeader('Sports Equipment', 'Manage sports gear and inventory.', action: () => _showAssetDialog(context, category: 'Sports Equipment'), actionLabel: 'Add Sports Item'),
+        _buildSectionHeader(
+          'Sports Equipment',
+          'Manage sports gear and inventory.',
+          action: () => _showAssetDialog(context, category: 'Sports Equipment'),
+          actionLabel: 'Add Sports Item',
+        ),
         Expanded(
           child: _sportsEquipment.isEmpty
               ? const Center(child: Text('No sports equipment recorded.'))
@@ -204,22 +291,32 @@ class _InventoryManagementPageState extends PersistentModuleState<InventoryManag
                   itemBuilder: (context, index) {
                     final asset = _sportsEquipment[index];
                     return Card(
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       child: ListTile(
                         title: Text(asset.name),
-                        subtitle: Text('${asset.condition} • Qty: ${asset.quantity}'),
+                        subtitle: Text(
+                          '${asset.condition} • Qty: ${asset.quantity}',
+                        ),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            IconButton(icon: const Icon(Icons.edit), onPressed: () => _showAssetDialog(context, asset: asset)),
+                            IconButton(
+                              icon: const Icon(Icons.edit),
+                              onPressed: () =>
+                                  _showAssetDialog(context, asset: asset),
+                            ),
                             IconButton(
                               icon: const Icon(Icons.delete),
                               onPressed: () async {
-                                final confirmed = await showDeleteConfirmationDialog(
-                                  context,
-                                  title: 'Delete sports item?',
-                                  message: 'This will remove ${asset.name} from sports inventory.',
-                                );
+                                final confirmed =
+                                    await showDeleteConfirmationDialog(
+                                      context,
+                                      title: 'Delete sports item?',
+                                      message:
+                                          'This will remove ${asset.name} from sports inventory.',
+                                    );
                                 if (!confirmed) return;
                                 setState(() => _deleteAsset(asset));
                               },
@@ -239,7 +336,12 @@ class _InventoryManagementPageState extends PersistentModuleState<InventoryManag
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionHeader('Stock Management', 'Update stock levels, damaged items and movements.', action: () => _showStockDialog(context), actionLabel: 'Record Stock'),
+        _buildSectionHeader(
+          'Stock Management',
+          'Update stock levels, damaged items and movements.',
+          action: () => _showStockDialog(context),
+          actionLabel: 'Record Stock',
+        ),
         Expanded(
           child: _stockHistory.isEmpty
               ? const Center(child: Text('No stock activity recorded.'))
@@ -250,16 +352,28 @@ class _InventoryManagementPageState extends PersistentModuleState<InventoryManag
                   itemBuilder: (context, index) {
                     final entry = _stockHistory[index];
                     return Card(
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       child: ListTile(
                         title: Text(entry.assetName),
-                        subtitle: Text('${entry.action} • Qty: ${entry.quantity} • ${entry.date}'),
+                        subtitle: Text(
+                          '${entry.action} • Qty: ${entry.quantity} • ${entry.date}',
+                        ),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(entry.notes),
-                            IconButton(icon: const Icon(Icons.edit), onPressed: () => _showStockDialog(context, stock: entry)),
-                            IconButton(icon: const Icon(Icons.delete), onPressed: () => setState(() => _stockHistory.removeAt(index))),
+                            IconButton(
+                              icon: const Icon(Icons.edit),
+                              onPressed: () =>
+                                  _showStockDialog(context, stock: entry),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete),
+                              onPressed: () =>
+                                  setState(() => _stockHistory.removeAt(index)),
+                            ),
                           ],
                         ),
                       ),
@@ -272,68 +386,109 @@ class _InventoryManagementPageState extends PersistentModuleState<InventoryManag
   }
 
   Widget _buildReportsTab(BuildContext context) {
-    final availableAssets = _assets.where((asset) => asset.condition.toLowerCase() == 'good').toList();
-    final damagedAssets = _assets.where((asset) => asset.condition.toLowerCase() != 'good').toList();
+    final availableAssets = _assets
+        .where((asset) => asset.condition.toLowerCase() == 'good')
+        .toList();
+    final damagedAssets = _assets
+        .where((asset) => asset.condition.toLowerCase() != 'good')
+        .toList();
 
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionHeader('Inventory Reports', 'Review available assets, damaged items and history.'),
+          _buildSectionHeader(
+            'Inventory Reports',
+            'Review available assets, damaged items and history.',
+          ),
           const SizedBox(height: 16),
           Wrap(
             spacing: 12,
             runSpacing: 12,
             children: [
-              _ReportCard(title: 'Available Assets', value: '${availableAssets.length}'),
-              _ReportCard(title: 'Damaged Assets', value: '${damagedAssets.length}'),
-              _ReportCard(title: 'History Entries', value: '${_stockHistory.length}'),
+              _ReportCard(
+                title: 'Available Assets',
+                value: '${availableAssets.length}',
+              ),
+              _ReportCard(
+                title: 'Damaged Assets',
+                value: '${damagedAssets.length}',
+              ),
+              _ReportCard(
+                title: 'History Entries',
+                value: '${_stockHistory.length}',
+              ),
             ],
           ),
           const SizedBox(height: 24),
-          const Text('Available Assets', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          const Text(
+            'Available Assets',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 8),
-          ...availableAssets.map((asset) => Card(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                child: ListTile(
-                  title: Text(asset.name),
-                  subtitle: Text('${asset.type} • Qty: ${asset.quantity}'),
-                  trailing: Text(asset.condition),
-                ),
-              )),
+          ...availableAssets.map(
+            (asset) => Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: ListTile(
+                title: Text(asset.name),
+                subtitle: Text('${asset.type} • Qty: ${asset.quantity}'),
+                trailing: Text(asset.condition),
+              ),
+            ),
+          ),
           const SizedBox(height: 24),
-          const Text('Damaged Assets', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          const Text(
+            'Damaged Assets',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 8),
           damagedAssets.isEmpty
               ? const Text('No damaged assets at this time.')
               : Column(
                   children: damagedAssets
-                      .map((asset) => Card(
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            child: ListTile(
-                              title: Text(asset.name),
-                              subtitle: Text('${asset.type} • Qty: ${asset.quantity}'),
-                              trailing: Text(asset.condition),
+                      .map(
+                        (asset) => Card(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: ListTile(
+                            title: Text(asset.name),
+                            subtitle: Text(
+                              '${asset.type} • Qty: ${asset.quantity}',
                             ),
-                          ))
+                            trailing: Text(asset.condition),
+                          ),
+                        ),
+                      )
                       .toList(),
                 ),
           const SizedBox(height: 24),
-          const Text('Asset History', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          const Text(
+            'Asset History',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 8),
           _stockHistory.isEmpty
               ? const Text('No asset history available.')
               : Column(
                   children: _stockHistory
-                      .map((entry) => Card(
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            child: ListTile(
-                              title: Text(entry.assetName),
-                              subtitle: Text('${entry.action} • Qty ${entry.quantity} • ${entry.date}'),
-                              trailing: Text(entry.notes),
+                      .map(
+                        (entry) => Card(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: ListTile(
+                            title: Text(entry.assetName),
+                            subtitle: Text(
+                              '${entry.action} • Qty ${entry.quantity} • ${entry.date}',
                             ),
-                          ))
+                            trailing: Text(entry.notes),
+                          ),
+                        ),
+                      )
                       .toList(),
                 ),
         ],
@@ -341,11 +496,19 @@ class _InventoryManagementPageState extends PersistentModuleState<InventoryManag
     );
   }
 
-  void _showAssetDialog(BuildContext context, {AssetItem? asset, String? category}) {
+  void _showAssetDialog(
+    BuildContext context, {
+    AssetItem? asset,
+    String? category,
+  }) {
     final nameController = TextEditingController(text: asset?.name ?? '');
-    final quantityController = TextEditingController(text: asset?.quantity.toString() ?? '');
+    final quantityController = TextEditingController(
+      text: asset?.quantity.toString() ?? '',
+    );
     String selectedType = asset?.type ?? category ?? 'Asset Management';
-    final conditionController = TextEditingController(text: asset?.condition ?? 'Good');
+    final conditionController = TextEditingController(
+      text: asset?.condition ?? 'Good',
+    );
 
     showDialog(
       context: context,
@@ -355,34 +518,67 @@ class _InventoryManagementPageState extends PersistentModuleState<InventoryManag
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(controller: nameController, decoration: const InputDecoration(labelText: 'Asset Name')),
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(labelText: 'Asset Name'),
+              ),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
                 initialValue: selectedType,
                 items: const [
-                  DropdownMenuItem(value: 'Asset Management', child: Text('General Asset')),
-                  DropdownMenuItem(value: 'Lab Equipment', child: Text('Lab Equipment')),
-                  DropdownMenuItem(value: 'Sports Equipment', child: Text('Sports Equipment')),
+                  DropdownMenuItem(
+                    value: 'Asset Management',
+                    child: Text('General Asset'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'Lab Equipment',
+                    child: Text('Lab Equipment'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'Sports Equipment',
+                    child: Text('Sports Equipment'),
+                  ),
                 ],
                 decoration: const InputDecoration(labelText: 'Type'),
                 onChanged: (value) => selectedType = value ?? selectedType,
               ),
               const SizedBox(height: 8),
-              TextField(controller: quantityController, decoration: const InputDecoration(labelText: 'Quantity'), keyboardType: TextInputType.number),
+              TextField(
+                controller: quantityController,
+                decoration: const InputDecoration(labelText: 'Quantity'),
+                keyboardType: TextInputType.number,
+              ),
               const SizedBox(height: 8),
-              TextField(controller: conditionController, decoration: const InputDecoration(labelText: 'Condition')),
+              TextField(
+                controller: conditionController,
+                decoration: const InputDecoration(labelText: 'Condition'),
+              ),
             ],
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
           ElevatedButton(
             onPressed: () {
               final name = nameController.text.trim();
-              final quantity = int.tryParse(quantityController.text.trim()) ?? 0;
+              final quantity =
+                  int.tryParse(quantityController.text.trim()) ?? 0;
               final condition = conditionController.text.trim();
               if (name.isEmpty || quantity <= 0 || condition.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Enter valid asset data.')));
+                focusAndRevealController(
+                  context,
+                  name.isEmpty
+                      ? nameController
+                      : quantity <= 0
+                      ? quantityController
+                      : conditionController,
+                );
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Enter valid asset data.')),
+                );
                 return;
               }
               setState(() {
@@ -417,22 +613,34 @@ class _InventoryManagementPageState extends PersistentModuleState<InventoryManag
   }
 
   void _showStockDialog(BuildContext context, {AssetStock? stock}) {
-    final quantityController = TextEditingController(text: stock?.quantity.toString() ?? '');
+    final quantityController = TextEditingController(
+      text: stock?.quantity.toString() ?? '',
+    );
     final notesController = TextEditingController(text: stock?.notes ?? '');
-    String selectedAsset = stock?.assetName ?? (_assets.isNotEmpty ? _assets.first.name : '');
+    String selectedAsset =
+        stock?.assetName ?? (_assets.isNotEmpty ? _assets.first.name : '');
     String selectedAction = stock?.action ?? 'Added';
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(stock == null ? 'Record Stock Movement' : 'Edit Stock Movement'),
+        title: Text(
+          stock == null ? 'Record Stock Movement' : 'Edit Stock Movement',
+        ),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               DropdownButtonFormField<String>(
                 initialValue: selectedAsset.isNotEmpty ? selectedAsset : null,
-                items: _assets.map((asset) => DropdownMenuItem(value: asset.name, child: Text(asset.name))).toList(),
+                items: _assets
+                    .map(
+                      (asset) => DropdownMenuItem(
+                        value: asset.name,
+                        child: Text(asset.name),
+                      ),
+                    )
+                    .toList(),
                 decoration: const InputDecoration(labelText: 'Asset'),
                 onChanged: (value) => selectedAsset = value ?? selectedAsset,
               ),
@@ -448,32 +656,48 @@ class _InventoryManagementPageState extends PersistentModuleState<InventoryManag
                 onChanged: (value) => selectedAction = value ?? selectedAction,
               ),
               const SizedBox(height: 8),
-              TextField(controller: quantityController, decoration: const InputDecoration(labelText: 'Quantity'), keyboardType: TextInputType.number),
+              TextField(
+                controller: quantityController,
+                decoration: const InputDecoration(labelText: 'Quantity'),
+                keyboardType: TextInputType.number,
+              ),
               const SizedBox(height: 8),
-              TextField(controller: notesController, decoration: const InputDecoration(labelText: 'Notes')),
+              TextField(
+                controller: notesController,
+                decoration: const InputDecoration(labelText: 'Notes'),
+              ),
             ],
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
           ElevatedButton(
             onPressed: () {
-              final quantity = int.tryParse(quantityController.text.trim()) ?? 0;
+              final quantity =
+                  int.tryParse(quantityController.text.trim()) ?? 0;
               final notes = notesController.text.trim();
               if (selectedAsset.isEmpty || quantity <= 0) {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Enter valid stock details.')));
+                focusAndRevealController(context, quantityController);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Enter valid stock details.')),
+                );
                 return;
               }
               setState(() {
                 if (stock == null) {
-                  _stockHistory.add(AssetStock(
-                    id: _stockHistory.isEmpty ? 1 : _stockHistory.last.id + 1,
-                    assetName: selectedAsset,
-                    action: selectedAction,
-                    quantity: quantity,
-                    notes: notes.isEmpty ? 'No notes' : notes,
-                    date: DateTime.now().toString().split(' ').first,
-                  ));
+                  _stockHistory.add(
+                    AssetStock(
+                      id: _stockHistory.isEmpty ? 1 : _stockHistory.last.id + 1,
+                      assetName: selectedAsset,
+                      action: selectedAction,
+                      quantity: quantity,
+                      notes: notes.isEmpty ? 'No notes' : notes,
+                      date: DateTime.now().toString().split(' ').first,
+                    ),
+                  );
                 } else {
                   stock
                     ..assetName = selectedAsset
@@ -499,19 +723,44 @@ class _InventoryManagementPageState extends PersistentModuleState<InventoryManag
 }
 
 class AssetItem {
-  AssetItem({required this.id, required this.name, required this.type, required this.condition, required this.quantity});
+  AssetItem({
+    required this.id,
+    required this.name,
+    required this.type,
+    required this.condition,
+    required this.quantity,
+  });
 
   final int id;
   String name;
   String type;
   String condition;
   int quantity;
-  Map<String, dynamic> toJson() => {'id': id, 'name': name, 'type': type, 'condition': condition, 'quantity': quantity};
-  factory AssetItem.fromJson(Map<String, dynamic> j) => AssetItem(id: j['id'] as int, name: j['name'] as String, type: j['type'] as String, condition: j['condition'] as String, quantity: j['quantity'] as int);
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'type': type,
+    'condition': condition,
+    'quantity': quantity,
+  };
+  factory AssetItem.fromJson(Map<String, dynamic> j) => AssetItem(
+    id: j['id'] as int,
+    name: j['name'] as String,
+    type: j['type'] as String,
+    condition: j['condition'] as String,
+    quantity: j['quantity'] as int,
+  );
 }
 
 class AssetStock {
-  AssetStock({required this.id, required this.assetName, required this.action, required this.quantity, required this.notes, required this.date});
+  AssetStock({
+    required this.id,
+    required this.assetName,
+    required this.action,
+    required this.quantity,
+    required this.notes,
+    required this.date,
+  });
 
   final int id;
   String assetName;
@@ -519,8 +768,22 @@ class AssetStock {
   int quantity;
   String notes;
   final String date;
-  Map<String, dynamic> toJson() => {'id': id, 'assetName': assetName, 'action': action, 'quantity': quantity, 'notes': notes, 'date': date};
-  factory AssetStock.fromJson(Map<String, dynamic> j) => AssetStock(id: j['id'] as int, assetName: j['assetName'] as String, action: j['action'] as String, quantity: j['quantity'] as int, notes: j['notes'] as String, date: j['date'] as String);
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'assetName': assetName,
+    'action': action,
+    'quantity': quantity,
+    'notes': notes,
+    'date': date,
+  };
+  factory AssetStock.fromJson(Map<String, dynamic> j) => AssetStock(
+    id: j['id'] as int,
+    assetName: j['assetName'] as String,
+    action: j['action'] as String,
+    quantity: j['quantity'] as int,
+    notes: j['notes'] as String,
+    date: j['date'] as String,
+  );
 }
 
 class _ReportCard extends StatelessWidget {
@@ -541,9 +804,18 @@ class _ReportCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: const TextStyle(fontSize: 14, color: Colors.black54)),
+              Text(
+                title,
+                style: const TextStyle(fontSize: 14, color: Colors.black54),
+              ),
               const SizedBox(height: 12),
-              Text(value, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ],
           ),
         ),

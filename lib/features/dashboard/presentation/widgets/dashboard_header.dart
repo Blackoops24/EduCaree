@@ -1,5 +1,6 @@
 import 'package:educare/core/providers.dart';
 import 'package:educare/core/constants/app_constants.dart';
+import 'package:educare/core/widgets/form_validation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -28,9 +29,24 @@ class _DashboardHeaderState extends ConsumerState<DashboardHeader> {
     final query = _searchController.text.trim().toLowerCase();
     if (query.isEmpty) return;
     final destinations = <String, List<String>>{
-      AppRoutes.students: ['student', 'admission', 'parent', 'promotion', 'alumni', 'document', 'transfer'],
+      AppRoutes.students: [
+        'student',
+        'admission',
+        'parent',
+        'promotion',
+        'alumni',
+        'document',
+        'transfer',
+      ],
       AppRoutes.staff: ['staff', 'teacher', 'employee', 'salary', 'leave'],
-      AppRoutes.academics: ['academic', 'class', 'subject', 'exam', 'marks', 'timetable'],
+      AppRoutes.academics: [
+        'academic',
+        'class',
+        'subject',
+        'exam',
+        'marks',
+        'timetable',
+      ],
       AppRoutes.attendance: ['attendance', 'biometric', 'face'],
       AppRoutes.fees: ['fee', 'payment'],
       AppRoutes.library: ['library', 'book'],
@@ -41,13 +57,19 @@ class _DashboardHeaderState extends ConsumerState<DashboardHeader> {
       AppRoutes.calendar: ['calendar', 'event'],
     };
     for (final entry in destinations.entries) {
-      if (entry.value.any((keyword) => keyword.contains(query) || query.contains(keyword))) {
+      if (entry.value.any(
+        (keyword) => keyword.contains(query) || query.contains(keyword),
+      )) {
         context.go(entry.key);
         return;
       }
     }
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('No module found for "${_searchController.text.trim()}".')),
+      SnackBar(
+        content: Text(
+          'No module found for "${_searchController.text.trim()}".',
+        ),
+      ),
     );
   }
 
@@ -68,7 +90,9 @@ class _DashboardHeaderState extends ConsumerState<DashboardHeader> {
         ref.read(authViewModelProvider.notifier).logout();
         if (!mounted) return;
         context.go(AppRoutes.login);
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Logged out successfully')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Logged out successfully')),
+        );
         break;
     }
   }
@@ -84,80 +108,92 @@ class _DashboardHeaderState extends ConsumerState<DashboardHeader> {
       builder: (dialogContext) {
         String? currentPasswordError;
         bool submitting = false;
-        return StatefulBuilder(builder: (context, setDialogState) => AlertDialog(
-          title: const Text('Change Password'),
-          content: Form(
-            key: formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextFormField(
-                  controller: currentPasswordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(labelText: 'Current Password'),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Current password is required';
-                    }
-                    return currentPasswordError;
-                  },
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: newPasswordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(labelText: 'New Password'),
-                  validator: (value) {
-                    if (value == null || value.length < 8) {
-                      return 'New password must be at least 8 characters';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: confirmPasswordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(labelText: 'Confirm New Password'),
-                  validator: (value) {
-                    if (value != newPasswordController.text) {
-                      return 'Passwords do not match';
-                    }
-                    return null;
-                  },
-                ),
-              ],
+        return StatefulBuilder(
+          builder: (context, setDialogState) => AlertDialog(
+            title: const Text('Change Password'),
+            content: Form(
+              key: formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextFormField(
+                    controller: currentPasswordController,
+                    obscureText: true,
+                    decoration: const InputDecoration(
+                      labelText: 'Current Password',
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Current password is required';
+                      }
+                      return currentPasswordError;
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: newPasswordController,
+                    obscureText: true,
+                    decoration: const InputDecoration(
+                      labelText: 'New Password',
+                    ),
+                    validator: (value) {
+                      if (value == null || value.length < 8) {
+                        return 'New password must be at least 8 characters';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: confirmPasswordController,
+                    obscureText: true,
+                    decoration: const InputDecoration(
+                      labelText: 'Confirm New Password',
+                    ),
+                    validator: (value) {
+                      if (value != newPasswordController.text) {
+                        return 'Passwords do not match';
+                      }
+                      return null;
+                    },
+                  ),
+                ],
+              ),
             ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: submitting
+                    ? null
+                    : () async {
+                        currentPasswordError = null;
+                        if (!validateAndFocusFirstInvalid(formKey)) return;
+                        setDialogState(() => submitting = true);
+                        final error = await ref
+                            .read(authViewModelProvider.notifier)
+                            .changePassword(
+                              currentPassword: currentPasswordController.text,
+                              newPassword: newPasswordController.text,
+                            );
+                        if (!dialogContext.mounted) return;
+                        if (error != null) {
+                          setDialogState(() {
+                            submitting = false;
+                            currentPasswordError = error;
+                          });
+                          validateAndFocusFirstInvalid(formKey);
+                          return;
+                        }
+                        Navigator.of(dialogContext).pop(true);
+                      },
+                child: Text(submitting ? 'Updating…' : 'Update'),
+              ),
+            ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: submitting ? null : () async {
-                currentPasswordError = null;
-                if (!(formKey.currentState?.validate() ?? false)) return;
-                setDialogState(() => submitting = true);
-                final error = await ref.read(authViewModelProvider.notifier).changePassword(
-                      currentPassword: currentPasswordController.text,
-                      newPassword: newPasswordController.text,
-                    );
-                if (!dialogContext.mounted) return;
-                if (error != null) {
-                  setDialogState(() {
-                    submitting = false;
-                    currentPasswordError = error;
-                  });
-                  formKey.currentState?.validate();
-                  return;
-                }
-                Navigator.of(dialogContext).pop(true);
-              },
-              child: Text(submitting ? 'Updating…' : 'Update'),
-            ),
-          ],
-        ));
+        );
       },
     );
 
@@ -204,7 +240,10 @@ class _DashboardHeaderState extends ConsumerState<DashboardHeader> {
                       const SizedBox(width: 20),
                       Expanded(flex: 6, child: _buildSearchBar(context)),
                       const SizedBox(width: 20),
-                      Expanded(flex: 4, child: _buildActionRow(context, isDark)),
+                      Expanded(
+                        flex: 4,
+                        child: _buildActionRow(context, isDark),
+                      ),
                     ],
                   ),
                 ],
@@ -245,7 +284,11 @@ class _DashboardHeaderState extends ConsumerState<DashboardHeader> {
               const SizedBox(width: 10),
               const Text(
                 'EduCare',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white),
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
               ),
             ],
           ),
@@ -325,12 +368,17 @@ class _DashboardHeaderState extends ConsumerState<DashboardHeader> {
           tooltip: 'User profile menu',
           offset: const Offset(0, 56),
           color: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           onSelected: _handleProfileAction,
           itemBuilder: (context) => [
             const PopupMenuItem(value: 'My Profile', child: Text('My Profile')),
             const PopupMenuItem(value: 'Settings', child: Text('Settings')),
-            const PopupMenuItem(value: 'Change Password', child: Text('Change Password')),
+            const PopupMenuItem(
+              value: 'Change Password',
+              child: Text('Change Password'),
+            ),
             const PopupMenuItem(
               value: 'Logout',
               child: Text('Logout'),

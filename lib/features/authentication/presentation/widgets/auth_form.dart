@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:educare/core/widgets/form_validation.dart';
 
 class AuthForm extends StatefulWidget {
   final bool loading;
@@ -36,7 +37,7 @@ class _AuthFormState extends State<AuthForm> {
   }
 
   void _submit() {
-    if (_formKey.currentState?.validate() ?? false) {
+    if (validateAndFocusFirstInvalid(_formKey)) {
       widget.onSubmit(
         _emailController.text.trim(),
         _passwordController.text.trim(),

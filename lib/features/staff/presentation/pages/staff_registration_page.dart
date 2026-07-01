@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:educare/core/providers.dart';
+import 'package:educare/core/widgets/form_validation.dart';
 import 'package:educare/features/staff/domain/entities/staff_member.dart';
 import 'package:educare/features/staff/presentation/keys/staff_keys.dart';
 
@@ -8,7 +9,8 @@ class StaffRegistrationPage extends ConsumerStatefulWidget {
   const StaffRegistrationPage({super.key});
 
   @override
-  ConsumerState<StaffRegistrationPage> createState() => _StaffRegistrationPageState();
+  ConsumerState<StaffRegistrationPage> createState() =>
+      _StaffRegistrationPageState();
 }
 
 class _StaffRegistrationPageState extends ConsumerState<StaffRegistrationPage> {
@@ -34,7 +36,8 @@ class _StaffRegistrationPageState extends ConsumerState<StaffRegistrationPage> {
   }
 
   void _submit() {
-    if ((_formKey.currentState?.validate() ?? false) && !ref.read(staffViewModelProvider).loading) {
+    if (validateAndFocusFirstInvalid(_formKey) &&
+        !ref.read(staffViewModelProvider).loading) {
       final staff = StaffMember(
         id: 0,
         employeeId: _employeeId.text.trim(),
@@ -63,22 +66,58 @@ class _StaffRegistrationPageState extends ConsumerState<StaffRegistrationPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              if (state.error != null) Text(state.error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+              if (state.error != null)
+                Text(
+                  state.error!,
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
               if (state.registrationSuccess)
-                Text('Registration completed successfully!', style: TextStyle(color: Theme.of(context).colorScheme.primary)),
+                Text(
+                  'Registration completed successfully!',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
               const SizedBox(height: 16),
-              _buildTextField(_employeeId, 'Employee ID', const Key('employeeIdField')),
+              _buildTextField(
+                _employeeId,
+                'Employee ID',
+                const Key('employeeIdField'),
+              ),
               _buildTextField(_name, 'Name', const Key('nameField')),
-              _buildTextField(_designation, 'Designation', const Key('designationField')),
-              _buildTextField(_department, 'Department', const Key('departmentField')),
-              _buildTextField(_qualification, 'Qualification', const Key('qualificationField')),
-              _buildTextField(_joiningDate, 'Joining Date', const Key('joiningDateField')),
-              _buildTextField(_salary, 'Salary', const Key('salaryField'), keyboardType: TextInputType.number),
+              _buildTextField(
+                _designation,
+                'Designation',
+                const Key('designationField'),
+              ),
+              _buildTextField(
+                _department,
+                'Department',
+                const Key('departmentField'),
+              ),
+              _buildTextField(
+                _qualification,
+                'Qualification',
+                const Key('qualificationField'),
+              ),
+              _buildTextField(
+                _joiningDate,
+                'Joining Date',
+                const Key('joiningDateField'),
+              ),
+              _buildTextField(
+                _salary,
+                'Salary',
+                const Key('salaryField'),
+                keyboardType: TextInputType.number,
+              ),
               const SizedBox(height: 24),
               ElevatedButton(
                 key: StaffKeys.registerStaffButton,
                 onPressed: state.loading ? null : _submit,
-                child: state.loading ? const CircularProgressIndicator() : const Text('Register Employee'),
+                child: state.loading
+                    ? const CircularProgressIndicator()
+                    : const Text('Register Employee'),
               ),
             ],
           ),
@@ -87,7 +126,12 @@ class _StaffRegistrationPageState extends ConsumerState<StaffRegistrationPage> {
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String label, Key key, {TextInputType keyboardType = TextInputType.text}) {
+  Widget _buildTextField(
+    TextEditingController controller,
+    String label,
+    Key key, {
+    TextInputType keyboardType = TextInputType.text,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: TextFormField(
